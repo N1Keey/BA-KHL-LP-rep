@@ -1,0 +1,25 @@
+<link rel="stylesheet" href="../static/bootstrap.css">
+<style>
+    body {
+        position: relative;
+        height: 200px;
+        left: 25px;
+        top: 15px;
+    }
+        input[type=email], input[type=password] {
+            width: 300px;
+        }
+</style>
+<a href="/">Zurück</a>
+<body>
+    <h1>KHL-Lernprogramm</h1>
+    <title>Registrieren</title>
+    <h2>Registrieren</h2>
+    <form action="" method='POST'>
+        <p><input type="email" id="Email" name="Email" placeholder="Email" required></p>
+        <p><input type="password" id="Passwort" name="Passwort" placeholder="Passwort" required></p>
+        <p><input type="password" id="pw_best" name="pw_best" placeholder="Passwort bestätigen" required></p>
+        <p><input type="submit" id="Registrieren" name="Registrieren" value="Registrieren"></p>
+    </form>
+    <p style="color:red;">{{pw_val}}</p>
+</body>
