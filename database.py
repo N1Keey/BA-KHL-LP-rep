@@ -8,8 +8,8 @@ cur=con.cursor()
 #writes into table, data
 def writesql(table,data):
     query = "INSERT INTO %s VALUES(%s)"%(table,data)
-    cur.execute(query)  
-    close()   
+    cur.execute(query)     
+    con.commit()
 
 #reads data from given table
 def readsql(table,limit=None):
@@ -26,16 +26,34 @@ def close():
     con.close() 
 
 #Account         
+def readAccounts(column=None):
+    """Alle Daten: column=leer
+    ID's: column=0
+    Emails: column=1
+    Passwörter: column=2
+    status: column=3
+    """
+    output=[]
+    accountsdata=readsql("Accounts")
+    if column==None:
+        output=accountsdata
+    else:
+        for data in accountsdata:
+            prefdata=data[column]
+            output.append(prefdata)
+    return output
+        
+
 #gives you the id of the last registered user
 def getLastuserid():
-    lastuserdata=readsql("Accounts")[-1]
-    lastuserid=lastuserdata[0]
+    userids=readAccounts(column=0)
+    lastuserid=userids[-1]
     return lastuserid
 
 #Registers Account with given email and password
 def accRegister(email,password):
     #for an ascending order of ids
-    status='user'
+    status='User'
     userid=getLastuserid()+1
     if userid==None:
         userid=0
@@ -43,18 +61,14 @@ def accRegister(email,password):
 
 #sign up, if your account exists and the required password is correct
 def accLogin(email,password):
-    emails=readsql("Accounts")
+    accounts=readAccounts()
     #checks if email is in database
-    emailexist=False
     for account in accounts:
-        if email in account:
-            emailexist=True
+        if email == account[1]:
             #account[0]= id, account[1]=email, account[2]=password
             if account[2]==password:
-                return 'Login erfolgreich!'
+                return True
             else:
-                return 'Passwort falsch!'
-    if emailexist is False:
-        return 'Email falsch!'
+                return False
 
 #Krankheiten

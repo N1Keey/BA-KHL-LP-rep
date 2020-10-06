@@ -14,13 +14,14 @@
     <h1>KHL-Lernprogramm</h1>
     <title>Login</title>
     <h2>Login</h2>
-    <form action="/index" method='POST'>
+    <form action="" method='POST'>
     <p><input type="email" id="Email" name="Email" placeholder="Email"></p>
     <p><input type="password" id="Passwort" name="Passwort" placeholder="Passwort"></p>
     <p>
         <input type="submit" id="Login" name="Login" value="Login"> 
+        <a href="/registrieren">Registrieren</a> 
         <a href="/pw-vergessen">Passwort vergessen?</a>
     </p>
     </form>
-    <p style="color:green;">{{pw_val}}</p><p style="color:red;">{{login_val}}</p>
+    <p style="color:green;">{{regist_message}}</p><p style="color:red;">{{login_message}}</p>
 </body>
