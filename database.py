@@ -5,15 +5,17 @@ import psycopg2
 con=psycopg2.connect(database="Lernprogramm DB", user="Owner", password="Ownerpassword")
 cur=con.cursor()
 
-#writes query and executes it
-def writesql(table,columns,data):
+#writes into table, data
+def writesql(table,data):
     query = "INSERT INTO %s VALUES(%s)"%(table,data)
-    cur.execute(query)     
+    cur.execute(query)  
+    close()   
 
-def readsql(table,columns,limit=None):
+#reads data from given table
+def readsql(table,limit=None):
     query = "SELECT * FROM %s;"%(table)
     cur.execute(query)
-    # fetch data
+    # fetches all data
     userdata = cur.fetchall()
     return userdata[len(userdata)-limit if limit else 0:]
 
@@ -23,34 +25,34 @@ def close():
     cur.close()
     con.close() 
 
-#Account    
-#insert Register info into Accounts Table
+#Account         
+#gives you the id of the last registered user
 def getLastuserid():
-    userdata=readsql("Accounts","userid")
-    lastuserdata=userdata[-1]
+    lastuserdata=readsql("Accounts")[-1]
     lastuserid=lastuserdata[0]
     return lastuserid
 
+#Registers Account with given email and password
 def accRegister(email,password):
+    #for an ascending order of ids
+    status='user'
     userid=getLastuserid()+1
-    writesql("Accounts","'userid','email','passwort'","%d, '%s', '%s'"%(userid,email,password))
-    close()
+    writesql("Accounts","%d, '%s', '%s','%s'"%(userid,email,password,status))
 
+#sign up, if your account exists and the required password is correct
 def accLogin(email,password):
-    accounts=readsql("Accounts","'email','passwort'")
+    emails=readsql("Accounts")
+    #checks if email is in database
     emailexist=False
     for account in accounts:
         if email in account:
             emailexist=True
+            #account[0]= id, account[1]=email, account[2]=password
             if account[2]==password:
                 return 'Login erfolgreich!'
             else:
                 return 'Passwort falsch!'
     if emailexist is False:
         return 'Email falsch!'
-
-lastuserid=getLastuserid()
-print(lastuserid)
-
 
 #Krankheiten

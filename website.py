@@ -16,6 +16,8 @@ def login():
         return render_template('Login.j2',login_val=login_val)
     return render_template('Login.j2')
 
+
+# pw_best=Passwortbestätigung
 @app.route('/registrieren',methods=['GET','POST'])
 def registrieren():
     rform=request.form
@@ -23,6 +25,10 @@ def registrieren():
         email=rform['Email']
         password=rform['Passwort']
         pw_best=rform['pw_best']
+        dbemails=database.readsql('accounts')
+        if email in dbemails:
+            pw_val='Email existiert schon!'
+            return render_template('Login.j2', pw_val=pw_val) 
         if password == pw_best:
             database.accRegister(email,password)
             pw_val='Erfolgreich registriert!'
@@ -31,6 +37,24 @@ def registrieren():
             pw_val='Passwörter stimmen nicht überein!'
             return render_template('Registrieren.j2', pw_val=pw_val)
     return render_template('Registrieren.j2')
+
+@app.route('/index',methods=['GET','POST'])
+def index():
+    return render_template('Index.j2')
+
+@app.route('/hinzufügen',methods=['GET','POST'])
+def hinzufügen():
+    
+    return render_template('Hinzufügen.j2')
+
+@app.route('/lernen',methods=['GET','POST'])
+def lernen():
+    return render_template('Lernen.j2')
+
+@app.route('/prüfen',methods=['GET','POST'])
+def prüfen():
+    return render_template('Prüfen.j2')
+
 
 if __name__=='__main__':
     app.run()
