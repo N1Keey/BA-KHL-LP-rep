@@ -37,6 +37,8 @@ def accRegister(email,password):
     #for an ascending order of ids
     status='user'
     userid=getLastuserid()+1
+    if userid==None:
+        userid=0
     writesql("Accounts","%d, '%s', '%s','%s'"%(userid,email,password,status))
 
 #sign up, if your account exists and the required password is correct
