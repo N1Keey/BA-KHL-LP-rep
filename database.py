@@ -60,15 +60,13 @@ def accRegister(email,password):
     writesql("Accounts","%d, '%s', '%s','%s'"%(userid,email,password,status))
 
 #sign up, if your account exists and the required password is correct
-def accLogin(email,password):
+def accLogin(email):
+    'Returns all datas of the Account using the input email'
     accounts=readAccounts()
     #checks if email is in database
     for account in accounts:
+        #account[0]= id, account[1]=email, account[2]=password
         if email == account[1]:
-            #account[0]= id, account[1]=email, account[2]=password
-            if account[2]==password:
-                return True
-            else:
-                return False
+            return account
 
 #Krankheiten

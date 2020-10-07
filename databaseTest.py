@@ -25,11 +25,12 @@ cur=con.cursor()
 # cur.execute(query)
 # con.commit()
 
-database.writesql("Accounts","0,'Nschick@mail.hs-ulm.de','1qay2wsx3edc','Owner'")
 
 # # DELETE
-# cur.execute('DELETE FROM Accounts')
-# con.commit()
+cur.execute('DELETE FROM Accounts')
+con.commit()
+database.writesql("Accounts","0,'Nschick@mail.hs-ulm.de','1qay2wsx3edc','Owner'")
+
 select_query="SELECT * FROM Accounts"
 cur.execute(select_query)
 accountdata=cur.fetchall()

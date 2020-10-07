@@ -1,4 +1,4 @@
-from flask import Flask, request,render_template, session
+from flask import Flask, request,render_template, session, flash
 import os
 import database
 
@@ -10,13 +10,15 @@ def login():
     if request.method=='POST':
         email=rform['Email']
         password=rform['Passwort']
-        login_bool=database.accLogin(email,password)
-        if login_bool == True:
+        accountdata=database.accLogin(email)
+        accountstatus=accountdata[3]
+        #accountdata[i], i=0 => ID, i=1=>Email, i=2=>Password, i=3=>Status
+        if email==accountdata[1] and password==accountdata[2]:
             session['logged_in']=True
-            return render_template('Index.j2')
+            return render_template('Index.j2',accountstatus=accountstatus)
         else:
-            login_message='Email oder Passwort falsch!'
-        return render_template('Login.j2',login_message=login_message)
+            flash('Email oder Passwort falsch!')
+        return render_template('Login.j2')
     return render_template('Login.j2')
 
 # pw_validation=Passwortbestätigung
@@ -29,15 +31,15 @@ def registrieren():
         pw_validation=rform['pw_validation']
         dbemails=database.readAccounts(column=1)
         if email == dbemails[0]:
-            regist_message='Email existiert schon!'
-            return render_template('Login.j2', regist_message=regist_message) 
+            flash('Email existiert schon!')
+            return render_template('Registrieren.j2') 
         if password == pw_validation:
             database.accRegister(email,password)
-            regist_message='Erfolgreich registriert!'
-            return render_template('Login.j2', regist_message=regist_message)       
+            flash('Erfolgreich registriert!')
+            return render_template('Login.j2')       
         else:
-            regist_message='Passwörter stimmen nicht überein!'
-            return render_template('Registrieren.j2', regist_message=regist_message)
+            flash('Passwörter stimmen nicht überein!')
+            return render_template('Registrieren.j2')
     return render_template('Registrieren.j2')
 
 @app.route('/index',methods=['GET','POST'])
