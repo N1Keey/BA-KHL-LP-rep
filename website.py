@@ -1,4 +1,5 @@
-from flask import Flask, request,render_template, session, flash 
+from flask import Flask, request,render_template, session, flash
+from flask_user import current_user
 import user_database
 
 app = Flask(__name__)
@@ -12,9 +13,15 @@ def login():
         login_bool=user_database.user_login(email,password)
         if login_bool==True:
             session['logged_in']=True
-            return render_template('Home.j2')
+            adminbool=current_user.has_role('admin')
+            return render_template('Home.j2',adminbool=adminbool)
         else:
             flash('Email oder Passwort falsch!')
+    return render_template('login.j2')
+
+@app.route("/logout")
+def logout():
+    session['logged_in'] = False
     return render_template('login.j2')
 
 # pw_validation=Passwortbestätigung
@@ -33,8 +40,8 @@ def registrieren():
             flash('Passwörter stimmen nicht überein!')
     return render_template('registrieren.j2')
 
-@app.route('/index',methods=['GET','POST'])
-def index():
+@app.route('/home',methods=['GET','POST'])
+def home():
     if not session.get('logged_in'):
         return render_template('login.j2')
     return render_template('home.j2')
@@ -50,12 +57,6 @@ def lernen():
     if not session.get('logged_in'):
         return render_template('login.j2')
     return render_template('lernen.j2')
-
-@app.route('/prüfen',methods=['GET','POST'])
-def prüfen():
-    if not session.get('logged_in'):
-        return render_template('login.j2')
-    return render_template('prüfen.j2')
 
 if __name__=='__main__':
     app.secret_key = '(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
