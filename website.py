@@ -5,7 +5,7 @@ app = Flask(__name__)
 app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
 
 def authentication():
-    #funktioniert nicht nicht D:
+    #funktioniert noch nicht D:
     if not session.get('logged_in'):
         return render_template('login.j2')
 
@@ -23,7 +23,7 @@ def login():
             flash('Email oder Passwort falsch!')
     return render_template('login.j2')
 
-@app.route("/logout")
+@app.route("/logout", methods=['GET', 'POST'])
 def logout():
     session['logged_in'] = False
     return render_template('login.j2')
@@ -31,6 +31,7 @@ def logout():
 # pw_validation=Passwortbestätigung
 @app.route('/registrieren',methods=['GET','POST'])
 def registrieren():
+    # authentication()
     if not session.get('logged_in'):
         return render_template('login.j2')
     rform=request.form
@@ -49,37 +50,41 @@ def registrieren():
 
 @app.route('/home',methods=['GET','POST'])
 def home():
+    # authentication()
     if not session.get('logged_in'):
         return render_template('login.j2')
     return render_template('home.j2')
 
 @app.route('/hinzufügen',methods=['GET','POST'])
 def hinzufügen():
+    # authentication()
     if not session.get('logged_in'):
         return render_template('login.j2')
     return render_template('hinzufügen.j2')
 
 @app.route('/fragen',methods=['GET','POST'])
 def fragen():
+    # authentication()
     if not session.get('logged_in'):
         return render_template('login.j2')
     return render_template('fragen.j2')
 
 @app.route('/admin_auth', methods=['GET','POST'])
 def admin_auth():
+    # authentication()
     if not session.get('logged_in'):
         return render_template('login.j2')
     return render_template('admin_auth.j2')
 
 @app.route('/usermanagement', methods=['GET','POST'])
 def usermanagement():
+    # authentication()
     if not session.get('logged_in'):
         return render_template('login.j2')
     rform = request.form
     if request.method=='POST':
         pw=rform['pw']
         admin_pw='123asdqweyxc'
-        # admin_pw=db.get_admin_pw()
         if pw != admin_pw:
             flash('Passwort ist falsch!')
         else:
