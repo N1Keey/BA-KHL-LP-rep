@@ -9,13 +9,19 @@ Base=declarative_base()
 Session = sessionmaker(bind=engine)
 session=Session()
 
+# Many2Many Relation zwischen users und roles
+roles_users = Table('roles_users',Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id')),
+    Column('role_id', Integer, ForeignKey('roles.id'))
+    )
+
 class User(Base):
     __tablename__='users'
 
     id = Column(Integer, primary_key=True)
     email = Column(String(100), unique=True)
     password = Column(String(255))
-    roles = relationship('Role', secondary='users2roles')
+    roles = relationship('Role', secondary=roles_users) # bei Anfrage bezug auf roles_users -> Relationtable  
 
 class Role(Base):
     __tablename__='roles'
@@ -24,16 +30,8 @@ class Role(Base):
     name = Column(String(40), unique=True)
     description = Column(String(255))
 
-class User2Role(Base):
-    __tablename__='users2roles'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
-    role_id = Column(Integer, ForeignKey('roles.id', ondelete='CASCADE'))
-
 Base.metadata.create_all(engine)
 
-#USER functions
 def user_regist(user_email, user_password):
     """Adds User to Database and gives the standard-role: 'User'
     """
@@ -44,8 +42,8 @@ def user_regist(user_email, user_password):
     session.commit()
 
 def user_login(user_email, user_password):
-    """returns True if Email exists and Pw is right
-    False if Email isnt existing or password isnt right
+    """returns True if Email exists and Password is right
+    False if Email isnt existing or Password isnt right
     """
     users=session.query(User)
     for user in users:
@@ -53,40 +51,32 @@ def user_login(user_email, user_password):
             return True
         else:
             return False
-            
-def user_getall():
-    user_list=[]
-    users=session.query(User).join(User.roles).all()
-    for user in users:
-        role_list=[]
-        for role in user.roles:
-            role_list.append(role.name)
-        user_list.append('ID: %s,Email: %s, Password: %s, Roles: %s'%(user.id, user.email, user.password, role_list))
-    return user_list
 
-#ROLE functions
 def role_add(role_name, role_description):
-    "Adds Role to Database"
+    """Adds Role to Database"""
     new_Role=Role(name=role_name, description=role_description)
     session.add(new_Role)
     session.commit()
 
-# admin_user=session.query(User).filter(User.email=='Nschick@mail.hs-ulm.de').first()
-# admin_role=session.query(Role).filter(Role.name=='Admin').first()
-# user_role=session.query(Role).filter(Role.name=='User').first()
-# admin_user.roles=[admin_role,user_role]
-# for role in admin_user.roles:
-#     print('ID: %s,Email: %s, Password: %s, Roles: %s'%(admin_user.id, admin_user.email, admin_user.password, role.name))
-# session.commit()
+def user_getall2Dict():
+    """Returns Userdata of all Users with roles in a list of Dictionarys"""
+    userdicts=[]
+    users=session.query(User).join(User.roles).all()
+    for user in users:
+        userrolelist=[]
+        for role in user.roles:
+            userrolelist.append(role.name) 
+        userdict={'ID':user.id,'Email':user.email,'Password':user.password,'Roles':userrolelist}
+        userdicts.append(userdict)  
+    return userdicts
 
-# users=session.query(User).join(User.roles).all()
-# role_add('Admin','Role for managing the User-Registration and the distribiution of the Roles')
-
-# for user in users:
-#     for role in user.roles:
-#         print('ID: %s,Email: %s, Password: %s, Roles: %s'%(user.id, user.email, user.password, role.name))
-
-# roles=session.query(Role).all()
-# for role in roles:
-#     print('Name: %s, Description: %s'%(role.name, role.description))
-print(user_getall())
+def new_Role4User(user_email, role_name):
+    """Adds Role with role_name to User with user_email"""
+    user_roles=[]
+    user=session.query(User).join(User.roles).filter(User.email==user_email).first()
+    for role in user.roles:
+        user_roles.append(role)
+    new_user_role=session.query(Role).filter(Role.name==role_name).first()
+    user_roles.append(new_user_role)
+    user.roles=user_roles
+    session.commit()

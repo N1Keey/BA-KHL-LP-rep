@@ -1,0 +1,14 @@
+{% extends "_base_navbar.j2" %}
+
+{% block title %} <title>Usermanagement</title> {% endblock %}
+{% block navbar %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+  <div class='content'>
+    {% for user in users %}
+      <p>ID: {{ user['ID'] }}, Email: {{user['Email']}}, Roles: {{user['Roles']}}</p>
+    {% endfor %}
+    <p><a href="/registrieren">User Registrieren</a></p>
+  </div>
+{% endblock %}

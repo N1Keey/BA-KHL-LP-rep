@@ -1,8 +1,13 @@
 from flask import Flask, request,render_template, session, flash
-from flask_user import current_user
-import user_database
+import database as db
 
 app = Flask(__name__)
+app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
+
+def authentication():
+    #funktioniert nicht nicht D:
+    if not session.get('logged_in'):
+        return render_template('login.j2')
 
 @app.route('/', methods=['GET','POST'])
 def login():
@@ -10,11 +15,10 @@ def login():
     if request.method=='POST':
         email=rform['Email']
         password=rform['Passwort']
-        login_bool=user_database.user_login(email,password)
+        login_bool=db.user_login(email,password)
         if login_bool==True:
             session['logged_in']=True
-            adminbool=current_user.has_role('admin')
-            return render_template('Home.j2',adminbool=adminbool)
+            return render_template('Home.j2')
         else:
             flash('Email oder Passwort falsch!')
     return render_template('login.j2')
@@ -27,15 +31,18 @@ def logout():
 # pw_validation=Passwortbestätigung
 @app.route('/registrieren',methods=['GET','POST'])
 def registrieren():
+    if not session.get('logged_in'):
+        return render_template('login.j2')
     rform=request.form
     if request.method=='POST':
         email=rform['Email']
         password=rform['Passwort']
         pw_validation=rform['pw_validation']
         if password == pw_validation:
-            user_database.user_regist(email,password)
+            db.user_regist(email,password)
             flash('Erfolgreich registriert!')
-            return render_template('login.j2')       
+            users=db.user_getall2Dict()
+            return render_template('usermanagement.j2', users=users)     
         else:
             flash('Passwörter stimmen nicht überein!')
     return render_template('registrieren.j2')
@@ -52,12 +59,33 @@ def hinzufügen():
         return render_template('login.j2')
     return render_template('hinzufügen.j2')
 
-@app.route('/lernen',methods=['GET','POST'])
-def lernen():
+@app.route('/fragen',methods=['GET','POST'])
+def fragen():
     if not session.get('logged_in'):
         return render_template('login.j2')
-    return render_template('lernen.j2')
+    return render_template('fragen.j2')
+
+@app.route('/admin_auth', methods=['GET','POST'])
+def admin_auth():
+    if not session.get('logged_in'):
+        return render_template('login.j2')
+    return render_template('admin_auth.j2')
+
+@app.route('/usermanagement', methods=['GET','POST'])
+def usermanagement():
+    if not session.get('logged_in'):
+        return render_template('login.j2')
+    rform = request.form
+    if request.method=='POST':
+        pw=rform['pw']
+        admin_pw='123asdqweyxc'
+        # admin_pw=db.get_admin_pw()
+        if pw != admin_pw:
+            flash('Passwort ist falsch!')
+        else:
+            users=db.user_getall2Dict()
+            return render_template('usermanagement.j2', users=users)
+    return render_template('admin_auth.j2')
 
 if __name__=='__main__':
-    app.secret_key = '(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
     app.run()

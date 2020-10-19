@@ -1,19 +1,11 @@
-<link rel="stylesheet" href="../static/bootstrap.css">
-<body>
-  <title>Home</title>
-  <nav class="navbar navbar-default">
-    <div class="container-fluid">
-      <div class="navbar-header">
-        <a class="navbar-brand" href="/home">KHL-Lernprogramm</a>
-      </div>
-      <ul class="nav navbar-nav">
-        <li class="active"><a href="/home">Home</a></li>
-        <li><a href="/lernen">Lernen</a></li>
-        <li><a href="/hinzufügen">Hinzufügen</a></li>
-      </ul>
+{% extends "_base_navbar.j2" %}
+
+{% block title %} <title>Home</title> {% endblock %}
+{% block navbar %}
+  {{ super() }}
+{% endblock %}
+{% block content %}
+    <div class='content'>
+        test
     </div>
-  </nav>
-  {% if adminbool==True: %}
-    <a href="/registrieren">Jemanden registrieren</a>
-  {% endif %} 
-</body> 
+{% endblock %}
