@@ -1,9 +1,10 @@
 from flask import Flask, request,render_template, session, flash
-import flask_mail
+from flask_mail import Mail, Message
 import database as db
 
 app = Flask(__name__)
 app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
+mail=Mail(app)
 
 def authentication():
     #funktioniert noch nicht D:
@@ -23,6 +24,10 @@ def login():
         else:
             flash('Email oder Passwort falsch!')
     return render_template('login.j2')
+
+@app.route('/pw-vergessen', methods=['GET','POST'])
+def pw_vergessen():
+    return render_template('pw_vergessen.j2')  
 
 @app.route("/logout", methods=['GET', 'POST'])
 def logout():
