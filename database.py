@@ -53,7 +53,9 @@ def user_login(user_email, user_password):
             return False
 
 def user_getall2Dict():
-    """Returns Userdata of all Users with roles in a list of Dictionarys"""
+    """Returns Userdata of all Users with roles in a list of Dictionarys
+    ID, Email, Password, Roles are the Keys
+    """
     userdicts=[]
     users=session.query(User).join(User.roles).all()
     for user in users:

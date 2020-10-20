@@ -4,6 +4,18 @@ import database as db
 
 app = Flask(__name__)
 app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
+
+## Funzt nicht D:
+# app.config.update(dict(
+#     DEBUG = True,
+#     MAIL_SERVER = 'smtp.gmail.com',
+#     MAIL_PORT = 587,
+#     MAIL_USE_TLS = True,
+#     MAIL_USE_SSL = False,
+#     MAIL_USERNAME = 'KHL.Usermanagement@gmail.com',
+#     MAIL_PASSWORD = 'Passwort',
+# ))
+
 mail=Mail(app)
 
 def authentication():
@@ -27,6 +39,15 @@ def login():
 
 @app.route('/pw-vergessen', methods=['GET','POST'])
 def pw_vergessen():
+    if request.method == 'POST':
+        rform=request.form
+        users=db.user_getall2Dict()
+        for user in users:
+            if rform['Email'] == user['Email']:
+                msg = Message("Hello",
+                  sender="KHL.Usermanagement@gmail.com",
+                  recipients=user['Email'])
+                mail.send(msg)
     return render_template('pw_vergessen.j2')  
 
 @app.route("/logout", methods=['GET', 'POST'])
@@ -41,8 +62,8 @@ def registrieren():
     # authentication()
     if not session.get('logged_in'):
         return render_template('login.j2')
-    rform=request.form
     if request.method=='POST':
+        rform=request.form
         email=rform['Email']
         password=rform['Passwort']
         pw_validation=rform['pw_validation']
