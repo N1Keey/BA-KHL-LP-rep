@@ -52,12 +52,6 @@ def user_login(user_email, user_password):
         else:
             return False
 
-def role_add(role_name, role_description):
-    """Adds Role to Database"""
-    new_Role=Role(name=role_name, description=role_description)
-    session.add(new_Role)
-    session.commit()
-
 def user_getall2Dict():
     """Returns Userdata of all Users with roles in a list of Dictionarys"""
     userdicts=[]
@@ -70,7 +64,20 @@ def user_getall2Dict():
         userdicts.append(userdict)  
     return userdicts
 
-def Role2User(user_email, role_name):
+def user_delete(user_ID):
+    """Deletes User with given user_ID"""
+    user=session.query(User).filter(User.id==user_ID)
+    if user.first().email != 'Nschick@mail.hs-ulm.de':
+        user.delete()
+        session.commit()
+
+def role_add(role_name, role_description):
+    """Adds Role to Database"""
+    new_Role=Role(name=role_name, description=role_description)
+    session.add(new_Role)
+    session.commit()
+
+def role2User(user_email, role_name):
     """Adds Role with role_name to User with user_email"""
     user_roles=[]
     user=session.query(User).join(User.roles).filter(User.email==user_email).first()
@@ -80,10 +87,3 @@ def Role2User(user_email, role_name):
     user_roles.append(new_user_role)
     user.roles=user_roles
     session.commit()
-
-def user_delete(user_ID):
-    """Deletes User with given user_ID"""
-    user=session.query(User).filter(User.id==user_ID)
-    if user.first().email != 'Nschick@mail.hs-ulm.de':
-        user.delete()
-        session.commit()
