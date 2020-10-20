@@ -1,4 +1,5 @@
 from flask import Flask, request,render_template, session, flash
+import flask_mail
 import database as db
 
 app = Flask(__name__)
@@ -26,6 +27,7 @@ def login():
 @app.route("/logout", methods=['GET', 'POST'])
 def logout():
     session['logged_in'] = False
+    session['Admin']=False
     return render_template('login.j2')
 
 # pw_validation=Passwortbestätigung
@@ -41,7 +43,6 @@ def registrieren():
         pw_validation=rform['pw_validation']
         if password == pw_validation:
             db.user_regist(email,password)
-            flash('Erfolgreich registriert!')
             users=db.user_getall2Dict()
             return render_template('usermanagement.j2', users=users)     
         else:
@@ -74,6 +75,17 @@ def admin_auth():
     # authentication()
     if not session.get('logged_in'):
         return render_template('login.j2')
+    if request.method=='POST':
+        rform = request.form
+        if 'pw' in rform:
+            pw=rform['pw']
+            admin_pw='123asdqweyxc'
+            if pw != admin_pw:
+                flash('Passwort ist falsch!')
+            else:
+                session['Admin']=True
+                users=db.user_getall2Dict()
+                return render_template('usermanagement.j2', users=users)
     return render_template('admin_auth.j2')
 
 @app.route('/usermanagement', methods=['GET','POST'])
@@ -81,16 +93,14 @@ def usermanagement():
     # authentication()
     if not session.get('logged_in'):
         return render_template('login.j2')
-    rform = request.form
+    if not session.get('Admin'):
+        return render_template('admin_auth.j2')
     if request.method=='POST':
-        pw=rform['pw']
-        admin_pw='123asdqweyxc'
-        if pw != admin_pw:
-            flash('Passwort ist falsch!')
-        else:
-            users=db.user_getall2Dict()
-            return render_template('usermanagement.j2', users=users)
-    return render_template('admin_auth.j2')
+        rform=request.form
+        if "Button_del" in rform:
+            print(db.user_delete(rform['Button_del']))
+    users=db.user_getall2Dict()
+    return render_template('usermanagement.j2', users=users)
 
 if __name__=='__main__':
     app.run()

@@ -11,8 +11,8 @@ session=Session()
 
 # Many2Many Relation zwischen users und roles
 roles_users = Table('roles_users',Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.id')),
-    Column('role_id', Integer, ForeignKey('roles.id'))
+    Column('user_id', Integer, ForeignKey('users.id', ondelete="CASCADE")),
+    Column('role_id', Integer, ForeignKey('roles.id', ondelete="CASCADE"))
     )
 
 class User(Base):
@@ -70,7 +70,7 @@ def user_getall2Dict():
         userdicts.append(userdict)  
     return userdicts
 
-def new_Role4User(user_email, role_name):
+def Role2User(user_email, role_name):
     """Adds Role with role_name to User with user_email"""
     user_roles=[]
     user=session.query(User).join(User.roles).filter(User.email==user_email).first()
@@ -79,4 +79,10 @@ def new_Role4User(user_email, role_name):
     new_user_role=session.query(Role).filter(Role.name==role_name).first()
     user_roles.append(new_user_role)
     user.roles=user_roles
+    session.commit()
+
+def user_delete(user_ID):
+    """Deletes User with given user_ID"""
+    user=session.query(User).filter(User.id==user_ID)
+    user.delete()
     session.commit()
