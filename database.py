@@ -84,5 +84,6 @@ def Role2User(user_email, role_name):
 def user_delete(user_ID):
     """Deletes User with given user_ID"""
     user=session.query(User).filter(User.id==user_ID)
-    user.delete()
-    session.commit()
+    if user.first().email != 'Nschick@mail.hs-ulm.de':
+        user.delete()
+        session.commit()
