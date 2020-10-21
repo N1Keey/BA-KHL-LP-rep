@@ -3,10 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine("postgresql+psycopg2://Owner:Ownerpassword@localhost/Lernprogramm_DB")
-# engine = create_engine('sqlite:///khl_lp.db') #funzt nicht
-# sqlalchemy.exc.ProgrammingError: (sqlite3.ProgrammingError) SQLite objects created 
-# in a thread can only be used in that same thread. The object was created in thread id 14956 and this is thread id 13896.
+engine = create_engine('sqlite:///khl_lp.db')
 
 connection=engine.connect()
 Base=declarative_base()
