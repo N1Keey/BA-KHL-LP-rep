@@ -16,7 +16,7 @@ app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
 #     MAIL_PASSWORD = 'Passwort',
 # ))
 
-mail=Mail(app)
+# mail=Mail(app)
 
 def authentication():
     #funktioniert noch nicht D:
@@ -39,15 +39,15 @@ def login():
 
 @app.route('/pw-vergessen', methods=['GET','POST'])
 def pw_vergessen():
-    if request.method == 'POST':
-        rform=request.form
-        users=db.user_getall2Dict()
-        for user in users:
-            if rform['Email'] == user['Email']:
-                msg = Message("Hello",
-                  sender="KHL.Usermanagement@gmail.com",
-                  recipients=user['Email'])
-                mail.send(msg)
+    # if request.method == 'POST':
+    #     rform=request.form
+        # users=db.user_getall2Dict()
+        # for user in users:
+        #     if rform['Email'] == user['Email']:
+        #         msg = Message("Hello",
+        #           sender="KHL.Usermanagement@gmail.com",
+        #           recipients=user['Email'])
+        #         mail.send(msg)
     return render_template('pw_vergessen.j2')  
 
 @app.route("/logout", methods=['GET', 'POST'])
