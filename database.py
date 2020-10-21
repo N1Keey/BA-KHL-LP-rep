@@ -1,13 +1,12 @@
 from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Table
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 
-engine = create_engine('sqlite:///khl_lp.db')
+engine = create_engine('sqlite:///khl_lp.db',connect_args={'check_same_thread': False})
 
 connection=engine.connect()
 Base=declarative_base()
-Session = sessionmaker(bind=engine)
+Session= sessionmaker(bind=engine)
 session=Session()
 
 # Many2Many Relation zwischen users und roles
@@ -90,4 +89,3 @@ def role2User(user_email, role_name):
     user_roles.append(new_user_role)
     user.roles=user_roles
     session.commit()
-
