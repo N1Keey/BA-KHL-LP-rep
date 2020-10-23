@@ -31,10 +31,10 @@
                 <a class="navbar-brand" href="/home">KHL-Lernprogramm</a>
             </div>
             <ul class="nav navbar-nav">
-                <li><a href="/home">Home</a></li>
-                <li><a href="/fragen">Fragen</a></li>
-                <li><a href="/hinzufügen">Hinzufügen</a></li>
-                <li><a href="/admin_auth">Usermanagement</a></li>
+                <li {% if active_link == 'Home' %} class="active" {% endif %}> <a href="/home">Home</a></li>
+                <li {% if active_link == 'Fragen' %} class="active" {% endif %}> <a href="/fragen">Fragen</a></li>
+                <li {% if active_link == 'Hinzufügen' %} class="active" {% endif %}> <a href="/hinzufügen">Hinzufügen</a></li>
+                <li {% if active_link == 'Usermanagement' %} class="active" {% endif %}> <a href="/admin_auth">Usermanagement</a></li>
                 <li><a href="/logout">Logout</a></li>
             </ul>
         </div>
@@ -42,6 +42,6 @@
 {% endblock %}
 {% block content %}
     <div class='content'>
-        Content
+    Content
     </div>
 {% endblock %}

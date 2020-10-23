@@ -45,12 +45,12 @@ def user_login(user_email, user_password):
     """returns True if Email exists and Password is right
     False if Email isnt existing or Password isnt right
     """
+    login_bool=False
     users=session.query(User)
     for user in users:
         if user_email==user.email and user_password==user.password:
-            return True
-        else:
-            return False
+            login_bool=True
+    return login_bool
 
 def user_getall2Dict():
     """Returns Userdata of all Users with roles in a list of Dictionarys

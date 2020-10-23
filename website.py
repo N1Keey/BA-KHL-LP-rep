@@ -1,4 +1,4 @@
-from flask import Flask, request,render_template, session, flash
+from flask import Flask, request, render_template, redirect, session, flash
 from flask_mail import Mail, Message
 import database as db
 
@@ -17,11 +17,6 @@ app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
 # ))
 
 # mail=Mail(app)
-
-def authentication():
-    #funktioniert noch nicht D:
-    if not session.get('logged_in'):
-        return render_template('login.j2')
 
 @app.route('/', methods=['GET','POST'])
 def login():
@@ -54,14 +49,13 @@ def pw_vergessen():
 def logout():
     session['logged_in'] = False
     session['Admin']=False
-    return render_template('login.j2')
+    return redirect('/')
 
 # pw_validation=Passwortbestätigung
 @app.route('/registrieren',methods=['GET','POST'])
 def registrieren():
-    # authentication()
     if not session.get('logged_in'):
-        return render_template('login.j2')
+        return redirect('/')
     if request.method=='POST':
         rform=request.form
         email=rform['Email']
@@ -77,30 +71,26 @@ def registrieren():
 
 @app.route('/home',methods=['GET','POST'])
 def home():
-    # authentication()
     if not session.get('logged_in'):
-        return render_template('login.j2')
+        return redirect('/')
     return render_template('home.j2')
 
 @app.route('/hinzufügen',methods=['GET','POST'])
 def hinzufügen():
-    # authentication()
     if not session.get('logged_in'):
-        return render_template('login.j2')
+        return redirect('/')
     return render_template('hinzufügen.j2')
 
 @app.route('/fragen',methods=['GET','POST'])
 def fragen():
-    # authentication()
     if not session.get('logged_in'):
-        return render_template('login.j2')
+        return redirect('/')
     return render_template('fragen.j2')
 
 @app.route('/admin_auth', methods=['GET','POST'])
 def admin_auth():
-    # authentication()
     if not session.get('logged_in'):
-        return render_template('login.j2')
+        return redirect('/')
     if request.method=='POST':
         rform = request.form
         if 'pw' in rform:
@@ -116,11 +106,10 @@ def admin_auth():
 
 @app.route('/usermanagement', methods=['GET','POST'])
 def usermanagement():
-    # authentication()
     if not session.get('logged_in'):
-        return render_template('login.j2')
+        return redirect('/')
     if not session.get('Admin'):
-        return render_template('admin_auth.j2')
+        return redirect('/admin_auth')
     if request.method=='POST':
         rform=request.form
         if "Button_del" in rform:
