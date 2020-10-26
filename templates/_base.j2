@@ -1,28 +1,18 @@
 <link rel="stylesheet" href="../static/bootstrap.css">
-<style>
-    .content{
-        position: relative;
-        left: 25px;
-        top: 5px;
-    }
-    input[type=email], input[type=password] {
-    width: 300px;
-    }
-    table {
-    border-collapse: collapse;
-    width: 100%;
-    }
-    th, td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-    }
-    .X_Button{
-        background-color: red;
-        Color: white;
-    }
-</style>
-
+{% block styles %}
+    <style>
+        input[type=email], input[type=password] {
+            width: 300px;
+        }
+        .X_Button{
+            background-color: red;
+            Color: white;
+        }
+        .navbar { 
+            margin-bottom: 0;
+        }
+    </style>
+{% endblock %}
 {% block title %} <title>Title</title> {% endblock %}
 {% block navbar %}
     <nav class="navbar navbar-default">
@@ -34,11 +24,18 @@
                 <li {% if active_link == 'Home' %} class="active" {% endif %}> <a href="/home">Home</a></li>
                 <li {% if active_link == 'Fragen' %} class="active" {% endif %}> <a href="/fragen">Fragen</a></li>
                 <li {% if active_link == 'Hinzufügen' %} class="active" {% endif %}> <a href="/hinzufügen">Hinzufügen</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
                 <li {% if active_link == 'Usermanagement' %} class="active" {% endif %}> <a href="/admin_auth">Usermanagement</a></li>
                 <li><a href="/logout">Logout</a></li>
             </ul>
         </div>
     </nav>
+{% endblock %}
+{% block vert_navbar %}
+    <div class='vert-navbar'>
+
+    </div>
 {% endblock %}
 {% block content %}
     <div class='content'>

@@ -1,11 +1,94 @@
 {% extends "_base.j2" %}
+{% block styles %}
+    {{ super() }}
+    <style>
+        .vert_navbar{
+            float:left;
+            width:25%;
+            background-color: #f1f1f1;
+            position: relative;
+            top:0;
+            bottom:0;
+        }
+        .vert_navbar ul {
+            padding: 0;
+            width: 25%;
+            overflow: auto;
+            position: fixed;
+            height:87.5%;
+        }
+        .vert_navbar li Button{
+            display: block;
+            color: #000;
+            text-align:left;
+            width: 100%;
+            text-decoration: none;
+        }
+        .vert_navbar li Button.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .vert_navbar li Button:hover:not(.active) {
+            background-color: #555;
+            color: white;
+        }
+        #btn_add, #tf_add{
+            display:inline;
+            padding:0;
+        }
+        #tf_add{width:80%}
+        #btn_add{
+            width:20%;
+            margin-left: -4;
+        }
+        .content{
+            position: relative;
+            width: 75%;
+            float: right;
+        }
+        #btn_schema{
+            width:100%;
+            height:100%;
+        }
+        table {
+            width: 100%;
+            margin:0;
+        }
+    </style>
+{% endblock %}
 {% set active_link = 'Hinzufügen' %}
-
 {% block title %} <title>Hinzufügen</title> {% endblock %}
 {% block navbar %}
     {{ super() }}
 {% endblock %}
+{% block vert_navbar %}
+    <div class='vert_navbar'>
+            <form action="?" method='POST'>
+                    <input type="text" id="tf_add" name="Krankheit_name" placeholder="Krankheit Name:" autocomplete="off" autofocus>
+                    <button type="submit" name= "Btn_add_Krankheit" id="btn_add">einfügen</button>
+        <ul>
+            {% for krankheit in krankheiten %}
+                <li>
+                    <button type="submit" name="Btn_Krankheit" value={{ krankheit['Krankheit'] }} id="btn_kh">{{ krankheit['Krankheit'] }}</button>
+                </li>
+            {% endfor %}
+            </form>
+        </ul>
+    </div>
+{% endblock %}
 {% block content %}
     <div class='content'>
+        <form action="?" method='POST'>
+            <table>
+                <tr>
+                    <th><button type="submit" name="Btn_Kh_schema" value="Beschreibung" id="btn_schema">Beschreibung</button></th>
+                    <th><button type="submit" name="Btn_Kh_schema" value="Ursachen" id="btn_schema">Ursachen</button></th>
+                    <th><button type="submit" name="Btn_Kh_schema" value="Symptome" id="btn_schema">Symptome</button></th>
+                    <th><button type="submit" name="Btn_Kh_schema" value="Komplikationen" id="btn_schema">Komplikationen</button></th>
+                    <th><button type="submit" name="Btn_Kh_schema" value="Diagnostiken" id="btn_schema">Diagnostiken</button></th>
+                    <th><button type="submit" name="Btn_Kh_schema" value="Therapien" id="btn_schema">Therapien</button></th>
+                </tr>
+            </table>
+        </form>
     </div>
 {% endblock %}

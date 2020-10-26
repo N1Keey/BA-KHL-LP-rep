@@ -1,6 +1,20 @@
 {% extends "_base.j2" %}
 {% set active_link = 'Usermanagement' %}
-
+{% block styles %}
+  {{ super() }}
+  <style>
+    th, td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin:0;
+    }
+  </style>
+{% endblock %}
 {% block title %} <title>Usermanagement</title> {% endblock %}
 {% block navbar %}
   {{ super() }}

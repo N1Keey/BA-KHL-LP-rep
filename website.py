@@ -79,7 +79,19 @@ def home():
 def hinzufügen():
     if not session.get('logged_in'):
         return redirect('/')
-    return render_template('hinzufügen.j2')
+    if request.method=='POST':
+        rform=request.form
+        if 'Btn_add_Krankheit' in rform:
+            name=rform['Krankheit_name']
+            db.krankheiten_add(name)
+        if 'Btn_Krankheit' in rform:
+            krankheit=rform['Btn_Krankheit']
+            print(krankheit)
+        if 'Btn_Kh_schema' in rform:
+            aktives_element=rform['Btn_Kh_schema']
+            print(aktives_element)
+    krankheiten=db.krankheiten_getall2Dict()
+    return render_template('hinzufügen.j2', krankheiten=krankheiten)
 
 @app.route('/fragen',methods=['GET','POST'])
 def fragen():
@@ -116,6 +128,10 @@ def usermanagement():
             print(db.user_delete(rform['Button_del']))
     users=db.user_getall2Dict()
     return render_template('usermanagement.j2', users=users)
+
+@app.route('/test', methods=['GET','POST'])
+def test():
+    return render_template('test.j2')
 
 if __name__=='__main__':
     app.run()

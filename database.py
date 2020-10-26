@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Table
+from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Table, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
@@ -29,6 +29,51 @@ class Role(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
     description = Column(String(255))
+
+relation = Table('relation', Base.metadata,
+    Column('krankheit_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
+    Column('ursache_id', Integer, ForeignKey('ursachen.id', ondelete="CASCADE")),
+    Column('symptom_id', Integer, ForeignKey('symptome.id', ondelete="CASCADE")),
+    Column('komplikation_id', Integer, ForeignKey('komplikationen.id', ondelete="CASCADE")),
+    Column('diagnostik_id', Integer, ForeignKey('diagnostiken.id', ondelete="CASCADE")),
+    Column('therapie_id', Integer, ForeignKey('therapien.id', ondelete="CASCADE"))
+    )
+
+class Krankheit(Base):
+    __tablename__='krankheiten'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(40), unique=True)
+    description = Column(String(255), default='Leer')
+    ursachen = relationship('Ursache', secondary=relation)
+    symptome = relationship('Symptom', secondary=relation)
+    komplikationen = relationship('Komplikation', secondary=relation)
+    diagnostiken = relationship('Diagnostik', secondary=relation)
+    therapien = relationship('Therapie', secondary=relation)
+
+class Ursache(Base):
+    __tablename__='ursachen'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(40), unique=True)
+
+class Symptom(Base):
+    __tablename__='symptome'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(40), unique=True)
+
+class Komplikation(Base):
+    __tablename__='komplikationen'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(40), unique=True)
+
+class Diagnostik(Base):
+    __tablename__='diagnostiken'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(40), unique=True)
+
+class Therapie(Base):
+    __tablename__='therapien'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(40), unique=True)
 
 Base.metadata.create_all(engine)
 
@@ -89,3 +134,49 @@ def role2User(user_email, role_name):
     user_roles.append(new_user_role)
     user.roles=user_roles
     session.commit()
+
+def krankheiten_add(krankheit_name):
+    new_Krankheit=Krankheit(name=krankheit_name)
+    session.add(new_Krankheit)
+    session.commit()
+
+# def ursachen_add(ursache_name):
+    
+
+def krankheiten_getall2Dict():
+    """
+    """
+    krankheitendicts=[]
+
+    krankheiten=session.query(Krankheit).all()
+
+    for krankheit in krankheiten:
+        krankheitdict={'Krankheit':krankheit.name, 'Beschreibung':krankheit.description}
+        krankheitendicts.append(krankheitdict)
+    return krankheitendicts
+
+        # ursache_list=[] 
+        # for ursache in krankheit.ursachen:
+        #     ursache_list.append(ursache.name)
+        # krankheitdict['Ursachen']=ursache_list
+        
+        # symptom_list=[] 
+        # for symptom in krankheit.symptome:
+        #     symptom_list.append(symptom.name)
+        # krankheitdict['Symptome']=symptom_list
+        
+        # komplikation_list=[] 
+        # for komplikation in krankheit.komplikationen:
+        #     komplikation_list.append(komplikation.name)
+        # krankheitdict['Komplikationen']=komplikation_list
+        
+        # diagnostik_list=[] 
+        # for diagnostik in krankheit.diagnostiken:
+        #     diagnostik_list.append(diagnostik.name)
+        # krankheitdict['Diagnostik']=diagnostik_list
+        
+        # therapie_list=[] 
+        # for therapie in krankheit.therapien:
+        #     therapie_list.append(therapie.name)
+        # krankheitdict['Therapie']=therapie_list
+        
