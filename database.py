@@ -43,7 +43,7 @@ class Krankheit(Base):
     __tablename__='krankheiten'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
-    description = Column(String(255), default='Leer')
+    beschreibung = Column(String(255), default='Leer')
     ursachen = relationship('Ursache', secondary=relation)
     symptome = relationship('Symptom', secondary=relation)
     komplikationen = relationship('Komplikation', secondary=relation)
@@ -140,9 +140,59 @@ def krankheiten_add(krankheit_name):
     session.add(new_Krankheit)
     session.commit()
 
-# def ursachen_add(ursache_name):
-    
+#######################
+#SQL-TEXT-Functions
+#######################
 
+def sqladd(query):
+    """Query like: 'INSERT INTO table (column1,..) VALUES(value1,..)
+    without return"""
+    querytext=text(query)
+    connection.execute(querytext)
+    connection.commit()
+
+def sqlgetid(table_name, value_name, column_name='name'):
+    query="SELECT id FROM %s WHERE %s='%s'"%(table_name,column_name,value_name)
+    id_=sqlselect(query)
+    return id_
+
+def sqladdrelation(table1, table2, value1, value2, relation_table):
+    id1=sqlgetid(table1, value1)
+    id2=sqlgetid(table2, value2)
+    query="INSERT INTO %s (%s_id, %s_id) VALUES ('%s', '%s')"%(relation_table, table1, table2, id1, id2)
+    sqladd(query)   
+
+def sqlselect(query):
+    """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
+    returns with fetchall()
+    """
+    querytext=text(query)
+    result=connection.execute(querytext).fetchall()
+    return result
+
+def krankheit_add_schema(krankheit_name, schema_name, schema_eigenschaft):
+    """Adds Schema zur Datenbank und zur Krankheit"""
+    where='WHERE %s.name = %s'%(schema_name, schema_eigenschaft)
+    kh_sch_content=krankheit_getSchemacontent(schema_name,krankheit_name,where=where)
+    if kh_sch_content==[]:
+        query="INSERT INTO %s (name) VALUES(%s) "%(schema_name, schema_eigenschaft)
+        sqladd(query)
+    sqladdrelation('krankheiten', schema_name, krankheit_name, schema_eigenschaft, 'relation')
+
+def krankheit_multifunct(krankheit_name=None, schema_name=None, where=None, schema_eigenschaft=None):
+    bla='hose'
+    return bla
+
+def krankheit_getSchemacontent(schema_name, krankheit_name, where=''):
+    "where like: 'WHERE krankheiten.name='Arteriosklerose''"
+    query=("SELECT %s.name FROM krankheiten INNER JOIN %s %s"%(schema_name, schema_name, where))
+    result=sqlselect(query)
+    return result
+
+def krankheiten_getall():
+    krankheiten=session.query(Krankheit).all()
+    # for krankheit in krankheiten:
+        
 def krankheiten_getall2Dict():
     """
     """
@@ -151,7 +201,7 @@ def krankheiten_getall2Dict():
     krankheiten=session.query(Krankheit).all()
 
     for krankheit in krankheiten:
-        krankheitdict={'Krankheit':krankheit.name, 'Beschreibung':krankheit.description}
+        krankheitdict={'Krankheit':krankheit.name, 'Beschreibung':krankheit.beschreibung}
         krankheitendicts.append(krankheitdict)
     return krankheitendicts
 

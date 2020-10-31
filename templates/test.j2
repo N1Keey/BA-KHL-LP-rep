@@ -1,26 +1,22 @@
-<link rel="stylesheet" href="../static/dist/bootstrap-theme.css">
-<link rel="stylesheet" href="../static/dist/bootstrap-theme.css.map">
-<link rel="stylesheet" href="../static/dist/bootstrap-theme.min.css">
-<link rel="stylesheet" href="../static/dist/bootstrap.css.map">
-<link rel="stylesheet" href="../static/dist/bootstrap.css">
+<style>
+.radio-toolbar input[type="radio"] {
+  display: none;
+}
 
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body>
-
-<div class="container">
-  <h2>Simple Collapsible</h2>
-  <p>Click on the button to toggle between showing and hiding content.</p>
-  <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#demo">Simple collapsible</button>
-  <div id="demo" class="collapse">
-    Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-    quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-  </div>
+.radio-toolbar label {
+  background-color: #ddd;
+  padding: 4px 11px;
+  font-family: Arial;
+  font-size: 16px;
+  cursor: pointer;
+}
+.radio-toolbar input[type="radio"]:checked+label {
+  background-color: #bbb;
+}
+</style>
+<div class="radio-toolbar">
+{% for i in range(5) %}
+  <input type="radio" id="radio1" name="radios" value="all">
+  <label for="radio1">radio {{i}}</label>
+{% endfor %}
 </div>
-
-</body>
-</html>

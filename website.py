@@ -79,19 +79,29 @@ def home():
 def hinzufügen():
     if not session.get('logged_in'):
         return redirect('/')
+    schemacontent=''
+    message=''
+    active_krankheit=None
+    active_schema=None
     if request.method=='POST':
         rform=request.form
         if 'Btn_add_Krankheit' in rform:
             name=rform['Krankheit_name']
             db.krankheiten_add(name)
-        if 'Btn_Krankheit' in rform:
-            krankheit=rform['Btn_Krankheit']
-            print(krankheit)
-        if 'Btn_Kh_schema' in rform:
-            aktives_element=rform['Btn_Kh_schema']
-            print(aktives_element)
+        if 'radio_Krankheit' in rform and 'Btn_Kh_schema' in rform:
+            active_krankheit=rform['radio_Krankheit']
+            active_schema=rform['Btn_Kh_schema']
+            schemacontent=db.krankheit_getSchemacontent(active_schema, active_krankheit)
+        elif 'Btn_Kh_schema' in rform:
+            message='Zuerst Krankheit auswählen'
+        if 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
+            newschemacontent = rform['kh_newcontent']
+            db.krankheit_add_schema(active_krankheit, active_schema, newschemacontent)
+    else:
+        message='Links Krankheit auswählen und oben das Schema'
     krankheiten=db.krankheiten_getall2Dict()
-    return render_template('hinzufügen.j2', krankheiten=krankheiten)
+    return render_template('hinzufügen.j2', krankheiten=krankheiten, active_schema=active_schema, 
+    active_krankheit=active_krankheit, schemacontent=schemacontent, message=message)
 
 @app.route('/fragen',methods=['GET','POST'])
 def fragen():

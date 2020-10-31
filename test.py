@@ -1,4 +1,6 @@
 import database as db
 
-k_dict=db.krankheiten_getall2Dict()
-print(k_dict)
+# beschreibung=db.krankheit_getschema('Arteriosklerose','Beschreibung')
+# print(beschreibung) 
+ursachen=db.krankheit_getSchemacontent('ursachen','Arteriosklerose')
+print(ursachen)
