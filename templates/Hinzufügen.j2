@@ -2,6 +2,13 @@
 {% block styles %}
     {{ super() }}
     <style>
+        .kh_active{
+            background-color:lightgreen
+        }
+        .schema_active{
+            background-color:lightgreen
+
+        }
         .vert_navbar{
             float:left;
             width:25%;
@@ -72,8 +79,8 @@
             <ul>
                 {% for krankheit in krankheiten %}
                     <li>
-                        <label class='kh_radio_label'>
-                        {{ krankheit['Krankheit'] }}<input type="radio" name="radio_Krankheit" value="{{ krankheit['Krankheit'] }}" id="rdo_kh">
+                        <label class='kh_radio_label'{% if active_krankheit == "{{ krankheit }}" %} class="kh_active" {% endif %}>
+                            {{ krankheit }}<input type="radio" name="radio_Krankheit" value="{{ krankheit }}" id="rdo_kh">
                         </label>
                     </li>
                 {% endfor %}
@@ -84,23 +91,26 @@
     <div class='content'>
             <table>
                 <tr>
-                    <th><button type="submit" name="Btn_Kh_schema" value="Beschreibung" id="btn_schema">Beschreibung</button></th>
-                    <th><button type="submit" name="Btn_Kh_schema" value="Ursachen" id="btn_schema">Ursachen</button></th>
-                    <th><button type="submit" name="Btn_Kh_schema" value="Symptome" id="btn_schema">Symptome</button></th>
-                    <th><button type="submit" name="Btn_Kh_schema" value="Komplikationen" id="btn_schema">Komplikationen</button></th>
-                    <th><button type="submit" name="Btn_Kh_schema" value="Diagnostiken" id="btn_schema">Diagnostiken</button></th>
-                    <th><button type="submit" name="Btn_Kh_schema" value="Therapien" id="btn_schema">Therapien</button></th>
+                    <th><button {% if active_schema == 'Ursachen' %} class="schema_active" {% endif %} type="submit" name="Btn_Kh_schema" value="Ursachen" id="btn_schema">Ursachen</button></th>
+                    <th><button {% if active_schema == 'Symptome' %} class="schema_active" {% endif %} type="submit" name="Btn_Kh_schema" value="Symptome" id="btn_schema">Symptome</button></th>
+                    <th><button {% if active_schema == 'Komplikationen' %} class="schema_active" {% endif %} type="submit" name="Btn_Kh_schema" value="Komplikationen" id="btn_schema">Komplikationen</button></th>
+                    <th><button {% if active_schema == 'Diagnostiken' %} class="schema_active" {% endif %} type="submit" name="Btn_Kh_schema" value="Diagnostiken" id="btn_schema">Diagnostiken</button></th>
+                    <th><button {% if active_schema == 'Therapien' %} class="schema_active" {% endif %} type="submit" name="Btn_Kh_schema" value="Therapien" id="btn_schema">Therapien</button></th>
                 </tr>
             </table>
                 <p>{{ message }}</p>
-                {% for element in schemacontent %}
-                    <p> {{element}} </p>
-                {% endfor %}
+                {% if active_schema %}
+                    <input type="text" name="kh_newcontent" placeholder="Neue/s {{active_schema}}" autocomplete="off" autofocus>
+                    <input type="submit" name="kh_addcontent" id="btn_add" value="hinzufügen">
+                    <input type="hidden" name="radio_Krankheit" value="{{active_krankheit}}">
+                    <input type="hidden" name="Btn_Kh_schema" value="{{active_schema}}">
+                {% endif %}
+                <ul>
+                    {% for element in schemacontent %}
+                        <li> {{element}} </li>
+                    {% endfor %}
+                </ul>
                 
-            {% if active_schema %}
-                <input type="text" name="kh_newcontent" placeholder="Neue/s {{active_schema}}" autocomplete="off" autofocus>
-                <input type="submit" name="kh_addcontent" id="btn_add" value="hinzufügen">
-            {% endif %}
         </form>
     </div>
 {% endblock %}

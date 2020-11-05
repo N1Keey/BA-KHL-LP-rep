@@ -22,6 +22,46 @@ class User(Base):
     email = Column(String(100), unique=True)
     password = Column(String(255))
     roles = relationship('Role', secondary=roles_users) # bei Anfrage bezug auf roles_users -> Relationtable  
+    
+    def regist(user_email, user_password):
+        """Adds User to Database and gives the standard-role: 'User'
+        """
+        new_User=User(email=user_email, password=user_password)
+        new_user_role=session.query(Role).filter(Role.name=='User').first()
+        new_User.roles=[new_user_role]
+        session_add_and_commit(new_User)
+
+    def login(user_email, user_password):
+        """returns True if Email exists and Password is right
+        False if Email isnt existing or Password isnt right
+        """
+        login_bool=False
+        users=session.query(User)
+        for user in users:
+            if user_email==user.email and user_password==user.password:
+                login_bool=True
+        return login_bool
+
+    def getall2Dict():
+        """Returns Userdata of all Users with roles in a list of Dictionarys
+        ID, Email, Password, Roles are the Keys
+        """
+        userdicts=[]
+        users=session.query(User).join(User.roles).all()
+        for user in users:
+            userrolelist=[]
+            for role in user.roles:
+                userrolelist.append(role.name) 
+            userdict={'ID':user.id,'Email':user.email,'Password':user.password,'Roles':userrolelist}
+            userdicts.append(userdict)  
+        return userdicts
+
+    def delete(user_ID):
+        """Deletes User with given user_ID"""
+        user=session.query(User).filter(User.id==user_ID)
+        if user.first().email != 'Nschick@mail.hs-ulm.de':
+            user.delete()
+            session.commit()
 
 class Role(Base):
     __tablename__='roles'
@@ -30,20 +70,35 @@ class Role(Base):
     name = Column(String(40), unique=True)
     description = Column(String(255))
 
+    def add(role_name, role_description):
+        """Adds Role to Database"""
+        new_Role=Role(name=role_name, description=role_description)
+        session_add_and_commit(new_Role)
+
+    def role2User(user_email, role_name):
+        """Adds Role with role_name to User with user_email"""
+        user_roles=[]
+        user=session.query(User).join(User.roles).filter(User.email==user_email).first()
+        for role in user.roles:
+            user_roles.append(role)
+        new_user_role=session.query(Role).filter(Role.name==role_name).first()
+        user_roles.append(new_user_role)
+        user.roles=user_roles
+        session.commit()
+
 relation = Table('relation', Base.metadata,
-    Column('krankheit_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
-    Column('ursache_id', Integer, ForeignKey('ursachen.id', ondelete="CASCADE")),
-    Column('symptom_id', Integer, ForeignKey('symptome.id', ondelete="CASCADE")),
-    Column('komplikation_id', Integer, ForeignKey('komplikationen.id', ondelete="CASCADE")),
-    Column('diagnostik_id', Integer, ForeignKey('diagnostiken.id', ondelete="CASCADE")),
-    Column('therapie_id', Integer, ForeignKey('therapien.id', ondelete="CASCADE"))
+    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
+    Column('ursachen_id', Integer, ForeignKey('ursachen.id', ondelete="CASCADE")),
+    Column('symptome_id', Integer, ForeignKey('symptome.id', ondelete="CASCADE")),
+    Column('komplikationen_id', Integer, ForeignKey('komplikationen.id', ondelete="CASCADE")),
+    Column('diagnostiken_id', Integer, ForeignKey('diagnostiken.id', ondelete="CASCADE")),
+    Column('therapien_id', Integer, ForeignKey('therapien.id', ondelete="CASCADE"))
     )
 
 class Krankheit(Base):
     __tablename__='krankheiten'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
-    beschreibung = Column(String(255), default='Leer')
     ursachen = relationship('Ursache', secondary=relation)
     symptome = relationship('Symptom', secondary=relation)
     komplikationen = relationship('Komplikation', secondary=relation)
@@ -77,156 +132,171 @@ class Therapie(Base):
 
 Base.metadata.create_all(engine)
 
-def user_regist(user_email, user_password):
-    """Adds User to Database and gives the standard-role: 'User'
-    """
-    new_User=User(email=user_email, password=user_password)
-    new_user_role=session.query(Role).filter(Role.name=='User').first()
-    new_User.roles=[new_user_role]
-    session.add(new_User)
+def session_add_and_commit(new_obj_name):
+    session.add(new_obj_name)
     session.commit()
 
-def user_login(user_email, user_password):
-    """returns True if Email exists and Password is right
-    False if Email isnt existing or Password isnt right
-    """
-    login_bool=False
-    users=session.query(User)
-    for user in users:
-        if user_email==user.email and user_password==user.password:
-            login_bool=True
-    return login_bool
-
-def user_getall2Dict():
-    """Returns Userdata of all Users with roles in a list of Dictionarys
-    ID, Email, Password, Roles are the Keys
-    """
-    userdicts=[]
-    users=session.query(User).join(User.roles).all()
-    for user in users:
-        userrolelist=[]
-        for role in user.roles:
-            userrolelist.append(role.name) 
-        userdict={'ID':user.id,'Email':user.email,'Password':user.password,'Roles':userrolelist}
-        userdicts.append(userdict)  
-    return userdicts
-
-def user_delete(user_ID):
-    """Deletes User with given user_ID"""
-    user=session.query(User).filter(User.id==user_ID)
-    if user.first().email != 'Nschick@mail.hs-ulm.de':
-        user.delete()
-        session.commit()
-
-def role_add(role_name, role_description):
-    """Adds Role to Database"""
-    new_Role=Role(name=role_name, description=role_description)
-    session.add(new_Role)
-    session.commit()
-
-def role2User(user_email, role_name):
-    """Adds Role with role_name to User with user_email"""
-    user_roles=[]
-    user=session.query(User).join(User.roles).filter(User.email==user_email).first()
-    for role in user.roles:
-        user_roles.append(role)
-    new_user_role=session.query(Role).filter(Role.name==role_name).first()
-    user_roles.append(new_user_role)
-    user.roles=user_roles
-    session.commit()
-
-def krankheiten_add(krankheit_name):
+def kh_addKrankheit(krankheit_name):
+    """Adds Krankheiten 2 db"""
     new_Krankheit=Krankheit(name=krankheit_name)
-    session.add(new_Krankheit)
+    session_add_and_commit(new_Krankheit)
+
+def kh_addSchema(krankheit_name, schema_name, eigenschaft_name):
+    """Adds Eigenschaften von Krankheiten 2 db"""
+    if schema_name=='Ursachen':
+        new_Object=Ursache(name=eigenschaft_name)
+    elif schema_name=='Symptome':
+        new_Object=Symptom(name=eigenschaft_name)
+    elif schema_name=='Komplikationen':
+        new_Object=Komplikation(name=eigenschaft_name)
+    elif schema_name=='Diagnostiken':
+        new_Object=Diagnostik(name=eigenschaft_name)
+    elif schema_name=='Therapien':
+        new_Object=Therapie(name=eigenschaft_name)
+    session_add_and_commit(new_Object)
+    schema2krankheit(krankheit_name,schema_name,eigenschaft_name)
+
+def schema2krankheit(krankheit_name, schema_name, eigenschaft_name):
+    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+    schemacontent=kh_SchemaContentGetall(krankheit_name, schema_name, False)
+    if schema_name=='Ursachen':
+        new_schemacontent=session.query(Ursache).filter(Ursache.name==eigenschaft_name).first()
+        schemacontent.append(new_schemacontent)
+        krankheit.ursachen=schemacontent
+    elif schema_name=='Symptome':
+        new_schemacontent=session.query(Symptom).filter(Symptom.name==eigenschaft_name).first()
+        schemacontent.append(new_schemacontent)
+        krankheit.symptome=schemacontent
+    elif schema_name=='Komplikationen':
+        new_schemacontent=session.query(Komplikation).filter(Komplikation.name==eigenschaft_name).first()
+        schemacontent.append(new_schemacontent)
+        krankheit.komplikationen=schemacontent
+    elif schema_name=='Diagnostiken':
+        new_schemacontent=session.query(Diagnostik).filter(Diagnostik.name==eigenschaft_name).first()
+        schemacontent.append(new_schemacontent)
+        krankheit.diagnostiken=schemacontent
+    elif schema_name=='Therapien':
+        new_schemacontent=session.query(Therapie).filter(Therapie.name==eigenschaft_name).first()
+        schemacontent.append(new_schemacontent)
+        krankheit.therapien=schemacontent
     session.commit()
+
+def kh_Krankheiten_getall():
+    """Get all Krankheiten"""
+    krankheiten=[]
+    sqlelement=session.query(Krankheit).order_by(Krankheit.id.asc()).all()
+    for row in sqlelement:
+        krankheiten.append(row.name)
+    return krankheiten
+
+def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
+    schemacontent=[]
+    try:
+        if schema_name=='Ursachen':
+            schema_query=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name==krankheit_name).first()
+            for element in schema_query.ursachen:
+                schemacontent.append(element)
+        elif schema_name=='Symptome':
+            schema_query=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name==krankheit_name).first()
+            for element in schema_query.symptome:
+                schemacontent.append(element)
+        elif schema_name=='Komplikationen':
+            schema_query=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name==krankheit_name).first()
+            for element in schema_query.komplikationen:
+                schemacontent.append(element)
+        elif schema_name=='Diagnostiken':
+            schema_query=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name==krankheit_name).first()
+            for element in schema_query.diagnostiken:
+                schemacontent.append(element)
+        elif schema_name=='Therapien':
+            schema_query=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name==krankheit_name).first()
+            for element in schema_query.therapien:
+                schemacontent.append(element)
+        if toString==True:
+            contentstrings=[]
+            for element in schemacontent:
+                contentstrings.append(element.name)
+            schemacontent=contentstrings
+    except AttributeError:
+        schemacontent=[]
+    return schemacontent
+    
+
 
 #######################
 #SQL-TEXT-Functions
 #######################
 
-def sqladd(query):
-    """Query like: 'INSERT INTO table (column1,..) VALUES(value1,..)
-    without return"""
-    querytext=text(query)
-    connection.execute(querytext)
-    connection.commit()
+# def sqladd(query):
+#     """Query like: 'INSERT INTO table (column1,..) VALUES(value1,..)
+#     without return"""
+#     querytext=text(query)
+#     connection.execute(querytext)
+#     session.commit()
 
-def sqlgetid(table_name, value_name, column_name='name'):
-    query="SELECT id FROM %s WHERE %s='%s'"%(table_name,column_name,value_name)
-    id_=sqlselect(query)
-    return id_
+# def sqlgetid(table_name, value_name, column_name='name'):
+#     query="SELECT id FROM %s WHERE %s='%s'"%(table_name,column_name,value_name)
+#     result=sqlselectOne(query)
+#     id_=result[0]
+#     id__=id_[0]
+#     return id__
 
-def sqladdrelation(table1, table2, value1, value2, relation_table):
-    id1=sqlgetid(table1, value1)
-    id2=sqlgetid(table2, value2)
-    query="INSERT INTO %s (%s_id, %s_id) VALUES ('%s', '%s')"%(relation_table, table1, table2, id1, id2)
-    sqladd(query)   
+# def sqladdrelation(table1, table2, value1, value2, relation_table):
+#     id1=sqlgetid(table1, value1)
+#     id2=sqlgetid(table2, value2)
+#     query="INSERT INTO %s (%s_id, %s_id) VALUES ('%s', '%s')"%(relation_table, table1, table2, id1, id2)
+#     sqladd(query)   
 
-def sqlselect(query):
-    """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
-    returns with fetchall()
-    """
-    querytext=text(query)
-    result=connection.execute(querytext).fetchall()
-    return result
+# def sqlselectAll(query):
+#     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
+#     returns with fetchall()
+#     """
+#     querytext=text(query)
+#     result=connection.execute(querytext).fetchall()
+#     return result
 
-def krankheit_add_schema(krankheit_name, schema_name, schema_eigenschaft):
-    """Adds Schema zur Datenbank und zur Krankheit"""
-    where='WHERE %s.name = %s'%(schema_name, schema_eigenschaft)
-    kh_sch_content=krankheit_getSchemacontent(schema_name,krankheit_name,where=where)
-    if kh_sch_content==[]:
-        query="INSERT INTO %s (name) VALUES(%s) "%(schema_name, schema_eigenschaft)
-        sqladd(query)
-    sqladdrelation('krankheiten', schema_name, krankheit_name, schema_eigenschaft, 'relation')
+# def sqlselectOne(query):
+#     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
+#     returns with fetchall()
+#     """
+#     querytext=text(query)
+#     result=connection.execute(querytext).fetchall()
+#     return result
 
-def krankheit_multifunct(krankheit_name=None, schema_name=None, where=None, schema_eigenschaft=None):
-    bla='hose'
-    return bla
+# def krankheit_multifunct(krankheit_name=None, schema_name=None, where=None, schema_eigenschaft=None):
+#     bla='hose'
+#     return bla
 
-def krankheit_getSchemacontent(schema_name, krankheit_name, where=''):
-    "where like: 'WHERE krankheiten.name='Arteriosklerose''"
-    query=("SELECT %s.name FROM krankheiten INNER JOIN %s %s"%(schema_name, schema_name, where))
-    result=sqlselect(query)
-    return result
-
-def krankheiten_getall():
-    krankheiten=session.query(Krankheit).all()
-    # for krankheit in krankheiten:
+# def krankheit_getSchemacontent(schema_name, krankheit_name, where=''):
+#     "where like: 'WHERE krankheiten.name='Arteriosklerose''"
+#     query=("SELECT %s.name FROM krankheiten INNER JOIN %s %s"%(schema_name, schema_name, where))
+#     result=sqlselectAll(query)
+#     return result
         
-def krankheiten_getall2Dict():
-    """
-    """
-    krankheitendicts=[]
 
-    krankheiten=session.query(Krankheit).all()
 
-    for krankheit in krankheiten:
-        krankheitdict={'Krankheit':krankheit.name, 'Beschreibung':krankheit.beschreibung}
-        krankheitendicts.append(krankheitdict)
-    return krankheitendicts
-
-        # ursache_list=[] 
-        # for ursache in krankheit.ursachen:
-        #     ursache_list.append(ursache.name)
-        # krankheitdict['Ursachen']=ursache_list
+#         # ursache_list=[] 
+#         # for ursache in krankheit.ursachen:
+#         #     ursache_list.append(ursache.name)
+#         # krankheitdict['Ursachen']=ursache_list
         
-        # symptom_list=[] 
-        # for symptom in krankheit.symptome:
-        #     symptom_list.append(symptom.name)
-        # krankheitdict['Symptome']=symptom_list
+#         # symptom_list=[] 
+#         # for symptom in krankheit.symptome:
+#         #     symptom_list.append(symptom.name)
+#         # krankheitdict['Symptome']=symptom_list
         
-        # komplikation_list=[] 
-        # for komplikation in krankheit.komplikationen:
-        #     komplikation_list.append(komplikation.name)
-        # krankheitdict['Komplikationen']=komplikation_list
+#         # komplikation_list=[] 
+#         # for komplikation in krankheit.komplikationen:
+#         #     komplikation_list.append(komplikation.name)
+#         # krankheitdict['Komplikationen']=komplikation_list
         
-        # diagnostik_list=[] 
-        # for diagnostik in krankheit.diagnostiken:
-        #     diagnostik_list.append(diagnostik.name)
-        # krankheitdict['Diagnostik']=diagnostik_list
+#         # diagnostik_list=[] 
+#         # for diagnostik in krankheit.diagnostiken:
+#         #     diagnostik_list.append(diagnostik.name)
+#         # krankheitdict['Diagnostik']=diagnostik_list
         
-        # therapie_list=[] 
-        # for therapie in krankheit.therapien:
-        #     therapie_list.append(therapie.name)
-        # krankheitdict['Therapie']=therapie_list
+#         # therapie_list=[] 
+#         # for therapie in krankheit.therapien:
+#         #     therapie_list.append(therapie.name)
+#         # krankheitdict['Therapie']=therapie_list
         

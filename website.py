@@ -24,7 +24,7 @@ def login():
     if request.method=='POST':
         email=rform['Email']
         password=rform['Passwort']
-        login_bool=db.user_login(email,password)
+        login_bool=db.User.login(email,password)
         if login_bool==True:
             session['logged_in']=True
             return render_template('Home.j2')
@@ -36,7 +36,7 @@ def login():
 def pw_vergessen():
     # if request.method == 'POST':
     #     rform=request.form
-        # users=db.user_getall2Dict()
+        # users=db.User.getall2Dict()
         # for user in users:
         #     if rform['Email'] == user['Email']:
         #         msg = Message("Hello",
@@ -62,8 +62,8 @@ def registrieren():
         password=rform['Passwort']
         pw_validation=rform['pw_validation']
         if password == pw_validation:
-            db.user_regist(email,password)
-            users=db.user_getall2Dict()
+            db.User.regist(email,password)
+            users=db.User.getall2Dict()
             return render_template('usermanagement.j2', users=users)     
         else:
             flash('Passwörter stimmen nicht überein!')
@@ -87,19 +87,19 @@ def hinzufügen():
         rform=request.form
         if 'Btn_add_Krankheit' in rform:
             name=rform['Krankheit_name']
-            db.krankheiten_add(name)
+            db.kh_addKrankheit(name)
         if 'radio_Krankheit' in rform and 'Btn_Kh_schema' in rform:
             active_krankheit=rform['radio_Krankheit']
             active_schema=rform['Btn_Kh_schema']
-            schemacontent=db.krankheit_getSchemacontent(active_schema, active_krankheit)
+            if 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
+                newschemacontent = rform['kh_newcontent']
+                db.kh_addSchema(active_krankheit, active_schema, newschemacontent)
+            schemacontent=db.kh_SchemaContentGetall(active_krankheit,active_schema, True)
         elif 'Btn_Kh_schema' in rform:
             message='Zuerst Krankheit auswählen'
-        if 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
-            newschemacontent = rform['kh_newcontent']
-            db.krankheit_add_schema(active_krankheit, active_schema, newschemacontent)
     else:
         message='Links Krankheit auswählen und oben das Schema'
-    krankheiten=db.krankheiten_getall2Dict()
+    krankheiten=db.kh_Krankheiten_getall()
     return render_template('hinzufügen.j2', krankheiten=krankheiten, active_schema=active_schema, 
     active_krankheit=active_krankheit, schemacontent=schemacontent, message=message)
 
@@ -122,7 +122,7 @@ def admin_auth():
                 flash('Passwort ist falsch!')
             else:
                 session['Admin']=True
-                users=db.user_getall2Dict()
+                users=db.User.getall2Dict()
                 return render_template('usermanagement.j2', users=users)
     return render_template('admin_auth.j2')
 
@@ -135,8 +135,8 @@ def usermanagement():
     if request.method=='POST':
         rform=request.form
         if "Button_del" in rform:
-            print(db.user_delete(rform['Button_del']))
-    users=db.user_getall2Dict()
+            print(db.User.delete(rform['Button_del']))
+    users=db.User.getall2Dict()
     return render_template('usermanagement.j2', users=users)
 
 @app.route('/test', methods=['GET','POST'])
