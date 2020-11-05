@@ -88,9 +88,11 @@ def hinzufügen():
         if 'Btn_add_Krankheit' in rform:
             name=rform['Krankheit_name']
             db.kh_addKrankheit(name)
-        if 'radio_Krankheit' in rform and 'Btn_Kh_schema' in rform:
-            active_krankheit=rform['radio_Krankheit']
+        if 'Btn_Krankheit' in rform:
+            active_krankheit=rform['Btn_Krankheit']
+        if 'Btn_Kh_schema' in rform:
             active_schema=rform['Btn_Kh_schema']
+            active_krankheit=rform['Btn_Krankheit']
             if 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
                 newschemacontent = rform['kh_newcontent']
                 db.kh_addSchema(active_krankheit, active_schema, newschemacontent)

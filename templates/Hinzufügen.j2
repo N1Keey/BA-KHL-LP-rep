@@ -2,13 +2,6 @@
 {% block styles %}
     {{ super() }}
     <style>
-        .kh_active{
-            background-color:lightgreen
-        }
-        .schema_active{
-            background-color:lightgreen
-
-        }
         .vert_navbar{
             float:left;
             width:25%;
@@ -34,19 +27,20 @@
             position: fixed;
             height:86.5%;
         }
-        #rdo_kh{
-            float:right;
-        }
-        .kh_radio_label{
+        #btn_kh {
             border-style:solid;
             border-color: lightgreen;
             border-width: 1px;
             width:100%;
             margin:0;
             padding:7;
+            text-align:left;
         }
-        .kh_radio_label:hover{
+        #btn_kh:hover{
             background-color:lightgreen;
+        }
+        .kh_active{
+            background-color:lightgreen
         }
         .content{
             position: relative;
@@ -56,6 +50,9 @@
         #btn_schema{
             width:100%;
             height:100%;
+        }
+        .schema_active{
+            background-color:lightgreen
         }
         table {
             width: 100%;
@@ -79,16 +76,16 @@
             <ul>
                 {% for krankheit in krankheiten %}
                     <li>
-                        <label class='kh_radio_label'{% if active_krankheit == "{{ krankheit }}" %} class="kh_active" {% endif %}>
-                            {{ krankheit }}<input type="radio" name="radio_Krankheit" value="{{ krankheit }}" id="rdo_kh">
-                        </label>
+                        <button {% if active_krankheit == krankheit %} class="kh_active" {% endif %} type="submit" name="Btn_Krankheit" value="{{ krankheit }}" id="btn_kh">{{ krankheit }}</button>
                     </li>
                 {% endfor %}
             </ul>
+        </form>    
     </div>
 {% endblock %}
 {% block content %}
     <div class='content'>
+        <form action="?" method='POST'>
             <table>
                 <tr>
                     <th><button {% if active_schema == 'Ursachen' %} class="schema_active" {% endif %} type="submit" name="Btn_Kh_schema" value="Ursachen" id="btn_schema">Ursachen</button></th>
@@ -98,19 +95,19 @@
                     <th><button {% if active_schema == 'Therapien' %} class="schema_active" {% endif %} type="submit" name="Btn_Kh_schema" value="Therapien" id="btn_schema">Therapien</button></th>
                 </tr>
             </table>
-                <p>{{ message }}</p>
-                {% if active_schema %}
-                    <input type="text" name="kh_newcontent" placeholder="Neue/s {{active_schema}}" autocomplete="off" autofocus>
-                    <input type="submit" name="kh_addcontent" id="btn_add" value="hinzufügen">
-                    <input type="hidden" name="radio_Krankheit" value="{{active_krankheit}}">
-                    <input type="hidden" name="Btn_Kh_schema" value="{{active_schema}}">
-                {% endif %}
-                <ul>
-                    {% for element in schemacontent %}
-                        <li> {{element}} </li>
-                    {% endfor %}
-                </ul>
-                
+            <p>{{ message }}</p>
+            {% if active_krankheit %} <h4> {{active_krankheit}} </h4> {% endif %}
+            {% if active_schema %}
+                <input type="text" name="kh_newcontent" placeholder="Neue {{ active_schema }}" autocomplete="off" autofocus>
+                <input type="submit" name="kh_addcontent" id="btn_add" value="hinzufügen">
+            {% endif %}
+            <ul>
+                {% for element in schemacontent %}
+                    <li> {{element}} </li>
+                {% endfor %}
+            </ul>
+            <input type="hidden" name="Btn_Krankheit" value="{{active_krankheit}}">
+            <input type="hidden" name="Btn_Kh_schema" value="{{active_schema}}">
         </form>
     </div>
 {% endblock %}
