@@ -24,7 +24,7 @@ def login():
     if request.method=='POST':
         email=rform['Email']
         password=rform['Passwort']
-        login_bool=db.User.login(email,password)
+        login_bool=db.User.login(email,password) #prüft, ob login daten mit db übereinstimmen gibt True oder False
         if login_bool==True:
             session['logged_in']=True
             return render_template('Home.j2')
@@ -62,8 +62,8 @@ def registrieren():
         password=rform['Passwort']
         pw_validation=rform['pw_validation']
         if password == pw_validation:
-            db.User.regist(email,password)
-            users=db.User.getall2Dict()
+            db.User.regist(email,password) #Registriert User mit Email und Passwort
+            users=db.User.getall2Dict() #Speichert alle Daten der User in einem Dictionary
             return render_template('usermanagement.j2', users=users)     
         else:
             flash('Passwörter stimmen nicht überein!')
@@ -80,10 +80,10 @@ def hinzufügen():
     if not session.get('logged_in'):
         return redirect('/')
     schemacontent = ''
-    message = ''
-    active_krankheit = None
-    active_schema = None
-    uok_Addkhmode = False
+    message = '' #Message für User
+    active_krankheit = None #Gerade Aktive Krankheit
+    active_schema = None #Gerade Aktives Schema
+    uok_Addkhmode = False #Modus um bei Ursachen oder Komplikationen Krankheiten hinzuzufügen
     if request.method=='POST':
         rform=request.form
         if 'Btn_add_Krankheit' in rform:
@@ -99,7 +99,7 @@ def hinzufügen():
             if 'uok_Addkh' in rform:
                 uok_addedkhs = request.form.getlist('checkbox_Krankheit')
                 for uok_addedkh in uok_addedkhs:
-                    db.uok_addKrankheit(active_schema, active_krankheit, uok_addedkh)
+                    db.uok_addKrankheit(active_schema, active_krankheit, uok_addedkh) #Fügt bei Ursachen oder Komplikationen Krankheiten hinzu
             if 'kh_addcontent' in rform and 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
                 newschemacontent = rform['kh_newcontent']
                 db.kh_addSchema(active_krankheit, active_schema, newschemacontent)

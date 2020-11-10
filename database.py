@@ -158,7 +158,7 @@ def kh_addKrankheit(krankheit_name):
     session_add_and_commit(new_Krankheit)
 
 def kh_addSchema(krankheit_name, schema_name, eigenschaft_name):
-    """Adds Eigenschaften von Krankheiten 2 db"""
+    """Adds Eigenschaften von Krankheiten 2 Schema in db"""
     if schema_name=='Ursachen':
         new_Object=Ursache(name=eigenschaft_name)
     elif schema_name=='Symptome':
@@ -173,6 +173,7 @@ def kh_addSchema(krankheit_name, schema_name, eigenschaft_name):
     schema2krankheit(krankheit_name,schema_name,eigenschaft_name)
 
 def schema2krankheit(krankheit_name, schema_name, eigenschaft_name):
+    """Verbindet Eigenschaft mit Krankheit"""
     krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
     schemacontent=kh_SchemaContentGetall(krankheit_name, schema_name, False)
     if schema_name=='Ursachen':
@@ -206,6 +207,8 @@ def kh_Krankheiten_getall():
     return krankheiten
 
 def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
+    """Get Eigenschaften aus Schema von Krankheit
+    toString True -> packt die Liste der Objekte in eine Stringliste mit den Namen der Objekte"""
     schemacontent=[]
     try:
         if schema_name=='Ursachen':
@@ -238,6 +241,7 @@ def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
     return schemacontent
 
 def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
+    """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
     krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
     schemacontent=kh_SchemaContentGetall(krankheit_name, schema_name, False)
     if schema_name=='Ursachen':
@@ -301,31 +305,3 @@ def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
 #     query=("SELECT %s.name FROM krankheiten INNER JOIN %s %s"%(schema_name, schema_name, where))
 #     result=sqlselectAll(query)
 #     return result
-        
-
-
-#         # ursache_list=[] 
-#         # for ursache in krankheit.ursachen:
-#         #     ursache_list.append(ursache.name)
-#         # krankheitdict['Ursachen']=ursache_list
-        
-#         # symptom_list=[] 
-#         # for symptom in krankheit.symptome:
-#         #     symptom_list.append(symptom.name)
-#         # krankheitdict['Symptome']=symptom_list
-        
-#         # komplikation_list=[] 
-#         # for komplikation in krankheit.komplikationen:
-#         #     komplikation_list.append(komplikation.name)
-#         # krankheitdict['Komplikationen']=komplikation_list
-        
-#         # diagnostik_list=[] 
-#         # for diagnostik in krankheit.diagnostiken:
-#         #     diagnostik_list.append(diagnostik.name)
-#         # krankheitdict['Diagnostik']=diagnostik_list
-        
-#         # therapie_list=[] 
-#         # for therapie in krankheit.therapien:
-#         #     therapie_list.append(therapie.name)
-#         # krankheitdict['Therapie']=therapie_list
-        
