@@ -102,13 +102,13 @@ def hinzufügen():
                     db.uok_addKrankheit_text(active_schema, active_krankheit, uok_addedkh) #Fügt bei Ursachen oder Komplikationen Krankheiten hinzu
             if 'kh_addcontent' in rform and 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
                 newschemacontent = rform['kh_newcontent']
-                db.kh_addSchema(active_krankheit, active_schema, newschemacontent)
+                db.kh_addSchemacontent(active_krankheit, active_schema, newschemacontent)
             schemacontent=db.kh_SchemaContentGetall(active_krankheit,active_schema,True)
         elif 'Btn_Kh_schema' in rform:
             message='Zuerst Krankheit auswählen'
     else:
         message='Links Krankheit auswählen und oben das Schema'
-    krankheiten=db.kh_Krankheiten_getall()
+    krankheiten=db.kh_Krankheiten_getall_text()
     return render_template('hinzufügen.j2', krankheiten=krankheiten, active_schema=active_schema, 
     active_krankheit=active_krankheit, schemacontent=schemacontent, message=message, uok_Addkhmode=uok_Addkhmode)
 

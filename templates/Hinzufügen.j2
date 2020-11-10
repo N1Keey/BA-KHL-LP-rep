@@ -2,6 +2,9 @@
 {% block styles %}
     {{ super() }}
     <style>
+        body{
+            overflow:hidden
+        }
         .vert_navbar{
             float:left;
             width:25%;
@@ -50,8 +53,9 @@
             width: 75%;
             float: right;
         }
-        ul.content{
-            overflow-y:auto;
+        table {
+            width: 100%;
+            margin:0;
         }
         #btn_schema{
             width:100%;
@@ -60,12 +64,13 @@
         .schema_active{
             background-color:lightgreen
         }
-        table {
-            width: 100%;
-            margin:0;
-        }
         #btn_add {
             margin-left:-4;
+        }
+        .schemacontent ul {
+            height:76.5%;
+            overflow:hidden; 
+            overflow-y:scroll;
         }
         
     </style>
@@ -78,7 +83,7 @@
 {% block vert_navbar %}
     <div class='vert_navbar'>
         <form action="?" method='POST'>
-            <input type="text" id="tf_addkh" name="Krankheit_name" placeholder="Neue Krankheit:" autocomplete="off" autofocus>
+            <input type="text" id="tf_addkh" name="Krankheit_name" placeholder="Neue Krankheit:" autocomplete="off">
             <button type="submit" name= "Btn_add_Krankheit" id="btn_addkh">einfügen</button>
         </form>
         <form action="?" method='POST'>
@@ -120,15 +125,17 @@
                 <input type="text" name="kh_newcontent" placeholder="Neue {{ active_schema }}" autocomplete="off" autofocus id="tf_add">
                 <input type="submit" name="kh_addcontent" id="btn_add" value="hinzufügen">
                 <input type="hidden" name="Btn_Kh_schema" value="{{active_schema}}">
+                {% if active_schema == 'Ursachen' or active_schema == 'Komplikationen' %}
+                    <input type="submit" {% if uok_Addkhmode %} name="uok_Addkh" {% else %} name="uok_Addkhmode" {% endif %} value="Krankheit hinzufügen" id="btn_uok_joinkh">
+                {% endif %}
             {% endif %}
-            {% if active_schema == 'Ursachen' or active_schema == 'Komplikationen' %}
-                <input type="submit" {% if uok_Addkhmode %} name="uok_Addkh" {% else %} name="uok_Addkhmode" {% endif %} value="Krankheit hinzufügen" id="btn_uok_joinkh">
-            {% endif %}
-            <ul>
-                {% for element in schemacontent %}
-                    <li> {{element}} </li>
-                {% endfor %}
-            </ul>
+            <div class = 'schemacontent'>
+                <ul>
+                    {% for element in schemacontent %}
+                        <li> {{element}} </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </form>
     </div>
 {% endblock %}

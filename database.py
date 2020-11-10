@@ -89,7 +89,6 @@ class Role(Base):
 kh2ursachen = Table('kh2ursachen', Base.metadata,
     Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     Column('ursachen_id', Integer, ForeignKey('ursachen.id', ondelete="CASCADE")),
-    Column('krankheiten_id_', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     )
 kh2symptome = Table('kh2symptome', Base.metadata,
     Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
@@ -98,7 +97,6 @@ kh2symptome = Table('kh2symptome', Base.metadata,
 kh2komplikationen = Table('kh2komplikationen', Base.metadata,
     Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     Column('komplikationen_id', Integer, ForeignKey('komplikationen.id', ondelete="CASCADE")),
-    Column('krankheiten_id_', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     )
 kh2diagnostiken = Table('kh2diagnostiken', Base.metadata,
     Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
@@ -123,7 +121,6 @@ class Ursache(Base):
     __tablename__='ursachen'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
-    krankheiten = relationship('Krankheit', secondary=kh2ursachen)
 
 class Symptom(Base):
     __tablename__='symptome'
@@ -134,7 +131,6 @@ class Komplikation(Base):
     __tablename__='komplikationen'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
-    krankheiten = relationship('Krankheit', secondary=kh2komplikationen)
 
 class Diagnostik(Base):
     __tablename__='diagnostiken'
@@ -157,7 +153,7 @@ def kh_addKrankheit(krankheit_name):
     new_Krankheit=Krankheit(name=krankheit_name)
     session_add_and_commit(new_Krankheit)
 
-def kh_addSchema(krankheit_name, schema_name, eigenschaft_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+def kh_addSchemacontent(krankheit_name, schema_name, eigenschaft_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
     """Adds Eigenschaften von Krankheiten 2 Schema in db"""
     if schema_name=='Ursachen':
         new_Object=Ursache(name=eigenschaft_name)
@@ -204,6 +200,11 @@ def kh_Krankheiten_getall():
     sqlelement=session.query(Krankheit).order_by(Krankheit.id.asc()).all()
     for row in sqlelement:
         krankheiten.append(row.name)
+    return krankheiten
+
+def kh_Krankheiten_getall_text():
+    """Get all Krankheiten"""
+    krankheiten=kh_getAll('krankheiten')
     return krankheiten
 
 def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
@@ -256,8 +257,19 @@ def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
 
 def uok_addKrankheit_text(schema_name, krankheit_name, krankheit2add):
     """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
-    sqladdrelation("krankheiten","krankheiten",krankheit2add, krankheit_name, "kh2%s"%(schema_name.lower()))
+    sqladdrelation("krankheiten","krankheiten",krankheit2add, krankheit_name, "kh2%s"%(schema_name.lower()),True)
 
+def kh_getAll(table, column='name', join_table='', join_column='', condition=''):
+    """table->'tablename', column->'columnname', join_table->'tablename', join_column->'columnname', 
+    condition->'Krankheiten.name==krankheit_name'"""
+    join=''
+    where=''
+    if join_table != '' and join_column != '':
+        join='JOIN %s.%s'%(join_table,join_column)
+    if where != '':
+        where='WHERE %s'%(condition)
+    result=sqlselectAll("SELECT %s FROM %s %s %s"%(column, table, join, where))
+    return result
 
 #######################
 #SQL-TEXT-Functions
@@ -274,30 +286,37 @@ def sqlGetid(table_name, value_name, column_name='name'):
     """"""
     query="SELECT id FROM %s WHERE %s='%s'"%(table_name,column_name,value_name)
     result=sqlselectOne(query)
-    id_=result[0]
-    id__=id_[0]
-    return id__
+    return result
 
-def sqladdrelation(table1, table2, value1, value2, relation_table):
+def sqladdrelation(table1, table2, value1, value2, relation_table, kh_uok_relation=False):
+    """Fügt in relation_table im Column table1_id und table2_id die jeweiligen ids ein
+    kh_uok_relation True: Verbindung von Krankheiten -> uok"""
+    kh_uok_string=''
+    if kh_uok_relation is True:
+        kh_uok_string='_kh'
     id1=sqlGetid(table1, value1)
     id2=sqlGetid(table2, value2)
-    query="INSERT INTO %s (%s_id_, %s_id) VALUES ('%s', '%s')"%(relation_table, table1, table2, id1, id2)
+    query="INSERT INTO %s (%s_id, %s_id%s) VALUES ('%s', '%s')"%(relation_table, table1, table2, kh_uok_string, id1, id2)
     sqladd(query)   
 
-# def sqlselectAll(query):
-#     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
-#     returns with fetchall() 
-#     """
-#     querytext=text(query)
-#     result=connection.execute(querytext).fetchall()
-#     return result
-
-def sqlselectOne(query):
+def sqlselectAll(query):
     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
-    returns with fetchall()
+    returns with fetchall() 
     """
     querytext=text(query)
     result=connection.execute(querytext).fetchall()
+    list_result=[]
+    for row in result:
+        (element,) = row
+        list_result.append(element)
+    return list_result
+
+def sqlselectOne(query):
+    """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
+    returns with fetchone()
+    """
+    querytext=text(query)
+    (result,)=connection.execute(querytext).fetchone()
     return result
 
 # def krankheit_getSchemacontent(schema_name, krankheit_name, where=''):
