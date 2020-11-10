@@ -99,7 +99,7 @@ def hinzufügen():
             if 'uok_Addkh' in rform:
                 uok_addedkhs = request.form.getlist('checkbox_Krankheit')
                 for uok_addedkh in uok_addedkhs:
-                    db.uok_addKrankheit(active_schema, active_krankheit, uok_addedkh) #Fügt bei Ursachen oder Komplikationen Krankheiten hinzu
+                    db.uok_addKrankheit_text(active_schema, active_krankheit, uok_addedkh) #Fügt bei Ursachen oder Komplikationen Krankheiten hinzu
             if 'kh_addcontent' in rform and 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
                 newschemacontent = rform['kh_newcontent']
                 db.kh_addSchema(active_krankheit, active_schema, newschemacontent)

@@ -89,7 +89,7 @@ class Role(Base):
 kh2ursachen = Table('kh2ursachen', Base.metadata,
     Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     Column('ursachen_id', Integer, ForeignKey('ursachen.id', ondelete="CASCADE")),
-    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
+    Column('krankheiten_id_', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     )
 kh2symptome = Table('kh2symptome', Base.metadata,
     Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
@@ -98,7 +98,7 @@ kh2symptome = Table('kh2symptome', Base.metadata,
 kh2komplikationen = Table('kh2komplikationen', Base.metadata,
     Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     Column('komplikationen_id', Integer, ForeignKey('komplikationen.id', ondelete="CASCADE")),
-    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
+    Column('krankheiten_id_', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     )
 kh2diagnostiken = Table('kh2diagnostiken', Base.metadata,
     Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
@@ -254,51 +254,51 @@ def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
         krankheit.komplikationen=schemacontent
     session.commit() #hier scheitert es wahrscheinlich, weil es nicht mit dem Objekt Krankheit rechnet -> mit TextSql händisch Ids verbinden?
 
+def uok_addKrankheit_text(schema_name, krankheit_name, krankheit2add):
+    """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
+    sqladdrelation("krankheiten","krankheiten",krankheit2add, krankheit_name, "kh2%s"%(schema_name.lower()))
 
 
 #######################
 #SQL-TEXT-Functions
 #######################
 
-# def sqladd(query):
-#     """Query like: 'INSERT INTO table (column1,..) VALUES(value1,..)
-#     without return"""
-#     querytext=text(query)
-#     connection.execute(querytext)
-#     session.commit()
+def sqladd(query):
+    """Query like: 'INSERT INTO table (column1,..) VALUES(value1,..)
+    without return"""
+    querytext=text(query)
+    connection.execute(querytext)
+    session.commit()
 
-# def sqlgetid(table_name, value_name, column_name='name'):
-#     query="SELECT id FROM %s WHERE %s='%s'"%(table_name,column_name,value_name)
-#     result=sqlselectOne(query)
-#     id_=result[0]
-#     id__=id_[0]
-#     return id__
+def sqlGetid(table_name, value_name, column_name='name'):
+    """"""
+    query="SELECT id FROM %s WHERE %s='%s'"%(table_name,column_name,value_name)
+    result=sqlselectOne(query)
+    id_=result[0]
+    id__=id_[0]
+    return id__
 
-# def sqladdrelation(table1, table2, value1, value2, relation_table):
-#     id1=sqlgetid(table1, value1)
-#     id2=sqlgetid(table2, value2)
-#     query="INSERT INTO %s (%s_id, %s_id) VALUES ('%s', '%s')"%(relation_table, table1, table2, id1, id2)
-#     sqladd(query)   
+def sqladdrelation(table1, table2, value1, value2, relation_table):
+    id1=sqlGetid(table1, value1)
+    id2=sqlGetid(table2, value2)
+    query="INSERT INTO %s (%s_id_, %s_id) VALUES ('%s', '%s')"%(relation_table, table1, table2, id1, id2)
+    sqladd(query)   
 
 # def sqlselectAll(query):
 #     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
-#     returns with fetchall()
+#     returns with fetchall() 
 #     """
 #     querytext=text(query)
 #     result=connection.execute(querytext).fetchall()
 #     return result
 
-# def sqlselectOne(query):
-#     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
-#     returns with fetchall()
-#     """
-#     querytext=text(query)
-#     result=connection.execute(querytext).fetchall()
-#     return result
-
-# def krankheit_multifunct(krankheit_name=None, schema_name=None, where=None, schema_eigenschaft=None):
-#     bla='hose'
-#     return bla
+def sqlselectOne(query):
+    """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
+    returns with fetchall()
+    """
+    querytext=text(query)
+    result=connection.execute(querytext).fetchall()
+    return result
 
 # def krankheit_getSchemacontent(schema_name, krankheit_name, where=''):
 #     "where like: 'WHERE krankheiten.name='Arteriosklerose''"
