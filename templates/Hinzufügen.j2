@@ -9,13 +9,13 @@
             top:0;
             bottom:0;
         }
-        #btn_add, #tf_add{
+        #btn_addkh, #tf_addkh{
             display:inline;
             padding:0;
             height:30px;
         }
-        #tf_add{width:80%}
-        #btn_add{
+        #tf_addkh{width:80%}
+        #btn_addkh{
             width:20%;
             margin-left: -4;
         }
@@ -27,7 +27,7 @@
             position: fixed;
             height:86.5%;
         }
-        #btn_kh {
+        #btn_kh, .kh_checkbox_label {
             border-style:solid;
             border-color: lightgreen;
             border-width: 1px;
@@ -36,7 +36,10 @@
             padding:7;
             text-align:left;
         }
-        #btn_kh:hover{
+        #cbx_kh{
+            float:right;
+        }
+        #btn_kh:hover, .kh_checkbox_label:hover, #btn_schema:hover{
             background-color:lightgreen;
         }
         .kh_active{
@@ -46,6 +49,9 @@
             position: relative;
             width: 75%;
             float: right;
+        }
+        ul.content{
+            overflow-y:auto;
         }
         #btn_schema{
             width:100%;
@@ -58,6 +64,9 @@
             width: 100%;
             margin:0;
         }
+        #btn_add {
+            margin-left:-4;
+        }
         
     </style>
 {% endblock %}
@@ -69,23 +78,30 @@
 {% block vert_navbar %}
     <div class='vert_navbar'>
         <form action="?" method='POST'>
-            <input type="text" id="tf_add" name="Krankheit_name" placeholder="Krankheit Name:" autocomplete="off" autofocus>
-            <button type="submit" name= "Btn_add_Krankheit" id="btn_add">einfügen</button>
+            <input type="text" id="tf_addkh" name="Krankheit_name" placeholder="Neue Krankheit:" autocomplete="off" autofocus>
+            <button type="submit" name= "Btn_add_Krankheit" id="btn_addkh">einfügen</button>
         </form>
         <form action="?" method='POST'>
             <ul>
                 {% for krankheit in krankheiten %}
-                    <li>
-                        <button {% if active_krankheit == krankheit %} class="kh_active" {% endif %} type="submit" name="Btn_Krankheit" value="{{ krankheit }}" id="btn_kh">{{ krankheit }}</button>
-                    </li>
+                    {% if not uok_Addkhmode %}
+                        <li>
+                            <button {% if active_krankheit == krankheit %} class="kh_active" {% endif %} type="submit" name="Btn_Krankheit" value="{{ krankheit }}" id="btn_kh">{{ krankheit }}</button>
+                        </li>
+                    {% endif %}
+                    {% if uok_Addkhmode %}
+                        <li>
+                            <label class='kh_checkbox_label'>
+                                {{ krankheit }}<input type="checkbox" name="checkbox_Krankheit" value="{{ krankheit }}" id="cbx_kh">
+                            </label>
+                        </li>
+                    {% endif %}
                 {% endfor %}
             </ul>
-        </form>    
     </div>
 {% endblock %}
 {% block content %}
     <div class='content'>
-        <form action="?" method='POST'>
             <table>
                 <tr>
                     <th><button {% if active_schema == 'Ursachen' %} class="schema_active" {% endif %} type="submit" name="Btn_Kh_schema" value="Ursachen" id="btn_schema">Ursachen</button></th>
@@ -96,18 +112,23 @@
                 </tr>
             </table>
             <p>{{ message }}</p>
-            {% if active_krankheit %} <h4> {{active_krankheit}} </h4> {% endif %}
+            {% if active_krankheit %} 
+                <h4> {{active_krankheit}} </h4> 
+                <input type="hidden" name="Btn_Krankheit" value="{{active_krankheit}}">
+            {% endif %}
             {% if active_schema %}
-                <input type="text" name="kh_newcontent" placeholder="Neue {{ active_schema }}" autocomplete="off" autofocus>
+                <input type="text" name="kh_newcontent" placeholder="Neue {{ active_schema }}" autocomplete="off" autofocus id="tf_add">
                 <input type="submit" name="kh_addcontent" id="btn_add" value="hinzufügen">
+                <input type="hidden" name="Btn_Kh_schema" value="{{active_schema}}">
+            {% endif %}
+            {% if active_schema == 'Ursachen' or active_schema == 'Komplikationen' %}
+                <input type="submit" {% if uok_Addkhmode %} name="uok_Addkh" {% else %} name="uok_Addkhmode" {% endif %} value="Krankheit hinzufügen" id="btn_uok_joinkh">
             {% endif %}
             <ul>
                 {% for element in schemacontent %}
                     <li> {{element}} </li>
                 {% endfor %}
             </ul>
-            <input type="hidden" name="Btn_Krankheit" value="{{active_krankheit}}">
-            <input type="hidden" name="Btn_Kh_schema" value="{{active_schema}}">
         </form>
     </div>
 {% endblock %}

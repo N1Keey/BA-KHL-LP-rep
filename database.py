@@ -86,12 +86,26 @@ class Role(Base):
         user.roles=user_roles
         session.commit()
 
-relation = Table('relation', Base.metadata,
+kh2ursachen = Table('kh2ursachen', Base.metadata,
     Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     Column('ursachen_id', Integer, ForeignKey('ursachen.id', ondelete="CASCADE")),
+    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
+    )
+kh2symptome = Table('kh2symptome', Base.metadata,
+    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     Column('symptome_id', Integer, ForeignKey('symptome.id', ondelete="CASCADE")),
+    )
+kh2komplikationen = Table('kh2komplikationen', Base.metadata,
+    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     Column('komplikationen_id', Integer, ForeignKey('komplikationen.id', ondelete="CASCADE")),
+    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
+    )
+kh2diagnostiken = Table('kh2diagnostiken', Base.metadata,
+    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     Column('diagnostiken_id', Integer, ForeignKey('diagnostiken.id', ondelete="CASCADE")),
+    )
+kh2therapien = Table('kh2therapien', Base.metadata,
+    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
     Column('therapien_id', Integer, ForeignKey('therapien.id', ondelete="CASCADE"))
     )
 
@@ -99,16 +113,17 @@ class Krankheit(Base):
     __tablename__='krankheiten'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
-    ursachen = relationship('Ursache', secondary=relation)
-    symptome = relationship('Symptom', secondary=relation)
-    komplikationen = relationship('Komplikation', secondary=relation)
-    diagnostiken = relationship('Diagnostik', secondary=relation)
-    therapien = relationship('Therapie', secondary=relation)
+    ursachen = relationship('Ursache', secondary=kh2ursachen)
+    symptome = relationship('Symptom', secondary=kh2symptome)
+    komplikationen = relationship('Komplikation', secondary=kh2komplikationen)
+    diagnostiken = relationship('Diagnostik', secondary=kh2diagnostiken)
+    therapien = relationship('Therapie', secondary=kh2therapien)
 
 class Ursache(Base):
     __tablename__='ursachen'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
+    krankheiten = relationship('Krankheit', secondary=kh2ursachen)
 
 class Symptom(Base):
     __tablename__='symptome'
@@ -119,6 +134,7 @@ class Komplikation(Base):
     __tablename__='komplikationen'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
+    krankheiten = relationship('Krankheit', secondary=kh2komplikationen)
 
 class Diagnostik(Base):
     __tablename__='diagnostiken'
@@ -220,7 +236,20 @@ def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
     except AttributeError:
         schemacontent=[]
     return schemacontent
-    
+
+def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
+    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+    schemacontent=kh_SchemaContentGetall(krankheit_name, schema_name, False)
+    if schema_name=='Ursachen':
+        new_schemacontent=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
+        schemacontent.append(new_schemacontent)
+        krankheit.ursachen=schemacontent
+    elif schema_name=='Komplikationen':
+        new_schemacontent=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
+        schemacontent.append(new_schemacontent)
+        krankheit.komplikationen=schemacontent
+    session.commit()
+
 
 
 #######################

@@ -79,10 +79,11 @@ def home():
 def hinzufügen():
     if not session.get('logged_in'):
         return redirect('/')
-    schemacontent=''
-    message=''
-    active_krankheit=None
-    active_schema=None
+    schemacontent = ''
+    message = ''
+    active_krankheit = None
+    active_schema = None
+    uok_Addkhmode = False
     if request.method=='POST':
         rform=request.form
         if 'Btn_add_Krankheit' in rform:
@@ -90,20 +91,26 @@ def hinzufügen():
             db.kh_addKrankheit(name)
         if 'Btn_Krankheit' in rform:
             active_krankheit=rform['Btn_Krankheit']
-        if 'Btn_Kh_schema' in rform:
+        if 'Btn_Kh_schema' in rform and 'Btn_Krankheit' or 'uok_Addkhmode' in rform or 'uok_Addkh' in rform:
             active_schema=rform['Btn_Kh_schema']
             active_krankheit=rform['Btn_Krankheit']
-            if 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
+            if 'uok_Addkhmode' in rform:
+                uok_Addkhmode=True
+            if 'uok_Addkh' in rform:
+                uok_addedkhs = request.form.getlist('checkbox_Krankheit')
+                for uok_addedkh in uok_addedkhs:
+                    db.uok_addKrankheit(active_schema, active_krankheit, uok_addedkh)
+            if 'kh_addcontent' in rform and 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
                 newschemacontent = rform['kh_newcontent']
                 db.kh_addSchema(active_krankheit, active_schema, newschemacontent)
-            schemacontent=db.kh_SchemaContentGetall(active_krankheit,active_schema, True)
+            schemacontent=db.kh_SchemaContentGetall(active_krankheit,active_schema,True)
         elif 'Btn_Kh_schema' in rform:
             message='Zuerst Krankheit auswählen'
     else:
         message='Links Krankheit auswählen und oben das Schema'
     krankheiten=db.kh_Krankheiten_getall()
     return render_template('hinzufügen.j2', krankheiten=krankheiten, active_schema=active_schema, 
-    active_krankheit=active_krankheit, schemacontent=schemacontent, message=message)
+    active_krankheit=active_krankheit, schemacontent=schemacontent, message=message, uok_Addkhmode=uok_Addkhmode)
 
 @app.route('/fragen',methods=['GET','POST'])
 def fragen():
