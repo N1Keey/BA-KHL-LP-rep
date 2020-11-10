@@ -157,7 +157,7 @@ def kh_addKrankheit(krankheit_name):
     new_Krankheit=Krankheit(name=krankheit_name)
     session_add_and_commit(new_Krankheit)
 
-def kh_addSchema(krankheit_name, schema_name, eigenschaft_name):
+def kh_addSchema(krankheit_name, schema_name, eigenschaft_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
     """Adds Eigenschaften von Krankheiten 2 Schema in db"""
     if schema_name=='Ursachen':
         new_Object=Ursache(name=eigenschaft_name)
@@ -252,7 +252,7 @@ def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
         new_schemacontent=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
         schemacontent.append(new_schemacontent)
         krankheit.komplikationen=schemacontent
-    session.commit()
+    session.commit() #hier scheitert es wahrscheinlich, weil es nicht mit dem Objekt Krankheit rechnet -> mit TextSql händisch Ids verbinden?
 
 
 
