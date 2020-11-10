@@ -91,7 +91,7 @@ def hinzufügen():
             db.kh_addKrankheit(name)
         if 'Btn_Krankheit' in rform:
             active_krankheit=rform['Btn_Krankheit']
-        if 'Btn_Kh_schema' in rform and 'Btn_Krankheit' or 'uok_Addkhmode' in rform or 'uok_Addkh' in rform:
+        if 'Btn_Kh_schema' in rform and 'Btn_Krankheit' in rform or 'uok_Addkhmode' in rform or 'uok_Addkh' in rform:
             active_schema=rform['Btn_Kh_schema']
             active_krankheit=rform['Btn_Krankheit']
             if 'uok_Addkhmode' in rform:
