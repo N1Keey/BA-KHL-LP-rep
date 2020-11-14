@@ -231,6 +231,32 @@ def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
         schemacontent=[]
     return schemacontent
 
+def ursache_add(krankheit_name, ursache_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+    ursache=Ursache(name=ursache_name)
+    session_add_and_commit(ursache)
+    ursache2krankheit(krankheit_name, ursache)
+
+def ursache2krankheit(krankheit_name, ursache):
+    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+    krankheit_ursachen=ursachen_getAll_fromKrankheit(krankheit_name, False)
+    krankheit_ursachen.append(ursache)
+    krankheit.ursachen=krankheit_ursachen
+
+def ursachen_getAll_fromKrankheit(krankheit_name, toString=False):
+    krankheit_ursachen=[]
+    try:
+        krankheit=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name==krankheit_name).first()
+        for ursache in krankheit.ursachen:
+            krankheit_ursachen.append(ursache)
+        if toString==True:
+            ursachenstrings=[]
+            for ursache in krankheit_ursachen:
+                ursachenstrings.append(ursache.name)
+            krankheit_ursachen=ursachenstrings
+    except AttributeError:
+        krankheit_ursachen=[]
+    return krankheit_ursachen
+
 def symptom_add(krankheit_name, symptom_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
     symptom=Symptom(name=symptom_name)
     session_add_and_commit(symptom)
@@ -256,6 +282,84 @@ def symptome_getAll_fromKrankheit(krankheit_name, toString=False):
     except AttributeError:
         krankheit_symptome=[]
     return krankheit_symptome
+
+def komplikation_add(krankheit_name, komplikation_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+    komplikation=Komplikation(name=komplikation_name)
+    session_add_and_commit(komplikation)
+    komplikation2krankheit(krankheit_name, komplikation)
+
+def komplikation2krankheit(krankheit_name, komplikation):
+    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+    krankheit_komplikationen=komplikationen_getAll_fromKrankheit(krankheit_name, False)
+    krankheit_komplikationen.append(komplikation)
+    krankheit.komplikationen=krankheit_komplikationen
+
+def komplikationen_getAll_fromKrankheit(krankheit_name, toString=False):
+    krankheit_komplikationen=[]
+    try:
+        krankheit=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name==krankheit_name).first()
+        for komplikation in krankheit.komplikationen:
+            krankheit_komplikationen.append(komplikation)
+        if toString==True:
+            komplikationenstrings=[]
+            for komplikation in krankheit_komplikationen:
+                komplikationenstrings.append(komplikation.name)
+            krankheit_komplikationen=komplikationenstrings
+    except AttributeError:
+        krankheit_komplikationen=[]
+    return krankheit_komplikationen
+
+def diagnostik_add(krankheit_name, diagnostik_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+    diagnostik=Diagnostik(name=diagnostik_name)
+    session_add_and_commit(diagnostik)
+    diagnostik2krankheit(krankheit_name, diagnostik)
+
+def diagnostik2krankheit(krankheit_name, diagnostik):
+    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+    krankheit_diagnostiken=diagnostiken_getAll_fromKrankheit(krankheit_name, False)
+    krankheit_diagnostiken.append(diagnostik)
+    krankheit.diagnostiken=krankheit_diagnostiken
+
+def diagnostiken_getAll_fromKrankheit(krankheit_name, toString=False):
+    krankheit_diagnostiken=[]
+    try:
+        krankheit=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name==krankheit_name).first()
+        for diagnostik in krankheit.diagnostiken:
+            krankheit_diagnostiken.append(diagnostik)
+        if toString==True:
+            diagnostikenstrings=[]
+            for diagnostik in krankheit_diagnostiken:
+                diagnostikenstrings.append(diagnostik.name)
+            krankheit_diagnostiken=diagnostikenstrings
+    except AttributeError:
+        krankheit_diagnostiken=[]
+    return krankheit_diagnostiken
+
+def therapie_add(krankheit_name, therapie_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+    therapie=Therapie(name=therapie_name)
+    session_add_and_commit(therapie)
+    therapie2krankheit(krankheit_name, therapie)
+
+def therapie2krankheit(krankheit_name, therapie):
+    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+    krankheit_therapien=therapien_getAll_fromKrankheit(krankheit_name, False)
+    krankheit_therapien.append(therapie)
+    krankheit.therapien=krankheit_therapien
+
+def therapien_getAll_fromKrankheit(krankheit_name, toString=False):
+    krankheit_therapien=[]
+    try:
+        krankheit=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name==krankheit_name).first()
+        for therapie in krankheit.therapien:
+            krankheit_therapien.append(therapie)
+        if toString==True:
+            therapienstrings=[]
+            for therapie in krankheit_therapien:
+                therapienstrings.append(therapie.name)
+            krankheit_therapien=therapienstrings
+    except AttributeError:
+        krankheit_therapien=[]
+    return krankheit_therapien
 
 def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
     """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
