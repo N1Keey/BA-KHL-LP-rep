@@ -75,40 +75,57 @@ def home():
         return redirect('/')
     return render_template('home.j2')
 
+@app.route('/hinzufügen_Symptome', methods=['GET','POST'])
+def hinzufügen_symptom():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method == 'POST':
+        rform = request.form
+        active_krankheit=rform['active_krankheit']
+        if rform['kh_newSymptome'] != '':
+            symptom_name=rform['kh_newSymptome']
+            db.symptom_add(active_krankheit, symptom_name) 
+        session['actives_schema']='Symptome'
+        session['active_krankheit']=active_krankheit
+    return redirect('/hinzufügen')
+
 @app.route('/hinzufügen',methods=['GET','POST'])
 def hinzufügen():
     if not session.get('logged_in'):
         return redirect('/')
-    schemacontent = ''
+    schemacontent=''
     message = '' #Message für User
-    active_krankheit = None #Gerade Aktive Krankheit
-    active_schema = None #Gerade Aktives Schema
+    active_krankheit = session.get('active_krankheit') #Gerade Aktive Krankheit
+    active_schema = session.get('actives_schema') #Gerade Aktives Schema
     uok_Addkhmode = False #Modus um bei Ursachen oder Komplikationen Krankheiten hinzuzufügen
     if request.method=='POST':
         rform=request.form
         if 'Btn_add_Krankheit' in rform:
             name=rform['Krankheit_name']
             db.kh_addKrankheit(name)
-        if 'Btn_Krankheit' in rform:
-            active_krankheit=rform['Btn_Krankheit']
-        if 'Btn_Kh_schema' in rform and 'Btn_Krankheit' in rform or 'uok_Addkhmode' in rform or 'uok_Addkh' in rform:
+        if 'active_krankheit' in rform:
+            active_krankheit=rform['active_krankheit']
+        if 'Btn_Kh_schema' in rform and 'active_krankheit' in rform or 'uok_Addkhmode' in rform or 'uok_Addkh' in rform:
             active_schema=rform['Btn_Kh_schema']
-            active_krankheit=rform['Btn_Krankheit']
+            active_krankheit=rform['active_krankheit']
             if 'uok_Addkhmode' in rform:
                 uok_Addkhmode=True
             if 'uok_Addkh' in rform:
                 uok_addedkhs = request.form.getlist('checkbox_Krankheit')
                 for uok_addedkh in uok_addedkhs:
-                    db.uok_addKrankheit_text(active_schema, active_krankheit, uok_addedkh) #Fügt bei Ursachen oder Komplikationen Krankheiten hinzu
+                    db.uok_addKrankheit(active_schema, active_krankheit, uok_addedkh) #Fügt bei Ursachen oder Komplikationen Krankheiten hinzu
             if 'kh_addcontent' in rform and 'kh_newcontent' in rform and rform['kh_newcontent'] != '':
                 newschemacontent = rform['kh_newcontent']
                 db.kh_addSchemacontent(active_krankheit, active_schema, newschemacontent)
             schemacontent=db.kh_SchemaContentGetall(active_krankheit,active_schema,True)
         elif 'Btn_Kh_schema' in rform:
             message='Zuerst Krankheit auswählen'
+    elif active_schema=='Symptome':
+        kh_symptome=db.symptome_getAll_fromKrankheit(active_krankheit, True)
+        schemacontent=kh_symptome
     else:
         message='Links Krankheit auswählen und oben das Schema'
-    krankheiten=db.kh_Krankheiten_getall_text()
+    krankheiten=db.kh_Krankheiten_getall()
     return render_template('hinzufügen.j2', krankheiten=krankheiten, active_schema=active_schema, 
     active_krankheit=active_krankheit, schemacontent=schemacontent, message=message, uok_Addkhmode=uok_Addkhmode)
 

@@ -86,59 +86,59 @@ class Role(Base):
         user.roles=user_roles
         session.commit()
 
-kh2ursachen = Table('kh2ursachen', Base.metadata,
-    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
-    Column('ursachen_id', Integer, ForeignKey('ursachen.id', ondelete="CASCADE")),
+kh2ursache = Table('kh2ursache', Base.metadata,
+    Column('krankheit_id', Integer, ForeignKey('krankheit.id', ondelete="CASCADE")),
+    Column('ursache_id', Integer, ForeignKey('ursache.id', ondelete="CASCADE")),
     )
-kh2symptome = Table('kh2symptome', Base.metadata,
-    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
-    Column('symptome_id', Integer, ForeignKey('symptome.id', ondelete="CASCADE")),
+kh2symptom = Table('kh2symptom', Base.metadata,
+    Column('krankheit_id', Integer, ForeignKey('krankheit.id', ondelete="CASCADE")),
+    Column('symptom_id', Integer, ForeignKey('symptom.id', ondelete="CASCADE")),
     )
-kh2komplikationen = Table('kh2komplikationen', Base.metadata,
-    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
-    Column('komplikationen_id', Integer, ForeignKey('komplikationen.id', ondelete="CASCADE")),
+kh2komplikation = Table('kh2komplikation', Base.metadata,
+    Column('krankheit_id', Integer, ForeignKey('krankheit.id', ondelete="CASCADE")),
+    Column('komplikation_id', Integer, ForeignKey('komplikation.id', ondelete="CASCADE")),
     )
-kh2diagnostiken = Table('kh2diagnostiken', Base.metadata,
-    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
-    Column('diagnostiken_id', Integer, ForeignKey('diagnostiken.id', ondelete="CASCADE")),
+kh2diagnostik = Table('kh2diagnostik', Base.metadata,
+    Column('krankheit_id', Integer, ForeignKey('krankheit.id', ondelete="CASCADE")),
+    Column('diagnostik_id', Integer, ForeignKey('diagnostik.id', ondelete="CASCADE")),
     )
-kh2therapien = Table('kh2therapien', Base.metadata,
-    Column('krankheiten_id', Integer, ForeignKey('krankheiten.id', ondelete="CASCADE")),
-    Column('therapien_id', Integer, ForeignKey('therapien.id', ondelete="CASCADE"))
+kh2therapie = Table('kh2therapie', Base.metadata,
+    Column('krankheit_id', Integer, ForeignKey('krankheit.id', ondelete="CASCADE")),
+    Column('therapie_id', Integer, ForeignKey('therapie.id', ondelete="CASCADE"))
     )
 
 class Krankheit(Base):
-    __tablename__='krankheiten'
+    __tablename__='krankheit'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
-    ursachen = relationship('Ursache', secondary=kh2ursachen)
-    symptome = relationship('Symptom', secondary=kh2symptome)
-    komplikationen = relationship('Komplikation', secondary=kh2komplikationen)
-    diagnostiken = relationship('Diagnostik', secondary=kh2diagnostiken)
-    therapien = relationship('Therapie', secondary=kh2therapien)
+    ursachen = relationship('Ursache', secondary=kh2ursache)
+    symptome = relationship('Symptom', secondary=kh2symptom)
+    komplikationen = relationship('Komplikation', secondary=kh2komplikation)
+    diagnostiken = relationship('Diagnostik', secondary=kh2diagnostik)
+    therapien = relationship('Therapie', secondary=kh2therapie)
 
 class Ursache(Base):
-    __tablename__='ursachen'
+    __tablename__='ursache'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
 
 class Symptom(Base):
-    __tablename__='symptome'
+    __tablename__='symptom'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
 
 class Komplikation(Base):
-    __tablename__='komplikationen'
+    __tablename__='komplikation'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
 
 class Diagnostik(Base):
-    __tablename__='diagnostiken'
+    __tablename__='diagnostik'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
 
 class Therapie(Base):
-    __tablename__='therapien'
+    __tablename__='therapie'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
 
@@ -157,8 +157,6 @@ def kh_addSchemacontent(krankheit_name, schema_name, eigenschaft_name): #Wenn Ei
     """Adds Eigenschaften von Krankheiten 2 Schema in db"""
     if schema_name=='Ursachen':
         new_Object=Ursache(name=eigenschaft_name)
-    elif schema_name=='Symptome':
-        new_Object=Symptom(name=eigenschaft_name)
     elif schema_name=='Komplikationen':
         new_Object=Komplikation(name=eigenschaft_name)
     elif schema_name=='Diagnostiken':
@@ -176,10 +174,6 @@ def schema2krankheit(krankheit_name, schema_name, eigenschaft_name):
         new_schemacontent=session.query(Ursache).filter(Ursache.name==eigenschaft_name).first()
         schemacontent.append(new_schemacontent)
         krankheit.ursachen=schemacontent
-    elif schema_name=='Symptome':
-        new_schemacontent=session.query(Symptom).filter(Symptom.name==eigenschaft_name).first()
-        schemacontent.append(new_schemacontent)
-        krankheit.symptome=schemacontent
     elif schema_name=='Komplikationen':
         new_schemacontent=session.query(Komplikation).filter(Komplikation.name==eigenschaft_name).first()
         schemacontent.append(new_schemacontent)
@@ -204,7 +198,7 @@ def kh_Krankheiten_getall():
 
 def kh_Krankheiten_getall_text():
     """Get all Krankheiten"""
-    krankheiten=kh_getAll('krankheiten')
+    krankheiten=kh_getAll_text('krankheiten')
     return krankheiten
 
 def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
@@ -215,10 +209,6 @@ def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
         if schema_name=='Ursachen':
             schema_query=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name==krankheit_name).first()
             for element in schema_query.ursachen:
-                schemacontent.append(element)
-        elif schema_name=='Symptome':
-            schema_query=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name==krankheit_name).first()
-            for element in schema_query.symptome:
                 schemacontent.append(element)
         elif schema_name=='Komplikationen':
             schema_query=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name==krankheit_name).first()
@@ -241,6 +231,32 @@ def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
         schemacontent=[]
     return schemacontent
 
+def symptom_add(krankheit_name, symptom_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+    symptom=Symptom(name=symptom_name)
+    session_add_and_commit(symptom)
+    symptom2krankheit(krankheit_name, symptom)
+
+def symptom2krankheit(krankheit_name, symptom):
+    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+    krankheit_symptome=symptome_getAll_fromKrankheit(krankheit_name, False)
+    krankheit_symptome.append(symptom)
+    krankheit.symptome=krankheit_symptome
+
+def symptome_getAll_fromKrankheit(krankheit_name, toString=False):
+    krankheit_symptome=[]
+    try:
+        krankheit=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name==krankheit_name).first()
+        for symptom in krankheit.symptome:
+            krankheit_symptome.append(symptom)
+        if toString==True:
+            symptomestrings=[]
+            for symptom in krankheit_symptome:
+                symptomestrings.append(symptom.name)
+            krankheit_symptome=symptomestrings
+    except AttributeError:
+        krankheit_symptome=[]
+    return krankheit_symptome
+
 def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
     """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
     krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
@@ -259,7 +275,7 @@ def uok_addKrankheit_text(schema_name, krankheit_name, krankheit2add):
     """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
     sqladdrelation("krankheiten","krankheiten",krankheit2add, krankheit_name, "kh2%s"%(schema_name.lower()),True)
 
-def kh_getAll(table, column='name', join_table='', join_column='', condition=''):
+def kh_getAll_text(table, column='name', join_table='', join_column='', condition=''):
     """table->'tablename', column->'columnname', join_table->'tablename', join_column->'columnname', 
     condition->'Krankheiten.name==krankheit_name'"""
     join=''
@@ -270,6 +286,16 @@ def kh_getAll(table, column='name', join_table='', join_column='', condition='')
         where='WHERE %s'%(condition)
     result=sqlselectAll("SELECT %s FROM %s %s %s"%(column, table, join, where))
     return result
+
+   
+# krankheit_ursachen=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name=='Arteriosklerose').first()
+# krankheit_symptome=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name=='Arteriosklerose').first()
+# krankheit_komplikationen=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name=='Arteriosklerose').first()
+# krankheit_diagnostiken=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name=='Arteriosklerose').first()
+# krankheit_therapien=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name=='Arteriosklerose').first()
+
+# for therapien in krankheit_therapien:
+#     print(therapien) 
 
 #######################
 #SQL-TEXT-Functions
