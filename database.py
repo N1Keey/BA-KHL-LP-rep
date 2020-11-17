@@ -117,30 +117,206 @@ class Krankheit(Base):
     diagnostiken = relationship('Diagnostik', secondary=kh2diagnostik)
     therapien = relationship('Therapie', secondary=kh2therapie)
 
+    def add(krankheit_name):
+        """Adds Krankheiten 2 db"""
+        new_Krankheit=Krankheit(name=krankheit_name)
+        session_add_and_commit(new_Krankheit)
+
+    def getall():
+        """Get all Krankheiten"""
+        krankheiten=[]
+        sqlelement=session.query(Krankheit).order_by(Krankheit.id.asc()).all()
+        for row in sqlelement:
+            krankheiten.append(row.name)
+        return krankheiten
+
 class Ursache(Base):
     __tablename__='ursache'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
+    krankheit_id = Column(Integer)
 
+    def add(krankheit_name, ursache_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+        ursache=session.query(Ursache).filter(Ursache.name==ursache_name).first()
+        if ursache is None:
+            ursache=Ursache(name=ursache_name)
+            session_add_and_commit(ursache)
+        krankheit_ursachen=Ursache.getAll_fromKrankheit(krankheit_name, False)
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        krankheit_ursachen.append(ursache)
+        krankheit.ursachen=krankheit_ursachen
+        session.commit()
+
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        krankheit_ursachen=[]
+        try:
+            krankheit=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name==krankheit_name).first()
+            for ursache in krankheit.ursachen:
+                krankheit_ursachen.append(ursache)
+            if toString==True:
+                ursachenstrings=[]
+                for ursache in krankheit_ursachen:
+                    if ursache.name is None:
+                        ursache=session.query(Krankheit).filter(Krankheit.id==ursache.krankheit_id).first()
+                    ursachenstrings.append(ursache.name)
+                krankheit_ursachen=ursachenstrings
+        except AttributeError:
+            krankheit_ursachen=[]
+        return krankheit_ursachen
+
+    def addKrankheit(krankheit_name, krankheit2add):
+        """fügt bei Ursachen eine Krankheit hinzu"""
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
+        ursache_kh=session.query(Ursache).filter(Ursache.krankheit_id==krankheit.id).first()
+        if ursache_kh is None:
+            ursache_kh=Ursache(krankheit_id=krankheit.id)
+            session_add_and_commit(ursache_kh)
+        ursachen=Ursache.getAll_fromKrankheit(krankheit_name, False)
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        ursachen.append(ursache_kh)
+        krankheit.ursachen=ursachen
+        session.commit()
+        
 class Symptom(Base):
     __tablename__='symptom'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
+    
+    def add(krankheit_name, symptom_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+        krankheit_symptome=Symptom.getAll_fromKrankheit(krankheit_name, False)
+        symptom=session.query(Symptom).filter(Symptom.name==symptom_name).first()
+        if symptom is None:
+            symptom=Symptom(name=symptom_name)
+            session_add_and_commit(symptom)
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        krankheit_symptome.append(symptom)
+        krankheit.symptome=krankheit_symptome
+        session.commit()
+
+
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        krankheit_symptome=[]
+        try:
+            krankheit=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name==krankheit_name).first()
+            for symptom in krankheit.symptome:
+                krankheit_symptome.append(symptom)
+            if toString==True:
+                symptomestrings=[]
+                for symptom in krankheit_symptome:
+                    symptomestrings.append(symptom.name)
+                krankheit_symptome=symptomestrings
+        except AttributeError:
+            krankheit_symptome=[]
+        return krankheit_symptome
 
 class Komplikation(Base):
     __tablename__='komplikation'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
+    krankheit_id = Column(Integer)
+
+    def add(krankheit_name, komplikation_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+        krankheit_komplikationen=Komplikation.getAll_fromKrankheit(krankheit_name, False)
+        komplikation=session.query(Komplikation).filter(Komplikation.name==komplikation_name).first()
+        if komplikation is None:
+            komplikation=Komplikation(name=komplikation_name)
+            session_add_and_commit(komplikation)
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        krankheit_komplikationen.append(komplikation)
+        krankheit.komplikationen=krankheit_komplikationen
+        session.commit()
+
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        krankheit_komplikationen=[]
+        try:
+            krankheit=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name==krankheit_name).first()
+            for komplikation in krankheit.komplikationen:
+                krankheit_komplikationen.append(komplikation)
+            if toString==True:
+                komplikationenstrings=[]
+                for komplikation in krankheit_komplikationen:
+                    if komplikation.name is None:
+                        komplikation=session.query(Krankheit).filter(Krankheit.id==komplikation.krankheit_id).first()
+                    komplikationenstrings.append(komplikation.name)
+                krankheit_komplikationen=komplikationenstrings
+        except AttributeError:
+            krankheit_komplikationen=[]
+        return krankheit_komplikationen
+
+    def addKrankheit(krankheit_name, krankheit2add):
+        """fügt bei Komplikationen eine Krankheit hinzu"""
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
+        komplikation_kh=session.query(Komplikation).filter(Komplikation.krankheit_id==krankheit.id).first()
+        if komplikation_kh is None:
+            komplikation_kh=Komplikation(krankheit_id=krankheit.id)
+            session_add_and_commit(komplikation_kh)
+        komplikationen=Komplikation.getAll_fromKrankheit(krankheit_name, False)
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        komplikationen.append(komplikation_kh)
+        krankheit.komplikationen=komplikationen
+        session.commit()
 
 class Diagnostik(Base):
     __tablename__='diagnostik'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
 
+    def add(krankheit_name, diagnostik_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+        krankheit_diagnostiken=Diagnostik.getAll_fromKrankheit(krankheit_name, False)
+        diagnostik=session.query(Diagnostik).filter(Diagnostik.name==diagnostik_name).first()
+        if diagnostik is None:
+            diagnostik=Diagnostik(name=diagnostik_name)
+            session_add_and_commit(diagnostik)
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        krankheit_diagnostiken.append(diagnostik)
+        krankheit.diagnostiken=krankheit_diagnostiken
+        session.commit()
+
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        krankheit_diagnostiken=[]
+        try:
+            krankheit=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name==krankheit_name).first()
+            for diagnostik in krankheit.diagnostiken:
+                krankheit_diagnostiken.append(diagnostik)
+            if toString==True:
+                diagnostikenstrings=[]
+                for diagnostik in krankheit_diagnostiken:
+                    diagnostikenstrings.append(diagnostik.name)
+                krankheit_diagnostiken=diagnostikenstrings
+        except AttributeError:
+            krankheit_diagnostiken=[]
+        return krankheit_diagnostiken
+
 class Therapie(Base):
     __tablename__='therapie'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
+
+    def add(krankheit_name, therapie_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+        krankheit_therapien=Therapie.getAll_fromKrankheit(krankheit_name, False)
+        therapie=session.query(Therapie).filter(Therapie.name==therapie_name).first()
+        if therapie is None:
+            therapie=Therapie(name=therapie_name)
+            session_add_and_commit(therapie)
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        krankheit_therapien.append(therapie)
+        krankheit.therapien=krankheit_therapien
+        session.commit()
+
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        krankheit_therapien=[]
+        try:
+            krankheit=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name==krankheit_name).first()
+            for therapie in krankheit.therapien:
+                krankheit_therapien.append(therapie)
+            if toString==True:
+                therapienstrings=[]
+                for therapie in krankheit_therapien:
+                    therapienstrings.append(therapie.name)
+                krankheit_therapien=therapienstrings
+        except AttributeError:
+            krankheit_therapien=[]
+        return krankheit_therapien
 
 Base.metadata.create_all(engine)
 
@@ -148,309 +324,96 @@ def session_add_and_commit(new_obj_name):
     session.add(new_obj_name)
     session.commit()
 
-def kh_addKrankheit(krankheit_name):
-    """Adds Krankheiten 2 db"""
-    new_Krankheit=Krankheit(name=krankheit_name)
-    session_add_and_commit(new_Krankheit)
+# def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
+#     """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
+#     krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+#     schemacontent=kh_SchemaContentGetall(krankheit_name, schema_name, False)
+#     if schema_name=='Ursachen':
+#         new_schemacontent=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
+#         schemacontent.append(new_schemacontent)
+#         krankheit.ursachen=schemacontent
+#     elif schema_name=='Komplikationen':
+#         new_schemacontent=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
+#         schemacontent.append(new_schemacontent)
+#         krankheit.komplikationen=schemacontent
+#     session.commit() #hier scheitert es wahrscheinlich, weil es nicht mit dem Objekt Krankheit rechnet -> mit TextSql händisch Ids verbinden?
 
-def kh_addSchemacontent(krankheit_name, schema_name, eigenschaft_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-    """Adds Eigenschaften von Krankheiten 2 Schema in db"""
-    if schema_name=='Ursachen':
-        new_Object=Ursache(name=eigenschaft_name)
-    elif schema_name=='Komplikationen':
-        new_Object=Komplikation(name=eigenschaft_name)
-    elif schema_name=='Diagnostiken':
-        new_Object=Diagnostik(name=eigenschaft_name)
-    elif schema_name=='Therapien':
-        new_Object=Therapie(name=eigenschaft_name)
-    session_add_and_commit(new_Object)
-    schema2krankheit(krankheit_name,schema_name,eigenschaft_name)
+# def uok_addKrankheit_text(schema_name, krankheit_name, krankheit2add):
+#     """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
+#     sqladdrelation("krankheiten","krankheiten",krankheit2add, krankheit_name, "kh2%s"%(schema_name.lower()),True)
 
-def schema2krankheit(krankheit_name, schema_name, eigenschaft_name):
-    """Verbindet Eigenschaft mit Krankheit"""
-    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-    schemacontent=kh_SchemaContentGetall(krankheit_name, schema_name, False)
-    if schema_name=='Ursachen':
-        new_schemacontent=session.query(Ursache).filter(Ursache.name==eigenschaft_name).first()
-        schemacontent.append(new_schemacontent)
-        krankheit.ursachen=schemacontent
-    elif schema_name=='Komplikationen':
-        new_schemacontent=session.query(Komplikation).filter(Komplikation.name==eigenschaft_name).first()
-        schemacontent.append(new_schemacontent)
-        krankheit.komplikationen=schemacontent
-    elif schema_name=='Diagnostiken':
-        new_schemacontent=session.query(Diagnostik).filter(Diagnostik.name==eigenschaft_name).first()
-        schemacontent.append(new_schemacontent)
-        krankheit.diagnostiken=schemacontent
-    elif schema_name=='Therapien':
-        new_schemacontent=session.query(Therapie).filter(Therapie.name==eigenschaft_name).first()
-        schemacontent.append(new_schemacontent)
-        krankheit.therapien=schemacontent
-    session.commit()
-
-def kh_Krankheiten_getall():
-    """Get all Krankheiten"""
-    krankheiten=[]
-    sqlelement=session.query(Krankheit).order_by(Krankheit.id.asc()).all()
-    for row in sqlelement:
-        krankheiten.append(row.name)
-    return krankheiten
-
-def kh_Krankheiten_getall_text():
-    """Get all Krankheiten"""
-    krankheiten=kh_getAll_text('krankheiten')
-    return krankheiten
-
-def kh_SchemaContentGetall(krankheit_name, schema_name, toString):
-    """Get Eigenschaften aus Schema von Krankheit
-    toString True -> packt die Liste der Objekte in eine Stringliste mit den Namen der Objekte"""
-    schemacontent=[]
-    try:
-        if schema_name=='Ursachen':
-            schema_query=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name==krankheit_name).first()
-            for element in schema_query.ursachen:
-                schemacontent.append(element)
-        elif schema_name=='Komplikationen':
-            schema_query=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name==krankheit_name).first()
-            for element in schema_query.komplikationen:
-                schemacontent.append(element)
-        elif schema_name=='Diagnostiken':
-            schema_query=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name==krankheit_name).first()
-            for element in schema_query.diagnostiken:
-                schemacontent.append(element)
-        elif schema_name=='Therapien':
-            schema_query=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name==krankheit_name).first()
-            for element in schema_query.therapien:
-                schemacontent.append(element)
-        if toString==True:
-            contentstrings=[]
-            for element in schemacontent:
-                contentstrings.append(element.name)
-            schemacontent=contentstrings
-    except AttributeError:
-        schemacontent=[]
-    return schemacontent
-
-def ursache_add(krankheit_name, ursache_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-    ursache=Ursache(name=ursache_name)
-    session_add_and_commit(ursache)
-    ursache2krankheit(krankheit_name, ursache)
-
-def ursache2krankheit(krankheit_name, ursache):
-    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-    krankheit_ursachen=ursachen_getAll_fromKrankheit(krankheit_name, False)
-    krankheit_ursachen.append(ursache)
-    krankheit.ursachen=krankheit_ursachen
-
-def ursachen_getAll_fromKrankheit(krankheit_name, toString=False):
-    krankheit_ursachen=[]
-    try:
-        krankheit=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name==krankheit_name).first()
-        for ursache in krankheit.ursachen:
-            krankheit_ursachen.append(ursache)
-        if toString==True:
-            ursachenstrings=[]
-            for ursache in krankheit_ursachen:
-                ursachenstrings.append(ursache.name)
-            krankheit_ursachen=ursachenstrings
-    except AttributeError:
-        krankheit_ursachen=[]
-    return krankheit_ursachen
-
-def symptom_add(krankheit_name, symptom_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-    symptom=Symptom(name=symptom_name)
-    session_add_and_commit(symptom)
-    symptom2krankheit(krankheit_name, symptom)
-
-def symptom2krankheit(krankheit_name, symptom):
-    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-    krankheit_symptome=symptome_getAll_fromKrankheit(krankheit_name, False)
-    krankheit_symptome.append(symptom)
-    krankheit.symptome=krankheit_symptome
-
-def symptome_getAll_fromKrankheit(krankheit_name, toString=False):
-    krankheit_symptome=[]
-    try:
-        krankheit=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name==krankheit_name).first()
-        for symptom in krankheit.symptome:
-            krankheit_symptome.append(symptom)
-        if toString==True:
-            symptomestrings=[]
-            for symptom in krankheit_symptome:
-                symptomestrings.append(symptom.name)
-            krankheit_symptome=symptomestrings
-    except AttributeError:
-        krankheit_symptome=[]
-    return krankheit_symptome
-
-def komplikation_add(krankheit_name, komplikation_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-    komplikation=Komplikation(name=komplikation_name)
-    session_add_and_commit(komplikation)
-    komplikation2krankheit(krankheit_name, komplikation)
-
-def komplikation2krankheit(krankheit_name, komplikation):
-    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-    krankheit_komplikationen=komplikationen_getAll_fromKrankheit(krankheit_name, False)
-    krankheit_komplikationen.append(komplikation)
-    krankheit.komplikationen=krankheit_komplikationen
-
-def komplikationen_getAll_fromKrankheit(krankheit_name, toString=False):
-    krankheit_komplikationen=[]
-    try:
-        krankheit=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name==krankheit_name).first()
-        for komplikation in krankheit.komplikationen:
-            krankheit_komplikationen.append(komplikation)
-        if toString==True:
-            komplikationenstrings=[]
-            for komplikation in krankheit_komplikationen:
-                komplikationenstrings.append(komplikation.name)
-            krankheit_komplikationen=komplikationenstrings
-    except AttributeError:
-        krankheit_komplikationen=[]
-    return krankheit_komplikationen
-
-def diagnostik_add(krankheit_name, diagnostik_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-    diagnostik=Diagnostik(name=diagnostik_name)
-    session_add_and_commit(diagnostik)
-    diagnostik2krankheit(krankheit_name, diagnostik)
-
-def diagnostik2krankheit(krankheit_name, diagnostik):
-    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-    krankheit_diagnostiken=diagnostiken_getAll_fromKrankheit(krankheit_name, False)
-    krankheit_diagnostiken.append(diagnostik)
-    krankheit.diagnostiken=krankheit_diagnostiken
-
-def diagnostiken_getAll_fromKrankheit(krankheit_name, toString=False):
-    krankheit_diagnostiken=[]
-    try:
-        krankheit=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name==krankheit_name).first()
-        for diagnostik in krankheit.diagnostiken:
-            krankheit_diagnostiken.append(diagnostik)
-        if toString==True:
-            diagnostikenstrings=[]
-            for diagnostik in krankheit_diagnostiken:
-                diagnostikenstrings.append(diagnostik.name)
-            krankheit_diagnostiken=diagnostikenstrings
-    except AttributeError:
-        krankheit_diagnostiken=[]
-    return krankheit_diagnostiken
-
-def therapie_add(krankheit_name, therapie_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-    therapie=Therapie(name=therapie_name)
-    session_add_and_commit(therapie)
-    therapie2krankheit(krankheit_name, therapie)
-
-def therapie2krankheit(krankheit_name, therapie):
-    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-    krankheit_therapien=therapien_getAll_fromKrankheit(krankheit_name, False)
-    krankheit_therapien.append(therapie)
-    krankheit.therapien=krankheit_therapien
-
-def therapien_getAll_fromKrankheit(krankheit_name, toString=False):
-    krankheit_therapien=[]
-    try:
-        krankheit=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name==krankheit_name).first()
-        for therapie in krankheit.therapien:
-            krankheit_therapien.append(therapie)
-        if toString==True:
-            therapienstrings=[]
-            for therapie in krankheit_therapien:
-                therapienstrings.append(therapie.name)
-            krankheit_therapien=therapienstrings
-    except AttributeError:
-        krankheit_therapien=[]
-    return krankheit_therapien
-
-def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
-    """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
-    krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-    schemacontent=kh_SchemaContentGetall(krankheit_name, schema_name, False)
-    if schema_name=='Ursachen':
-        new_schemacontent=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
-        schemacontent.append(new_schemacontent)
-        krankheit.ursachen=schemacontent
-    elif schema_name=='Komplikationen':
-        new_schemacontent=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
-        schemacontent.append(new_schemacontent)
-        krankheit.komplikationen=schemacontent
-    session.commit() #hier scheitert es wahrscheinlich, weil es nicht mit dem Objekt Krankheit rechnet -> mit TextSql händisch Ids verbinden?
-
-def uok_addKrankheit_text(schema_name, krankheit_name, krankheit2add):
-    """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
-    sqladdrelation("krankheiten","krankheiten",krankheit2add, krankheit_name, "kh2%s"%(schema_name.lower()),True)
-
-def kh_getAll_text(table, column='name', join_table='', join_column='', condition=''):
-    """table->'tablename', column->'columnname', join_table->'tablename', join_column->'columnname', 
-    condition->'Krankheiten.name==krankheit_name'"""
-    join=''
-    where=''
-    if join_table != '' and join_column != '':
-        join='JOIN %s.%s'%(join_table,join_column)
-    if where != '':
-        where='WHERE %s'%(condition)
-    result=sqlselectAll("SELECT %s FROM %s %s %s"%(column, table, join, where))
-    return result
+# def kh_getAll_text(table, column='name', join_table='', join_column='', condition=''):
+#     """table->'tablename', column->'columnname', join_table->'tablename', join_column->'columnname', 
+#     condition->'Krankheiten.name==krankheit_name'"""
+#     join=''
+#     where=''
+#     if join_table != '' and join_column != '':
+#         join='JOIN %s.%s'%(join_table,join_column)
+#     if where != '':
+#         where='WHERE %s'%(condition)
+#     result=sqlselectAll("SELECT %s FROM %s %s %s"%(column, table, join, where))
+#     return result
 
    
-# krankheit_ursachen=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name=='Arteriosklerose').first()
-# krankheit_symptome=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name=='Arteriosklerose').first()
-# krankheit_komplikationen=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name=='Arteriosklerose').first()
-# krankheit_diagnostiken=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name=='Arteriosklerose').first()
-# krankheit_therapien=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name=='Arteriosklerose').first()
+# # krankheit_ursachen=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name=='Arteriosklerose').first()
+# # krankheit_symptome=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name=='Arteriosklerose').first()
+# # krankheit_komplikationen=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name=='Arteriosklerose').first()
+# # krankheit_diagnostiken=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name=='Arteriosklerose').first()
+# # krankheit_therapien=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name=='Arteriosklerose').first()
 
-# for therapien in krankheit_therapien:
-#     print(therapien) 
+# # for therapien in krankheit_therapien:
+# #     print(therapien) 
 
-#######################
-#SQL-TEXT-Functions
-#######################
+# #######################
+# #SQL-TEXT-Functions
+# #######################
 
-def sqladd(query):
-    """Query like: 'INSERT INTO table (column1,..) VALUES(value1,..)
-    without return"""
-    querytext=text(query)
-    connection.execute(querytext)
-    session.commit()
+# def sqladd(query):
+#     """Query like: 'INSERT INTO table (column1,..) VALUES(value1,..)
+#     without return"""
+#     querytext=text(query)
+#     connection.execute(querytext)
+#     session.commit()
 
-def sqlGetid(table_name, value_name, column_name='name'):
-    """"""
-    query="SELECT id FROM %s WHERE %s='%s'"%(table_name,column_name,value_name)
-    result=sqlselectOne(query)
-    return result
-
-def sqladdrelation(table1, table2, value1, value2, relation_table, kh_uok_relation=False):
-    """Fügt in relation_table im Column table1_id und table2_id die jeweiligen ids ein
-    kh_uok_relation True: Verbindung von Krankheiten -> uok"""
-    kh_uok_string=''
-    if kh_uok_relation is True:
-        kh_uok_string='_kh'
-    id1=sqlGetid(table1, value1)
-    id2=sqlGetid(table2, value2)
-    query="INSERT INTO %s (%s_id, %s_id%s) VALUES ('%s', '%s')"%(relation_table, table1, table2, kh_uok_string, id1, id2)
-    sqladd(query)   
-
-def sqlselectAll(query):
-    """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
-    returns with fetchall() 
-    """
-    querytext=text(query)
-    result=connection.execute(querytext).fetchall()
-    list_result=[]
-    for row in result:
-        (element,) = row
-        list_result.append(element)
-    return list_result
-
-def sqlselectOne(query):
-    """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
-    returns with fetchone()
-    """
-    querytext=text(query)
-    (result,)=connection.execute(querytext).fetchone()
-    return result
-
-# def krankheit_getSchemacontent(schema_name, krankheit_name, where=''):
-#     "where like: 'WHERE krankheiten.name='Arteriosklerose''"
-#     query=("SELECT %s.name FROM krankheiten INNER JOIN %s %s"%(schema_name, schema_name, where))
-#     result=sqlselectAll(query)
+# def sqlGetid(table_name, value_name, column_name='name'):
+#     """"""
+#     query="SELECT id FROM %s WHERE %s='%s'"%(table_name,column_name,value_name)
+#     result=sqlselectOne(query)
 #     return result
+
+# def sqladdrelation(table1, table2, value1, value2, relation_table, kh_uok_relation=False):
+#     """Fügt in relation_table im Column table1_id und table2_id die jeweiligen ids ein
+#     kh_uok_relation True: Verbindung von Krankheiten -> uok"""
+#     kh_uok_string=''
+#     if kh_uok_relation is True:
+#         kh_uok_string='_kh'
+#     id1=sqlGetid(table1, value1)
+#     id2=sqlGetid(table2, value2)
+#     query="INSERT INTO %s (%s_id, %s_id%s) VALUES ('%s', '%s')"%(relation_table, table1, table2, kh_uok_string, id1, id2)
+#     sqladd(query)   
+
+# def sqlselectAll(query):
+#     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
+#     returns with fetchall() 
+#     """
+#     querytext=text(query)
+#     result=connection.execute(querytext).fetchall()
+#     list_result=[]
+#     for row in result:
+#         (element,) = row
+#         list_result.append(element)
+#     return list_result
+
+# def sqlselectOne(query):
+#     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
+#     returns with fetchone()
+#     """
+#     querytext=text(query)
+#     (result,)=connection.execute(querytext).fetchone()
+#     return result
+
+# # def krankheit_getSchemacontent(schema_name, krankheit_name, where=''):
+# #     "where like: 'WHERE krankheiten.name='Arteriosklerose''"
+# #     query=("SELECT %s.name FROM krankheiten INNER JOIN %s %s"%(schema_name, schema_name, where))
+# #     result=sqlselectAll(query)
+# #     return result
