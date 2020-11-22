@@ -351,8 +351,6 @@ def session_add_and_commit(new_obj_name):
     session.add(new_obj_name)
     session.commit()
 
-
-
 elements=session.query(Ursache).all()
 for elementx in elements:
     if elementx.name == None:
@@ -369,6 +367,15 @@ for elementx in elements:
                     if len(charaufbauy)>5:
                         charaufbauy=''
                         print('Element 1: %s (%d)\nElement 2: %s (%d)\n'%(elementx.name,elementx.id, elementy.name,elementy.id))
+
+relationIDupdate(3, 65, 'ursache')
+
+def relationIDupdate(keepID, deleteID, schema):
+    query='UPDATE kh2%s SET %s_id=%s WHERE %s_id == %s'%(schema, schema, keepID, schema, deleteID)
+    querytext=text(query)
+    connection.execute(querytext)
+    session.commit()
+
 # for element in elements:
 #     if element.name == 'Übergewichtig':
 #         id=element.id
