@@ -130,11 +130,39 @@ class Krankheit(Base):
             krankheiten.append(row.name)
         return krankheiten
 
+    def getall2dict():
+        krankheiten=session.query(Krankheit).all()
+        krankheitendicts=[]
+        for krankheit in krankheiten:
+            krankheitendict={'Krankheit':krankheit.name}
+            ursachen=[]
+            for ursache in krankheit.ursachen:
+                ursachen.append(ursache.name)
+            krankheitendict['Ursachen']=ursachen
+            symptome=[]
+            for symptom in krankheit.symptome:
+                symptome.append(symptom.name)
+            krankheitendict['Symptom']=symptome
+            komplikationen=[]
+            for komplikation in krankheit.komplikationen:
+                komplikationen.append(komplikation.name)
+            krankheitendict['Komplikation']=komplikationen
+            diagnostiken=[]
+            for diagnostik in krankheit.diagnostiken:
+                diagnostiken.append(diagnostik.name)
+            krankheitendict['Diagnostiken']=diagnostiken
+            therapien=[]
+            for therapie in krankheit.therapien:
+                therapien.append(therapie.name)
+            krankheitendict['Therapien']=therapien
+            krankheitendicts.append(krankheitendict)
+        return krankheitendicts  
+
 class Ursache(Base):
     __tablename__='ursache'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
-    krankheit_id = Column(Integer)
+    krankheit_id = Column(Integer, unique=True)
 
     def add(krankheit_name, ursache_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
         ursache=session.query(Ursache).filter(Ursache.name==ursache_name).first()
@@ -193,7 +221,6 @@ class Symptom(Base):
         krankheit.symptome=krankheit_symptome
         session.commit()
 
-
     def getAll_fromKrankheit(krankheit_name, toString=False):
         krankheit_symptome=[]
         try:
@@ -213,7 +240,7 @@ class Komplikation(Base):
     __tablename__='komplikation'
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
-    krankheit_id = Column(Integer)
+    krankheit_id = Column(Integer, unique=True)
 
     def add(krankheit_name, komplikation_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
         krankheit_komplikationen=Komplikation.getAll_fromKrankheit(krankheit_name, False)
@@ -323,6 +350,28 @@ Base.metadata.create_all(engine)
 def session_add_and_commit(new_obj_name):
     session.add(new_obj_name)
     session.commit()
+
+
+
+elements=session.query(Ursache).all()
+for elementx in elements:
+    if elementx.name == None:
+        continue
+    for elementy in elements:
+        if elementy.name == None:
+            continue
+        if elementy.name != elementx.name:
+            charaufbauy=''
+            for chary in elementy.name:
+                if charaufbauy in elementx.name:
+                    charaufbauy=charaufbauy+chary
+                else:
+                    if len(charaufbauy)>5:
+                        charaufbauy=''
+                        print('Element 1: %s (%d)\nElement 2: %s (%d)\n'%(elementx.name,elementx.id, elementy.name,elementy.id))
+# for element in elements:
+#     if element.name == 'Übergewichtig':
+#         id=element.id
 
 # def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
 #     """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""

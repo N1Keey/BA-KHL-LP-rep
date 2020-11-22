@@ -2,16 +2,6 @@
 {% block styles %}
     {{ super() }}
     <style>
-        body{
-            overflow:hidden
-        }
-        .vert_navbar{
-            float:left;
-            width:25%;
-            position: relative;
-            top:0;
-            bottom:0;
-        }
         #btn_addkh, #tf_addkh{
             display:inline;
             padding:0;
@@ -21,37 +11,6 @@
         #btn_addkh{
             width:20%;
             margin-left: -4;
-        }
-        .btn_kh, .cbx_kh {
-            padding: 0;
-            margin-top:-14;
-            width: 25%;
-            overflow-y: auto;
-            position: fixed;
-            height:86.5%;
-        }
-        .cbx_kh {
-            height:82.2%
-        }
-        #btn_kh, .kh_checkbox_label {
-            border-style:solid;
-            border-color: lightgreen;
-            border-width: 1px;
-            width:100%;
-            margin:0;
-            padding:7;
-            text-align:left;
-        }
-        #cbx_kh{
-            float:right;
-        }
-        #btn_uok_addkh{
-            position:fixed;
-            width:25%;
-            bottom:0;
-        }
-        #btn_kh:hover, .kh_checkbox_label:hover, #btn_schema:hover{
-            background-color:lightgreen;
         }
         .kh_active{
             background-color:lightgreen
@@ -76,11 +35,10 @@
             margin-left:-4;
         }
         .schemacontent ul {
-            height:76.5%;
+            height:72%;
             overflow:hidden; 
             overflow-y:scroll;
         }
-        
     </style>
 {% endblock %}
 {% set active_link = 'Hinzufügen' %}
@@ -116,7 +74,7 @@
                     {% endfor %}
                 </ul>
                 <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
-                <input type="submit" name="uok_Addkh" value="Krankheit hinzufügen" id="btn_uok_addkh">
+                <input type="submit" name="uok_Addkh" value="Krankheit hinzufügen" id="btn_kh_cbxsubmit">
             </form>
         {% endif %}
     </div>

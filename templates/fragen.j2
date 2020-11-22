@@ -1,11 +1,37 @@
 {% extends "_base.j2" %}
+{% block styles %}
+    {{ super() }}
+    <style>
+        .cbx_kh{
+            top:66px;
+            height:87.2%;
+        }
+    </style>
+{% endblock %}
 {% set active_link = 'Fragen' %}
 
 {% block title %} <title>Fragen</title> {% endblock %}
 {% block navbar %}
     {{ super() }}
 {% endblock %}
+{% block vert_navbar %}
+    <div class='vert_navbar'>
+        <form method='POST'>
+            <ul class="cbx_kh">
+                {% for krankheit in krankheiten %}
+                    <li>
+                        <label class='kh_checkbox_label'>
+                            {{ krankheit }}<input type="checkbox" name="checkbox_Krankheit" value="{{ krankheit }}" id="cbx_kh">
+                        </label>
+                    </li>
+                {% endfor %}
+            </ul>
+            <input type="submit" name="submit" value="Bestätigen" id="btn_kh_cbxsubmit">
+        </form>
+    </div>
+{% endblock %}
 {% block content %}
     <div class='content'>
+        
     </div>
 {% endblock %}

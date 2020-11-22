@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, session, flash
 from flask_mail import Mail, Message
 import database as db
+from pprint import pprint
 
 app = Flask(__name__)
 app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
@@ -149,6 +150,7 @@ def hinzufügen_Ursachen():
             uok_addedkhs = request.form.getlist('checkbox_Krankheit')
             for uok_addedkh in uok_addedkhs:
                 db.Ursache.addKrankheit(active_krankheit, uok_addedkh)
+                db.Komplikation.addKrankheit(uok_addedkh,active_krankheit)
     return redirect('/hinzufügen')
 
 @app.route('/hinzufügen_Symptome', methods=['GET','POST'])
@@ -188,6 +190,7 @@ def hinzufügen_Komplikationen():
             uok_addedkhs = request.form.getlist('checkbox_Krankheit')
             for uok_addedkh in uok_addedkhs:
                 db.Komplikation.addKrankheit(active_krankheit, uok_addedkh)
+                db.Ursache.addKrankheit(uok_addedkh, active_krankheit)
     return redirect('/hinzufügen')
 
 @app.route('/hinzufügen_Diagnostiken', methods=['GET','POST'])
@@ -218,12 +221,27 @@ def hinzufügen_Therapien():
         session['active_krankheit']=active_krankheit
     return redirect('/hinzufügen')
 
-
 @app.route('/fragen',methods=['GET','POST'])
 def fragen():
     if not session.get('logged_in'):
         return redirect('/')
-    return render_template('fragen.j2')
+    if request.method == 'POST':
+        rform = request.form
+        if 'checkbox_Krankheit' in rform:
+            if rform['checkbox_Krankheit'] != '':
+                krankheiten4fragen = request.form.getlist('checkbox_Krankheit')
+                krankheitendicts=db.Krankheit.getall2dict()
+                fragendicts=[]
+                for krankheitendict in krankheitendicts:
+                    if krankheitendict['Krankheit'] in  krankheiten4fragen:
+                        # for schema in krankheitdict:
+                        ursachen=krankheitendict.get('Ursachen')
+                        symptome=krankheitendict.get('Symptome')
+                        komplikationen=krankheitendict.get('Komplikationen')
+                        diagnostiken=krankheitendict.get('Diagnostiken')
+                        therapien=krankheitendict.get('Therapien')     
+    krankheiten=db.Krankheit.getall()
+    return render_template('fragen.j2', krankheiten=krankheiten)
 
 @app.route('/admin_auth', methods=['GET','POST'])
 def admin_auth():

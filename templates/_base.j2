@@ -12,6 +12,44 @@
             margin-bottom: 0;
             position:sticky;
         }
+        .vert_navbar{
+            float:left;
+            width:25%;
+            position: relative;
+            top:0;
+            bottom:0;
+        }
+        .btn_kh, .cbx_kh {
+            padding: 0;
+            margin-top:-14;
+            width: 25%;
+            overflow-y: auto;
+            position: fixed;
+            height:86.5%;
+        }
+        .cbx_kh {
+            height:82.2%
+        }
+        #btn_kh:hover, .kh_checkbox_label:hover, #btn_schema:hover{
+            background-color:lightgreen;
+        }
+        #cbx_kh{
+            float:right;
+        }
+        #btn_kh, .kh_checkbox_label {
+            border-style:solid;
+            border-color: lightgreen;
+            border-width: 1px;
+            width:100%;
+            margin:0;
+            padding:7;
+            text-align:left;
+        }
+        #btn_kh_cbxsubmit{
+            position:fixed;
+            width:25%;
+            bottom:0;
+        }
     </style>
 {% endblock %}
 {% block title %} <title>Title</title> {% endblock %}
