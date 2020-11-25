@@ -2,6 +2,8 @@ from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
+from pprint import pprint
+
 engine = create_engine('sqlite:///khl_lp.db',connect_args={'check_same_thread': False})
 
 connection=engine.connect()
@@ -137,6 +139,8 @@ class Krankheit(Base):
             krankheitendict={'Krankheit':krankheit.name}
             ursachen=[]
             for ursache in krankheit.ursachen:
+                if ursache.name is None:
+                    ursache=session.query(Krankheit).filter(Krankheit.id==ursache.krankheit_id).first()
                 ursachen.append(ursache.name)
             krankheitendict['Ursachen']=ursachen
             symptome=[]
@@ -145,6 +149,8 @@ class Krankheit(Base):
             krankheitendict['Symptom']=symptome
             komplikationen=[]
             for komplikation in krankheit.komplikationen:
+                if komplikation.name is None:
+                        komplikation=session.query(Krankheit).filter(Krankheit.id==komplikation.krankheit_id).first()
                 komplikationen.append(komplikation.name)
             krankheitendict['Komplikation']=komplikationen
             diagnostiken=[]
@@ -192,6 +198,15 @@ class Ursache(Base):
             krankheit_ursachen=[]
         return krankheit_ursachen
 
+    def getAll():
+        elemente=[]
+        elementesql=session.query(Ursache).all()
+        for element in elementesql:
+            if element.name==None:
+                element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
+            elemente.append(element.name)
+        return elemente
+
     def addKrankheit(krankheit_name, krankheit2add):
         """fügt bei Ursachen eine Krankheit hinzu"""
         krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
@@ -236,6 +251,13 @@ class Symptom(Base):
             krankheit_symptome=[]
         return krankheit_symptome
 
+    def getAll():
+        elemente=[]
+        elementesql=session.query(Symptom).all()
+        for element in elementesql:
+            elemente.append(element.name)
+        return elemente
+
 class Komplikation(Base):
     __tablename__='komplikation'
     id = Column(Integer, primary_key=True)
@@ -269,6 +291,15 @@ class Komplikation(Base):
         except AttributeError:
             krankheit_komplikationen=[]
         return krankheit_komplikationen
+
+    def getAll():
+        elemente=[]
+        elementesql=session.query(Komplikation).all()
+        for element in elementesql:
+            if element.name==None:
+                element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
+            elemente.append(element.name)
+        return elemente
 
     def addKrankheit(krankheit_name, krankheit2add):
         """fügt bei Komplikationen eine Krankheit hinzu"""
@@ -314,6 +345,13 @@ class Diagnostik(Base):
             krankheit_diagnostiken=[]
         return krankheit_diagnostiken
 
+    def getAll():
+        elemente=[]
+        elementesql=session.query(Symptom).all()
+        for element in elementesql:
+            elemente.append(element.name)
+        return elemente
+
 class Therapie(Base):
     __tablename__='therapie'
     id = Column(Integer, primary_key=True)
@@ -345,36 +383,89 @@ class Therapie(Base):
             krankheit_therapien=[]
         return krankheit_therapien
 
+    def getAll():
+        elemente=[]
+        elementesql=session.query(Symptom).all()
+        for element in elementesql:
+            elemente.append(element.name)
+        return elemente
+
 Base.metadata.create_all(engine)
 
 def session_add_and_commit(new_obj_name):
     session.add(new_obj_name)
     session.commit()
 
-elements=session.query(Ursache).all()
-for elementx in elements:
-    if elementx.name == None:
-        continue
-    for elementy in elements:
-        if elementy.name == None:
-            continue
-        if elementy.name != elementx.name:
-            charaufbauy=''
-            for chary in elementy.name:
-                if charaufbauy in elementx.name:
-                    charaufbauy=charaufbauy+chary
-                else:
-                    if len(charaufbauy)>5:
-                        charaufbauy=''
-                        print('Element 1: %s (%d)\nElement 2: %s (%d)\n'%(elementx.name,elementx.id, elementy.name,elementy.id))
+def data4fragen2dict(krankheitenliste):
+    krankheitendicts4fragen=[]
+    schemas=['Ursachen','Symptome','Komplikationen','Diagnostiken','Therapien']
+    for krankheit in krankheitenliste:
+        krankheitendict4fragen={'Krankheit':krankheit}
+        for schema in schemas:
+            krankheitendict4fragen[schema]={'Right':[],'Wrong':[]}
+            if schema=='Ursachen':
+                schemaRights=Ursache.getAll_fromKrankheit(krankheit, True)
+                schemaAll=Ursache.getAll()
+            elif schema=='Symptome':
+                schemaRights=Symptom.getAll_fromKrankheit(krankheit, True)
+                schemaAll=Symptom.getAll()
+            elif schema=='Komplikationen':
+                schemaRights=Komplikation.getAll_fromKrankheit(krankheit, True)
+                schemaAll=Komplikation.getAll()
+            elif schema=='Diagnostiken':
+                schemaRights=Diagnostik.getAll_fromKrankheit(krankheit, True)
+                schemaAll=Diagnostik.getAll()
+            elif schema=='Therapien':
+                schemaRights=Therapie.getAll_fromKrankheit(krankheit, True)
+                schemaAll=Therapie.getAll()
+            for element in schemaRights:
+                krankheitendict4fragen[schema]['Right'].append(element)
+                if element in schemaAll:
+                    schemaAll.remove(element)
+            if krankheit in schemaAll:
+                schemaAll.remove(krankheit)
+            for element in schemaAll:
+                krankheitendict4fragen[schema]['Wrong'].append(element)
+        krankheitendicts4fragen.append(krankheitendict4fragen)
+    return krankheitendicts4fragen
 
-relationIDupdate(3, 65, 'ursache')
+def look4AlikesinDB():
+    counter=0
+    elements=session.query(Therapie).all()
+    for elementx in elements:
+        if elementx.name == None:
+            continue
+        for elementy in elements:
+            if elementy.name == None:
+                continue
+            if elementy.name != elementx.name:
+                charaufbauy=''
+                for chary in elementy.name:
+                    if charaufbauy in elementx.name:
+                        charaufbauy=charaufbauy+chary
+                    else:
+                        if len(charaufbauy)>5 and 'Therapie' not in charaufbauy:
+                            counter=counter+1
+                            charaufbauy=''
+                            print('Counter=%d\nElement 1: %s (%d)\nElement 2: %s (%d)\n'%(counter,elementx.name,elementx.id, elementy.name,elementy.id))
 
 def relationIDupdate(keepID, deleteID, schema):
     query='UPDATE kh2%s SET %s_id=%s WHERE %s_id == %s'%(schema, schema, keepID, schema, deleteID)
     querytext=text(query)
     connection.execute(querytext)
     session.commit()
+
+def relationIDselect(schema, id):
+    query='SELECT %s_id FROM kh2%s WHERE %s_id == %d'%(schema,schema,schema,id)
+    querytext=text(query)
+    print(connection.execute(querytext).fetchall())
+
+# look4AlikesinDB()
+# relationIDselect('therapie', 28)
+# relationIDupdate(38, 28, 'therapie')
+# relationIDselect('therapie', 28)
+
+
 
 # for element in elements:
 #     if element.name == 'Übergewichtig':

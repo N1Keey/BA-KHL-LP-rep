@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, session, flash
 from flask_mail import Mail, Message
 import database as db
+import random
 from pprint import pprint
 
 app = Flask(__name__)
@@ -225,23 +226,41 @@ def hinzufügen_Therapien():
 def fragen():
     if not session.get('logged_in'):
         return redirect('/')
+    fragenDicts=[]
     if request.method == 'POST':
         rform = request.form
         if 'checkbox_Krankheit' in rform:
             if rform['checkbox_Krankheit'] != '':
-                krankheiten4fragen = request.form.getlist('checkbox_Krankheit')
-                krankheitendicts=db.Krankheit.getall2dict()
-                fragendicts=[]
-                for krankheitendict in krankheitendicts:
-                    if krankheitendict['Krankheit'] in  krankheiten4fragen:
-                        # for schema in krankheitdict:
-                        ursachen=krankheitendict.get('Ursachen')
-                        symptome=krankheitendict.get('Symptome')
-                        komplikationen=krankheitendict.get('Komplikationen')
-                        diagnostiken=krankheitendict.get('Diagnostiken')
-                        therapien=krankheitendict.get('Therapien')     
+                krankheiten4use = request.form.getlist('checkbox_Krankheit')
+                data4fragenDicts=db.data4fragen2dict(krankheiten4use)
+                fragenAnzmax=6
+                for krankheit in data4fragenDicts:
+                    fragenDict={'Krankheit':krankheit['Krankheit']}
+                    for schema in krankheit:
+                        if schema != 'Krankheit':
+                            fragenDict[schema]=[]
+                            rightAnsAll=krankheit[schema]['Right']
+                            rightAns=[]
+                            rnd=random.randint(1,fragenAnzmax-1)
+                            if fragenAnzmax > len(rightAnsAll):
+                                rnd=random.randint(1,len(rightAnsAll))
+                            while len(rightAns) < rnd:
+                                rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
+                                if rightAn not in rightAns:
+                                    rightAns.append(rightAn)
+                                    fragenDict[schema].append({'Right':rightAn})
+                            wrongAnsAll=krankheit[schema]['Wrong']
+                            wrongAns=[]
+                            while len(wrongAns) < fragenAnzmax-rnd:
+                                wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
+                                if wrongAn not in wrongAns:
+                                    wrongAns.append(wrongAn)      
+                                    fragenDict[schema].append({'wrong':wrongAn}) 
+                            random.shuffle(fragenDict[schema])
+                    fragenDicts.append(fragenDict)  
+    pprint(fragenDicts)            
     krankheiten=db.Krankheit.getall()
-    return render_template('fragen.j2', krankheiten=krankheiten)
+    return render_template('fragen.j2', krankheiten=krankheiten, fragenDicts=fragenDicts)
 
 @app.route('/admin_auth', methods=['GET','POST'])
 def admin_auth():

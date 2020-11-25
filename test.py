@@ -1,3 +1,6 @@
-import database as db
+import random
 
-db.symptom_add('Arteriosklerose','NArtSymp')
+rands=[]
+for _ in range(100):
+    rands.append(random.randint(1,5))
+print(rands)
