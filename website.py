@@ -2,7 +2,6 @@ from flask import Flask, request, render_template, redirect, session, flash
 from flask_mail import Mail, Message
 import database as db
 import random
-from pprint import pprint
 
 app = Flask(__name__)
 app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
@@ -238,7 +237,7 @@ def fragen():
                     fragenDict={'Krankheit':krankheit['Krankheit']}
                     for schema in krankheit:
                         if schema != 'Krankheit':
-                            fragenDict[schema]=[]
+                            fragenDict[schema]={}
                             rightAnsAll=krankheit[schema]['Right']
                             rightAns=[]
                             rnd=random.randint(1,fragenAnzmax-1)
@@ -248,17 +247,18 @@ def fragen():
                                 rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
                                 if rightAn not in rightAns:
                                     rightAns.append(rightAn)
-                                    fragenDict[schema].append({'Right':rightAn})
+                                    fragenDict[schema][rightAn]='right'
                             wrongAnsAll=krankheit[schema]['Wrong']
                             wrongAns=[]
                             while len(wrongAns) < fragenAnzmax-rnd:
                                 wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
                                 if wrongAn not in wrongAns:
                                     wrongAns.append(wrongAn)      
-                                    fragenDict[schema].append({'wrong':wrongAn}) 
-                            random.shuffle(fragenDict[schema])
-                    fragenDicts.append(fragenDict)  
-    pprint(fragenDicts)            
+                                    fragenDict[schema][wrongAn]='wrong' 
+                            keys=list(fragenDict[schema].items())
+                            random.shuffle(keys)
+                            fragenDict[schema]=dict(keys)
+                    fragenDicts.append(fragenDict)
     krankheiten=db.Krankheit.getall()
     return render_template('fragen.j2', krankheiten=krankheiten, fragenDicts=fragenDicts)
 

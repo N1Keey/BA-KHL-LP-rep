@@ -6,6 +6,36 @@
             top:66px;
             height:87.2%;
         }
+        .fragen_checkbox_label_right, .fragen_checkbox_label_wrong{
+            border-style:solid;
+            border-width: 2px;
+            margin:0;
+            padding:7;
+            text-align:left;
+            margin-left:-2px;
+            margin-bottom:2px;
+        }
+        .fragen_checkbox_label_right{
+            border-color:green;
+        }
+        .fragen_checkbox_label_wrong{
+            border-color:red;
+        }
+        .Frage-Antwort{
+            margin-bottom:20;
+            border-style:solid;
+            border-color:lightgrey;
+            border-width: 3px;
+        }
+        .Antworten{
+            margin-left:5px
+        }
+        #cbxfragenright{
+            border-color:green;
+        }
+        #cbxfragenwrong{
+            border-color:red;
+        }
     </style>
 {% endblock %}
 {% set active_link = 'Fragen' %}
@@ -32,6 +62,30 @@
 {% endblock %}
 {% block content %}
     <div class='content'>
-        
+        <form method='POST'>
+            {% for krankheit in fragenDicts %}
+                {% for schema in krankheit %}
+                    {% if schema != 'Krankheit' %}
+                        <div class="Frage-Antwort">
+                            <p>
+                                <h4>Welche {{ schema }} treten bei einer {{ krankheit['Krankheit'] }} auf?</h4>
+                                <p>
+                                    <div class="Antworten">
+                                        {% for antwort in krankheit.get(schema) %}
+                                            <label {% if krankheit.get(schema).get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
+                                                {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get(schema).get(antwort) }}">
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </p>
+                            </p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            {% if fragenDicts != [] %}
+                <input type="submit" name="submit" value="Abgeben" id="btn_fragen_cbxsubmit">
+            {% endif %}
+        <form>
     </div>
 {% endblock %}
