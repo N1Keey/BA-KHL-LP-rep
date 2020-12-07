@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, session, flash
+from flask import Flask, request, render_template, redirect, session,send_file, flash
 from flask_mail import Mail, Message
 import database as db
 import xml_export as xml
@@ -227,14 +227,12 @@ def fragen():
     if not session.get('logged_in'):
         return redirect('/')
     fragenDicts=[]
+    cbx_checked=False
     if request.method == 'POST':
         rform = request.form
         if 'checkbox_Krankheit' in rform:
             if rform['checkbox_Krankheit'] != '':
                 krankheiten4use = request.form.getlist('checkbox_Krankheit')
-
-                krankheiten4use = db.Krankheit.getall() #for xmltest
-
                 data4fragenDicts=db.data4fragen2dict(krankheiten4use)
                 fragenAnzmax=6
                 for krankheit in data4fragenDicts:
@@ -264,10 +262,16 @@ def fragen():
                             fragenDict[schema]=dict(keys)
                     fragenDicts.append(fragenDict)
                 xml.create_file(fragenDicts)
+        if 'cbx_allchecked' in rform:
+            if rform.get('cbx_allchecked') == 'True':
+                cbx_checked=False
+            else:
+                cbx_checked=True
         if 'exportdata' in rform:
-            print('export')
+            export='Quizexport.xml'
+            return send_file(export, as_attachment=True)
     krankheiten=db.Krankheit.getall()
-    return render_template('fragen.j2', krankheiten=krankheiten, fragenDicts=fragenDicts)
+    return render_template('fragen.j2', krankheiten=krankheiten, fragenDicts=fragenDicts, cbx_checked=cbx_checked)
 
 @app.route('/fragen2xml', methods=['GET','POST'])
 def fragen2xml():
