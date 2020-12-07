@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, session, flash
 from flask_mail import Mail, Message
 import database as db
+import xml_export as xml
 import random
 
 app = Flask(__name__)
@@ -28,7 +29,7 @@ def login():
         login_bool=db.User.login(email,password) #prüft, ob login daten mit db übereinstimmen gibt True oder False
         if login_bool==True:
             session['logged_in']=True
-            return render_template('Home.j2')
+            return render_template('home.j2')
         else:
             flash('Email oder Passwort falsch!')
     return render_template('login.j2')
@@ -231,6 +232,9 @@ def fragen():
         if 'checkbox_Krankheit' in rform:
             if rform['checkbox_Krankheit'] != '':
                 krankheiten4use = request.form.getlist('checkbox_Krankheit')
+
+                krankheiten4use = db.Krankheit.getall() #for xmltest
+
                 data4fragenDicts=db.data4fragen2dict(krankheiten4use)
                 fragenAnzmax=6
                 for krankheit in data4fragenDicts:
@@ -259,8 +263,22 @@ def fragen():
                             random.shuffle(keys)
                             fragenDict[schema]=dict(keys)
                     fragenDicts.append(fragenDict)
+                xml.create_file(fragenDicts)
+        if 'exportdata' in rform:
+            print('export')
     krankheiten=db.Krankheit.getall()
     return render_template('fragen.j2', krankheiten=krankheiten, fragenDicts=fragenDicts)
+
+@app.route('/fragen2xml', methods=['GET','POST'])
+def fragen2xml():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform=request.form
+        if "exportdata" in rform:
+            data=session.get('choice4exp')
+            print(data)
+    return redirect('/fragen')
 
 @app.route('/admin_auth', methods=['GET','POST'])
 def admin_auth():

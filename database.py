@@ -347,7 +347,7 @@ class Diagnostik(Base):
 
     def getAll():
         elemente=[]
-        elementesql=session.query(Symptom).all()
+        elementesql=session.query(Diagnostik).all()
         for element in elementesql:
             elemente.append(element.name)
         return elemente
@@ -385,7 +385,7 @@ class Therapie(Base):
 
     def getAll():
         elemente=[]
-        elementesql=session.query(Symptom).all()
+        elementesql=session.query(Therapie).all()
         for element in elementesql:
             elemente.append(element.name)
         return elemente
