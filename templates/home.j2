@@ -1,11 +1,19 @@
 {% extends "_base.j2" %}
 {% set active_link = 'Home' %}
-
+{% block styles %}
+  {{ super() }}
+  <style>
+  </style>
+{% endblock %}
 {% block title %} <title>Home</title> {% endblock %}
 {% block navbar %}
   {{ super() }}
 {% endblock %}
-{% block content %}
-    <div class='content'>
+{% block mainpage %}
+    <div class='mainpage'>
+      <div class='vert_navbar'>
+      </div>
+      <div class='content'
+      </div>
     </div>
 {% endblock %}
