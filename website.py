@@ -89,7 +89,7 @@ def hinzufügen():
     element2change=''
     if request.method=='POST':
         rform=request.form
-        if 'active_krankheit' in rform:
+        if 'active_krankheit' in rform and rform.get('active_krankheit')!='None':
             active_krankheit=rform['active_krankheit']
             session['actives_schema']=''
             active_schema=''
