@@ -34,6 +34,16 @@
             overflow:hidden; 
             overflow-y:scroll;
         }
+        .schemacontent li{
+            border-bottom: 1px solid #ddd;
+            height:30;
+        }
+        #btn_contentchange{
+            float:right;
+        }
+        .schemacontent input[type=text]{
+            width: initial;
+        }
     </style>
 {% endblock %}
 {% set active_link = 'Hinzufügen' %}
@@ -108,11 +118,24 @@
             <p><--Erst Krankheit auswählen</p>
         {% endif %}
         <div class = 'schemacontent'>
-            <ul>
-                {% for element in schemacontent %}
-                    <li> {{element}} </li>
-                {% endfor %}
-            </ul>
+            <form method='POST'>
+                <ul>
+                    {% for element in schemacontent %}
+                        <li>
+                            {% if element2change==element %}
+                                <input type='text' name='elemupdate' value='{{ element }}'>
+                                <input type='submit' name='abbruch' value=Abbruch>
+                                <input type='submit' name='alle' value='Alle'>
+                                <input type='submit' name='nurdieses' value='Nur dieses'>
+                            {% else %}
+                                {{element}}<button type = 'submit' name=ändern value='{{ element }}' id='btn_contentchange'>🖊️</button>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+                <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
+                <input type="hidden" name="active_schema" value="{{active_schema}}">
+            </form>
         </div>
     </div>      
 {% endblock %}

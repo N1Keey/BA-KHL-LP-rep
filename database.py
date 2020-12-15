@@ -109,6 +109,7 @@ kh2therapie = Table('kh2therapie', Base.metadata,
     Column('therapie_id', Integer, ForeignKey('therapie.id', ondelete="CASCADE"))
     )
 
+
 class Krankheit(Base):
     __tablename__='krankheit'
     id = Column(Integer, primary_key=True)
@@ -164,11 +165,31 @@ class Krankheit(Base):
             krankheitendicts.append(krankheitendict)
         return krankheitendicts  
 
-class Ursache(Base):
-    __tablename__='ursache'
+class Umstand(Base):
+    __abstract__ = True
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
+
+    __mapper_args__ = {
+    'polymorphic_identity':'umstand',
+    'polymorphic_on':type
+    }
+
+class Umstanduok(Umstand):
+    __abstract__ = True
     krankheit_id = Column(Integer, unique=True)
+
+    __mapper_args__ = {
+    'polymorphic_identity':'umstanduok',
+    'polymorphic_on':type
+    }
+
+class Ursache(Umstanduok):
+    __tablename__='ursache'
+
+    __mapper_args__ = {
+    'polymorphic_identity':'ursache',
+    }
 
     def add(krankheit_name, ursache_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
         ursache=session.query(Ursache).filter(Ursache.name==ursache_name).first()
@@ -220,10 +241,12 @@ class Ursache(Base):
         krankheit.ursachen=ursachen
         session.commit()
         
-class Symptom(Base):
+class Symptom(Umstand):
     __tablename__='symptom'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(40), unique=True)
+    
+    __mapper_args__ = {
+    'polymorphic_identity':'symptom',
+    }
     
     def add(krankheit_name, symptom_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
         krankheit_symptome=Symptom.getAll_fromKrankheit(krankheit_name, False)
@@ -258,12 +281,13 @@ class Symptom(Base):
             elemente.append(element.name)
         return elemente
 
-class Komplikation(Base):
+class Komplikation(Umstanduok):
     __tablename__='komplikation'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(40), unique=True)
-    krankheit_id = Column(Integer, unique=True)
 
+    __mapper_args__ = {
+    'polymorphic_identity':'komplikation',
+    }
+    
     def add(krankheit_name, komplikation_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
         krankheit_komplikationen=Komplikation.getAll_fromKrankheit(krankheit_name, False)
         komplikation=session.query(Komplikation).filter(Komplikation.name==komplikation_name).first()
@@ -314,10 +338,12 @@ class Komplikation(Base):
         krankheit.komplikationen=komplikationen
         session.commit()
 
-class Diagnostik(Base):
+class Diagnostik(Umstand):
     __tablename__='diagnostik'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(40), unique=True)
+
+    __mapper_args__ = {
+    'polymorphic_identity':'diagnostik',
+    }
 
     def add(krankheit_name, diagnostik_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
         krankheit_diagnostiken=Diagnostik.getAll_fromKrankheit(krankheit_name, False)
@@ -352,10 +378,12 @@ class Diagnostik(Base):
             elemente.append(element.name)
         return elemente
 
-class Therapie(Base):
+class Therapie(Umstand):
     __tablename__='therapie'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(40), unique=True)
+
+    __mapper_args__ = {
+    'polymorphic_identity':'therapie',
+    }
 
     def add(krankheit_name, therapie_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
         krankheit_therapien=Therapie.getAll_fromKrankheit(krankheit_name, False)

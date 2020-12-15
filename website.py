@@ -86,6 +86,7 @@ def hinzufügen():
     active_krankheit = session.get('active_krankheit') #Gerade Aktive Krankheit
     active_schema = session.get('active_schema') #Gerade Aktives Schema
     mode = session.get('mode') #Modus um bei Ursachen oder Komplikationen Krankheiten hinzuzufügen
+    element2change=''
     if request.method=='POST':
         rform=request.form
         if 'active_krankheit' in rform:
@@ -96,6 +97,9 @@ def hinzufügen():
             active_schema=rform['active_schema']
         else:
             message='Zuerst Krankheit auswählen dann Eigenschaft'
+        if 'ändern' in rform:
+            element2change=rform.get('ändern')
+
     if active_schema=='Ursachen':
         kh_ursachen=db.Ursache.getAll_fromKrankheit(active_krankheit, True)
         schemacontent=kh_ursachen
@@ -115,7 +119,7 @@ def hinzufügen():
         message='Links Krankheit auswählen und oben das Schema'
     krankheiten=db.Krankheit.getall()
     return render_template('hinzufügen.j2', krankheiten=krankheiten, active_schema=active_schema, 
-    active_krankheit=active_krankheit, schemacontent=schemacontent, message=message, mode=mode)
+    active_krankheit=active_krankheit, schemacontent=schemacontent, message=message, mode=mode, element2change=element2change)
 
 @app.route('/hinzufügen_Krankheit', methods=['GET','POST'])
 def hinzufügen_Krankheit():
