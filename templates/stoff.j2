@@ -38,6 +38,10 @@
             border-bottom: 1px solid #ddd;
             height:30;
         }
+        #btn_del{
+            float:right;
+
+        }
         #btn_contentchange{
             float:right;
         }
@@ -46,8 +50,8 @@
         }
     </style>
 {% endblock %}
-{% set active_link = 'Hinzufügen' %}
-{% block title %} <title>Hinzufügen</title> {% endblock %}
+{% set active_link = 'Stoff' %}
+{% block title %} <title>Stoff</title> {% endblock %}
 {% block navbar %}
     {{ super() }}
 {% endblock %}
@@ -118,23 +122,43 @@
             <p><--Erst Krankheit auswählen</p>
         {% endif %}
         <div class = 'schemacontent'>
-            <form method='POST'>
                 <ul>
                     {% for element in schemacontent %}
                         <li>
                             {% if element2change==element %}
-                                <input type='text' name='elemupdate' value='{{ element }}'>
-                                <input type='submit' name='abbruch' value=Abbruch>
-                                <input type='submit' name='alle' value='Alle'>
-                                <input type='submit' name='nurdieses' value='Nur dieses'>
+                                <form action='/ändern' method='POST'>
+                                    <input type='text' name='elemupdate' value='{{ element }}'>
+                                    <input type='submit' name='abbruch' value=Abbruch>
+                                    <input type='submit' name='ch_alle' value='Alle'>
+                                    <input type='submit' name='ch_nurdieses' value='Nur dieses Element'>
+                                    <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
+                                    <input type="hidden" name="active_schema" value="{{active_schema}}">
+                                    <input type="hidden" name="content" value="{{ element2change }}">
+                                </form>
+                            {% elif element2delete==element %}
+                                <form action='/löschen' method='POST'>
+                                    {{ element }}
+                                    <input type='submit' name='abbruch' value=Abbruch>
+                                    <input type='submit' name='del_alle' value='Alle'>
+                                    <input type='submit' name='del_nurdieses' value='Nur dieses Element'>
+                                    <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
+                                    <input type="hidden" name="active_schema" value="{{active_schema}}">
+                                    <input type="hidden" name="content" value="{{ element2delete }}">
+                                </form>
                             {% else %}
-                                {{element}}<button type = 'submit' name=ändern value='{{ element }}' id='btn_contentchange'>🖊️</button>
+                                <span>
+                                    <form method='POST'>
+                                        {{ element }}
+                                        <button type='submit' name='löschen' value='{{ element }}' id='btn_del'>🗑️</button>
+                                        <button type = 'submit' name='ändern' value='{{ element }}' id='btn_contentchange'>🖊️</button>
+                                        <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
+                                        <input type="hidden" name="active_schema" value="{{active_schema}}">
+                                    </form>
+                                </span>
                             {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
-                <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
-                <input type="hidden" name="active_schema" value="{{active_schema}}">
             </form>
         </div>
     </div>      

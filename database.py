@@ -175,7 +175,7 @@ class Umstand(Base):
     'polymorphic_on':type
     }
 
-class Umstanduok(Umstand):
+class VerknüpfenderUmstand(Umstand):
     __abstract__ = True
     krankheit_id = Column(Integer, unique=True)
 
@@ -184,7 +184,7 @@ class Umstanduok(Umstand):
     'polymorphic_on':type
     }
 
-class Ursache(Umstanduok):
+class Ursache(VerknüpfenderUmstand):
     __tablename__='ursache'
 
     __mapper_args__ = {
@@ -281,7 +281,7 @@ class Symptom(Umstand):
             elemente.append(element.name)
         return elemente
 
-class Komplikation(Umstanduok):
+class Komplikation(VerknüpfenderUmstand):
     __tablename__='komplikation'
 
     __mapper_args__ = {

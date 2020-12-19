@@ -77,8 +77,8 @@ def home():
         return redirect('/')
     return render_template('home.j2')
 
-@app.route('/hinzufügen',methods=['GET','POST'])
-def hinzufügen():
+@app.route('/stoff',methods=['GET','POST'])
+def stoff():
     if not session.get('logged_in'):
         return redirect('/')
     schemacontent=''
@@ -87,19 +87,21 @@ def hinzufügen():
     active_schema = session.get('active_schema') #Gerade Aktives Schema
     mode = session.get('mode') #Modus um bei Ursachen oder Komplikationen Krankheiten hinzuzufügen
     element2change=''
+    element2delete=''
     if request.method=='POST':
         rform=request.form
-        if 'active_krankheit' in rform and rform.get('active_krankheit')!='None':
+        if rform.get('active_krankheit')!='None':
             active_krankheit=rform['active_krankheit']
             session['actives_schema']=''
             active_schema=''
         if 'active_krankheit' in rform and 'active_schema' in rform:
             active_schema=rform['active_schema']
-        else:
-            message='Zuerst Krankheit auswählen dann Eigenschaft'
         if 'ändern' in rform:
             element2change=rform.get('ändern')
-
+        elif 'löschen' in rform:
+            element2delete=rform.get('löschen')
+        else:
+            message='Zuerst Krankheit auswählen dann Eigenschaft'
     if active_schema=='Ursachen':
         kh_ursachen=db.Ursache.getAll_fromKrankheit(active_krankheit, True)
         schemacontent=kh_ursachen
@@ -118,8 +120,8 @@ def hinzufügen():
     else:
         message='Links Krankheit auswählen und oben das Schema'
     krankheiten=db.Krankheit.getall()
-    return render_template('hinzufügen.j2', krankheiten=krankheiten, active_schema=active_schema, 
-    active_krankheit=active_krankheit, schemacontent=schemacontent, message=message, mode=mode, element2change=element2change)
+    return render_template('stoff.j2', krankheiten=krankheiten, active_schema=active_schema, 
+    active_krankheit=active_krankheit, schemacontent=schemacontent, message=message, mode=mode, element2change=element2change, element2delete=element2delete)
 
 @app.route('/hinzufügen_Krankheit', methods=['GET','POST'])
 def hinzufügen_Krankheit():
@@ -130,7 +132,7 @@ def hinzufügen_Krankheit():
         if 'Krankheit_name' in rform:
             name=rform['Krankheit_name']
             db.Krankheit.add(name)
-    return redirect('/hinzufügen')
+    return redirect('/stoff')
 
 @app.route('/hinzufügen_Ursachen', methods=['GET','POST'])
 def hinzufügen_Ursachen():
@@ -156,7 +158,7 @@ def hinzufügen_Ursachen():
             for uok_addedkh in uok_addedkhs:
                 db.Ursache.addKrankheit(active_krankheit, uok_addedkh)
                 db.Komplikation.addKrankheit(uok_addedkh,active_krankheit)
-    return redirect('/hinzufügen')
+    return redirect('/stoff')
 
 @app.route('/hinzufügen_Symptome', methods=['GET','POST'])
 def hinzufügen_symptome():
@@ -170,7 +172,7 @@ def hinzufügen_symptome():
             db.Symptom.add(active_krankheit, symptom_name) 
         session['active_schema']='Symptome'
         session['active_krankheit']=active_krankheit
-    return redirect('/hinzufügen')
+    return redirect('/stoff')
 
 @app.route('/hinzufügen_Komplikationen', methods=['GET','POST'])
 def hinzufügen_Komplikationen():
@@ -196,7 +198,7 @@ def hinzufügen_Komplikationen():
             for uok_addedkh in uok_addedkhs:
                 db.Komplikation.addKrankheit(active_krankheit, uok_addedkh)
                 db.Ursache.addKrankheit(uok_addedkh, active_krankheit)
-    return redirect('/hinzufügen')
+    return redirect('/stoff')
 
 @app.route('/hinzufügen_Diagnostiken', methods=['GET','POST'])
 def hinzufügen_Diagnostiken():
@@ -210,7 +212,7 @@ def hinzufügen_Diagnostiken():
             db.Diagnostik.add(active_krankheit, diagnostik_name) 
         session['active_schema']='Diagnostiken'
         session['active_krankheit']=active_krankheit
-    return redirect('/hinzufügen')
+    return redirect('/stoff')
 
 @app.route('/hinzufügen_Therapien', methods=['GET','POST'])
 def hinzufügen_Therapien():
@@ -224,7 +226,46 @@ def hinzufügen_Therapien():
             db.Therapie.add(active_krankheit, therapie_name) 
         session['active_schema']='Therapien'
         session['active_krankheit']=active_krankheit
-    return redirect('/hinzufügen')
+    return redirect('/stoff')
+
+@app.route('/ändern', methods=['GET','POST'])
+def ändern():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'ch_alle' in rform:
+            print('challe')
+            print(content)
+        if 'ch_nurdieses' in rform:
+            print('chdieses')
+            print(content)
+    return redirect('/stoff')
+
+
+@app.route('/löschen', methods=['GET','POST'])
+def löschen():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'del_alle' in rform:
+            print('delalle')
+            print(content)
+        if 'del_nurdieses' in rform:
+            print('deldieses')
+            print(content)
+    return redirect('/stoff')
 
 @app.route('/fragen',methods=['GET','POST'])
 def fragen():
