@@ -221,8 +221,9 @@ class Ursache(VerknüpfenderUmstand):
     def changeone(krankheit_name, element_name, element4change):
         element=session.query(Ursache).filter(Ursache.name==element_name).first()
         krankheit_elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
+        krankheit_old=session.query(Krankheit).filter(Krankheit.name==element_name).first()
         if element is None: #None => element=Krankheit
-            element=session.query(Ursache).filter(Ursache.krankheit_id==krankheit.id).first()
+            element=session.query(Ursache).filter(Ursache.krankheit_id==krankheit_old.id).first()
         krankheit_elemente.remove(element)
         krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
         new_kh_element=session.query(Krankheit).filter(Krankheit.name==element4change).first()
@@ -426,8 +427,9 @@ class Komplikation(VerknüpfenderUmstand):
     def changeone(krankheit_name, element_name, element4change):
         element=session.query(Komplikation).filter(Komplikation.name==element_name).first()
         krankheit_elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
+        krankheit_old=session.query(Krankheit).filter(Krankheit.name==element_name)
         if element is None: #None => element=Krankheit
-            element=session.query(Komplikation).filter(Komplikation.krankheit_id==krankheit.id).first()
+            element=session.query(Komplikation).filter(Komplikation.krankheit_id==krankheit_old.id).first()
         krankheit_elemente.remove(element)
         krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
         new_kh_element=session.query(Krankheit).filter(Krankheit.name==element4change).first()
