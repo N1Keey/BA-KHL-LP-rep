@@ -205,7 +205,7 @@ class Ursache(VerknüpfenderUmstand):
     def changeall(krankheit_name, element_name, element4change):
         element=session.query(Ursache).filter(Ursache.name==element4change).first()
         element2change=session.query(Ursache).filter(Ursache.name==element_name).first()
-        if element2change.name is not None: #None=> element2change = Krankheit
+        if element2change is not None: #None=> element2change = Krankheit
             if element is None:
                 element2change.name=element4change
                 session_add_and_commit(element2change)
@@ -218,17 +218,22 @@ class Ursache(VerknüpfenderUmstand):
             krankheit.name=element_name
         session.commit()
 
-    
     def changeone(krankheit_name, element_name, element4change):
         element=session.query(Ursache).filter(Ursache.name==element_name).first()
-        if element.name is None:
-            element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        new_element=session.query(Ursache).filter(Ursache.name==element4change).first()
-        if new_element is None: # new_element not existing
-            new_element=Ursache(name=element4change)         
         krankheit_elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
-        krankheit_elemente.remove(element)
+        if element is None: #None => element=Krankheit
+            element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
+            krankheit_elemente.remove(element)
+        else:
+            krankheit_elemente.remove(element)
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        new_kh_element=session.query(Krankheit).filter(Krankheit.name==element4change).first()
+        if new_kh_element is None:
+            new_element=session.query(Ursache).filter(Ursache.name==element4change).first()
+            if new_element is None: # new_element not existing
+                new_element=Ursache(name=element4change)  
+        else:
+            new_element=new_kh_element       
         krankheit_elemente.append(new_element)
         krankheit.ursachen=krankheit_elemente
         session.commit()
@@ -422,20 +427,26 @@ class Komplikation(VerknüpfenderUmstand):
     
     def changeone(krankheit_name, element_name, element4change):
         element=session.query(Komplikation).filter(Komplikation.name==element_name).first()
-        if element.name is None:
-            element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        new_element=session.query(Komplikation).filter(Komplikation.name==element4change).first()
-        if new_element is None: # new_element not existing
-            new_element=Komplikation(name=element4change)
         krankheit_elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
-        krankheit_elemente.remove(element)
+        if element is None: #None => element=Krankheit
+            element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
+            krankheit_elemente.remove(element)
+        else:
+            krankheit_elemente.remove(element)
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        new_kh_element=session.query(Krankheit).filter(Krankheit.name==element4change).first()
+        if new_kh_element is None:
+            new_element=session.query(Komplikation).filter(Komplikation.name==element4change).first()
+            if new_element is None: # new_element not existing
+                new_element=Komplikation(name=element4change)  
+        else:
+            new_element=new_kh_element       
         krankheit_elemente.append(new_element)
         krankheit.komplikationen=krankheit_elemente
         session.commit()
     
     def deleteall(krankheit_name, element_name):
-        element2delete=session.query(Ursache).filter(Komplikation.name==element_name).first()
+        element2delete=session.query(Komplikation).filter(Komplikation.name==element_name).first()
         if element2delete.name is None:
             element2delete=session.query(Krankheit).filter(Krankheit.name==element_name).first    
         session.delete(element2delete)
