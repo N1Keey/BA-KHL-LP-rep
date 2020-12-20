@@ -175,22 +175,27 @@ class Umstand(Base):
     'polymorphic_on':type
     }
     
+    @classmethod
+    def get_classname(cls):
+        return cls.__name__
+
     def queryfromclass():
         '''returns krankheit, umstand, krankheit2umstand'''
         query_krankheit=session.query(Krankheit)
-        if __name__=='Ursache':
+        classname=getclassname()
+        if classname=='Ursache':
             query_umstand=session.query(Ursache)
             query_krankheit2umstand=query_krankheit.join(Krankheit.ursachen)
-        elif __name__=='Symptom':
+        elif classname=='Symptom':
             query_umstand=session.query(Symptom)
             query_krankheit2umstand=query_krankheit.join(Krankheit.symptome)
-        elif __name__=='Komplikation':
+        elif classname=='Komplikation':
             query_umstand=session.query(Komplikation)
             query_krankheit2umstand=query_krankheit.join(Krankheit.komplikationen)
-        elif __name__=='Diagnostik':
+        elif classname=='Diagnostik':
             query_umstand=session.query(Diagnostik)
             query_krankheit2umstand=query_krankheit.join(Krankheit.diagnostiken)
-        elif __name__=='Therapie':
+        elif classname=='Therapie':
             query_umstand=session.query(Therapie)
             query_krankheit2umstand=query_krankheit.join(Krankheit.therapien)
         else:
@@ -199,41 +204,41 @@ class Umstand(Base):
         return query_krankheit, query_umstand, query_krankheit2umstand
 
     def link_Content2krankheit(krankheit, content):
-        if __name__=='Ursache':
+        if classname=='Ursache':
             krankheit.ursachen=content
-        elif __name__=='Symptom':
+        elif classname=='Symptom':
             krankheit.symptome=content
-        elif __name__=='Komplikation':
+        elif classname=='Komplikation':
             krankheit.komplikationen=content
-        elif __name__=='Diagnostik':
+        elif classname=='Diagnostik':
             krankheit.diagnostiken=content
-        elif __name__=='Therapie':
+        elif classname=='Therapie':
             krankheit.therapien=content
         session.commit()
 
     def get_contentfromkrankheit(krankheit):
-        if __name__=='Ursache':
+        if classname=='Ursache':
             krankheit_dot_umstand=krankheit.ursachen
-        elif __name__=='Symptom':
+        elif classname=='Symptom':
             krankheit_dot_umstand=krankheit.symptome
-        elif __name__=='Komplikation':
+        elif classname=='Komplikation':
             krankheit_dot_umstand=krankheit.komplikationen
-        elif __name__=='Diagnostik':
+        elif classname=='Diagnostik':
             krankheit_dot_umstand=krankheit.diagnostiken
-        elif __name__=='Therapie':
+        elif classname=='Therapie':
             krankheit_dot_umstand=krankheit.therapien
         return krankheit_dot_umstand
 
     def new_Object(object_name):
-        if __name__=='Ursache':
+        if classname=='Ursache':
             new_element=Ursache(name=object_name)
-        elif __name__=='Symptom':
+        elif classname=='Symptom':
             new_element=Symptom(name=object_name)
-        elif __name__=='Komplikation':
+        elif classname=='Komplikation':
             new_element=Komplikation(name=object_name)
-        elif __name__=='Diagnostik':
+        elif classname=='Diagnostik':
             new_element=Diagnostik(name=object_name)
-        elif __name__=='Therapie':
+        elif classname=='Therapie':
             new_element=Therapie(name=object_name)
         return new_element
 
@@ -258,7 +263,7 @@ class Umstand(Base):
         Umstand.link_Content2krankheit(krankheit,content)
 
     def getAll_fromKrankheit(krankheit_name, toString=False):
-        query_krankheit,query_umstand,query_krankheit2umstand=Umstand.queryclass()
+        query_krankheit,query_umstand,query_krankheit2umstand=Umstand.queryfromclass()
         krankheit_umstand=[]
         try:
             krankheit=query_krankheit2umstand.filter(Krankheit.name==krankheit_name).first()
@@ -290,6 +295,22 @@ class VerknüpfenderUmstand(Umstand):
     'polymorphic_identity':'umstanduok',
     'polymorphic_on':type
     }
+    def queryfromclass():
+        super(VerknüpfenderUmstand).queryfromclass()
+    def link_Content2krankheit(krankheit, content):
+        super(VerknüpfenderUmstand).link_Content2krankheit(krankheit, content)
+    def get_contentfromkrankheit(krankheit):
+        super(VerknüpfenderUmstand).get_contentfromkrankheit(krankheit)
+    def new_Object(object_name):
+        super(VerknüpfenderUmstand).new_Object(object_name)
+    def getelems_from_krankheit2umstand(krankheit):
+        super(VerknüpfenderUmstand).getelems_from_krankheit2umstand(krankheit)
+    def add(krankheit_name, element_name):
+        super(VerknüpfenderUmstand).add(krankheit_name, element_name)
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        super(VerknüpfenderUmstand).getAll_fromKrankheit(krankheit_name, toString=False)
+    def getAll():
+        super(VerknüpfenderUmstand).getAll()
 
 class Ursache(VerknüpfenderUmstand):
     __tablename__='ursache'
@@ -401,7 +422,22 @@ class Symptom(Umstand):
     __mapper_args__ = {
     'polymorphic_identity':'symptom',
     }
-    super()
+    def queryfromclass():
+        super(Symptom,Symptom).queryfromclass()
+    def link_Content2krankheit(krankheit, content):
+        super(Symptom,Symptom).link_Content2krankheit(krankheit, content)
+    def get_contentfromkrankheit(krankheit):
+        super(Symptom,Symptom).get_contentfromkrankheit(krankheit)
+    def new_Object(object_name):
+        super(Symptom,Symptom).new_Object(object_name)
+    def getelems_from_krankheit2umstand(krankheit):
+        super(Symptom,Symptom).getelems_from_krankheit2umstand(krankheit)
+    def add(krankheit_name, element_name):
+        super(Symptom,Symptom).add(krankheit_name, element_name)
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        super(Symptom,Symptom).getAll_fromKrankheit(krankheit_name, toString=False)
+    def getAll():
+        super(Symptom,Symptom).getAll()
 
 class Komplikation(VerknüpfenderUmstand):
     __tablename__='komplikation'
@@ -409,43 +445,22 @@ class Komplikation(VerknüpfenderUmstand):
     __mapper_args__ = {
     'polymorphic_identity':'komplikation',
     }
-    
-    def add(krankheit_name, komplikation_name):
-        krankheit_komplikationen=Komplikation.getAll_fromKrankheit(krankheit_name, False)
-        komplikation=session.query(Komplikation).filter(Komplikation.name==komplikation_name).first()
-        if komplikation is None:
-            komplikation=Komplikation(name=komplikation_name)
-            session_add_and_commit(komplikation)
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        krankheit_komplikationen.append(komplikation)
-        krankheit.komplikationen=krankheit_komplikationen
-        session.commit()
-
+    def queryfromclass():
+        super(Komplikation).queryfromclass()
+    def link_Content2krankheit(krankheit, content):
+        super(Komplikation).link_Content2krankheit(krankheit, content)
+    def get_contentfromkrankheit(krankheit):
+        super(Komplikation).get_contentfromkrankheit(krankheit)
+    def new_Object(object_name):
+        super(Komplikation).new_Object(object_name)
+    def getelems_from_krankheit2umstand(krankheit):
+        super(Komplikation).getelems_from_krankheit2umstand(krankheit)
+    def add(krankheit_name, element_name):
+        super(Komplikation).add(krankheit_name, element_name)
     def getAll_fromKrankheit(krankheit_name, toString=False):
-        krankheit_komplikationen=[]
-        try:
-            krankheit=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name==krankheit_name).first()
-            for komplikation in krankheit.komplikationen:
-                krankheit_komplikationen.append(komplikation)
-            if toString==True:
-                komplikationenstrings=[]
-                for komplikation in krankheit_komplikationen:
-                    if komplikation.name is None:
-                        komplikation=session.query(Krankheit).filter(Krankheit.id==komplikation.krankheit_id).first()
-                    komplikationenstrings.append(komplikation.name)
-                krankheit_komplikationen=komplikationenstrings
-        except AttributeError:
-            krankheit_komplikationen=[]
-        return krankheit_komplikationen
-
+        super(Komplikation).getAll_fromKrankheit(krankheit_name, toString=False)
     def getAll():
-        elemente=[]
-        elementesql=session.query(Komplikation).all()
-        for element in elementesql:
-            if element.name==None:
-                element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-            elemente.append(element.name)
-        return elemente
+        super(Komplikation).getAll()
 
     def addKrankheit(krankheit_name, krankheit2add):
         """fügt bei Komplikationen eine Krankheit hinzu"""
@@ -466,7 +481,22 @@ class Diagnostik(Umstand):
     __mapper_args__ = {
     'polymorphic_identity':'diagnostik',
     }
-    super()
+    def queryfromclass():
+        super(Diagnostik).queryfromclass()
+    def link_Content2krankheit(krankheit, content):
+        super(Diagnostik).link_Content2krankheit(krankheit, content)
+    def get_contentfromkrankheit(krankheit):
+        super(Diagnostik).get_contentfromkrankheit(krankheit)
+    def new_Object(object_name):
+        super(Diagnostik).new_Object(object_name)
+    def getelems_from_krankheit2umstand(krankheit):
+        super(Diagnostik).getelems_from_krankheit2umstand(krankheit)
+    def add(krankheit_name, element_name):
+        super(Diagnostik).add(krankheit_name, element_name)
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        super(Diagnostik).getAll_fromKrankheit(krankheit_name, toString=False)
+    def getAll():
+        super(Diagnostik).getAll()
 
 class Therapie(Umstand):
     __tablename__='therapie'
@@ -474,7 +504,22 @@ class Therapie(Umstand):
     __mapper_args__ = {
     'polymorphic_identity':'therapie',
     }
-    super()
+    def queryfromclass():
+        super(Therapie).queryfromclass()
+    def link_Content2krankheit(krankheit, content):
+        super(Therapie).link_Content2krankheit(krankheit, content)
+    def get_contentfromkrankheit(krankheit):
+        super(Therapie).get_contentfromkrankheit(krankheit)
+    def new_Object(object_name):
+        super(Therapie).new_Object(object_name)
+    def getelems_from_krankheit2umstand(krankheit):
+        super(Therapie).getelems_from_krankheit2umstand(krankheit)
+    def add(krankheit_name, element_name):
+        super(Therapie).add(krankheit_name, element_name)
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        super(Therapie).getAll_fromKrankheit(krankheit_name, toString=False)
+    def getAll():
+        super(Therapie).getAll()
 
 Base.metadata.create_all(engine)
 
