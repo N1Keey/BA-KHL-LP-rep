@@ -222,10 +222,8 @@ class Ursache(VerknüpfenderUmstand):
         element=session.query(Ursache).filter(Ursache.name==element_name).first()
         krankheit_elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
         if element is None: #None => element=Krankheit
-            element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            krankheit_elemente.remove(element.id)
-        else:
-            krankheit_elemente.remove(element)
+            element=session.query(Ursache).filter(Ursache.krankheit_id==krankheit.id).first()
+        krankheit_elemente.remove(element)
         krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
         new_kh_element=session.query(Krankheit).filter(Krankheit.name==element4change).first()
         if new_kh_element is None:
@@ -429,10 +427,8 @@ class Komplikation(VerknüpfenderUmstand):
         element=session.query(Komplikation).filter(Komplikation.name==element_name).first()
         krankheit_elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
         if element is None: #None => element=Krankheit
-            element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            krankheit_elemente.remove(element.id)
-        else:
-            krankheit_elemente.remove(element)
+            element=session.query(Komplikation).filter(Komplikation.krankheit_id==krankheit.id).first()
+        krankheit_elemente.remove(element)
         krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
         new_kh_element=session.query(Krankheit).filter(Krankheit.name==element4change).first()
         if new_kh_element is None:
