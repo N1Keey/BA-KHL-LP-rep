@@ -223,7 +223,7 @@ class Ursache(VerknüpfenderUmstand):
         krankheit_elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
         if element is None: #None => element=Krankheit
             element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            krankheit_elemente.remove(element)
+            krankheit_elemente.remove(element.id)
         else:
             krankheit_elemente.remove(element)
         krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
@@ -430,7 +430,7 @@ class Komplikation(VerknüpfenderUmstand):
         krankheit_elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
         if element is None: #None => element=Krankheit
             element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            krankheit_elemente.remove(element)
+            krankheit_elemente.remove(element.id)
         else:
             krankheit_elemente.remove(element)
         krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
