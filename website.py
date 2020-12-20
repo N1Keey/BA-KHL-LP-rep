@@ -160,8 +160,43 @@ def hinzufügen_Ursachen():
                 db.Komplikation.addKrankheit(uok_addedkh,active_krankheit)
     return redirect('/stoff')
 
+@app.route('/ändern_Ursachen', methods=['GET','POST'])
+def ändern_Ursachen():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        update = rform.get('elemupdate')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'ch_alle' in rform:
+            db.Ursache.changeall(active_krankheit,content,update)
+        if 'ch_nurdieses' in rform:
+            db.Ursache.changeone(active_krankheit,content,update)
+    return redirect('/stoff')
+
+@app.route('/löschen_Ursachen', methods=['GET','POST'])
+def löschen_Ursachen():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'del_alle' in rform:
+            db.Ursache.deleteall(active_krankheit, content)
+        if 'del_nurdieses' in rform:
+            db.Ursache.deleteone(active_krankheit, content)
+    return redirect('/stoff')
+
 @app.route('/hinzufügen_Symptome', methods=['GET','POST'])
-def hinzufügen_symptome():
+def hinzufügen_Symptome():
     if not session.get('logged_in'):
         return redirect('/')
     if request.method == 'POST':
@@ -172,6 +207,41 @@ def hinzufügen_symptome():
             db.Symptom.add(active_krankheit, symptom_name) 
         session['active_schema']='Symptome'
         session['active_krankheit']=active_krankheit
+    return redirect('/stoff')
+
+@app.route('/ändern_Symptome', methods=['GET','POST'])
+def ändern_Symptome():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        update = rform.get('elemupdate')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'ch_alle' in rform:
+            db.Symptom.changeall(active_krankheit,content,update)
+        if 'ch_nurdieses' in rform:
+            db.Symptom.changeone(active_krankheit,content,update)
+    return redirect('/stoff')
+
+@app.route('/löschen_Symptome', methods=['GET','POST'])
+def löschen_Symptome():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'del_alle' in rform:
+            db.Symptom.deleteall(active_krankheit, content)
+        if 'del_nurdieses' in rform:
+            db.Symptom.deleteone(active_krankheit, content)
     return redirect('/stoff')
 
 @app.route('/hinzufügen_Komplikationen', methods=['GET','POST'])
@@ -200,6 +270,42 @@ def hinzufügen_Komplikationen():
                 db.Ursache.addKrankheit(uok_addedkh, active_krankheit)
     return redirect('/stoff')
 
+@app.route('/ändern_Komplikationen', methods=['GET','POST'])
+def ändern_Komplikationen():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        update = rform.get('elemupdate')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'ch_alle' in rform:
+            db.Komplikation.changeall(active_krankheit,content,update)
+        if 'ch_nurdieses' in rform:
+            db.Komplikation.changeone(active_krankheit,content,update)
+    return redirect('/stoff')
+
+@app.route('/löschen_Komplikationen', methods=['GET','POST'])
+def löschen_Komplikationen():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'del_alle' in rform:
+            db.Komplikation.deleteall(active_krankheit,content)
+        if 'del_nurdieses' in rform:
+            db.Komplikation.deleteone(active_krankheit,content)
+
+    return redirect('/stoff')
+
 @app.route('/hinzufügen_Diagnostiken', methods=['GET','POST'])
 def hinzufügen_Diagnostiken():
     if not session.get('logged_in'):
@@ -212,6 +318,41 @@ def hinzufügen_Diagnostiken():
             db.Diagnostik.add(active_krankheit, diagnostik_name) 
         session['active_schema']='Diagnostiken'
         session['active_krankheit']=active_krankheit
+    return redirect('/stoff')
+
+@app.route('/ändern_Diagnostiken', methods=['GET','POST'])
+def ändern_Diagnostiken():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        update = rform.get('elemupdate')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'ch_alle' in rform:
+            db.Diagnostik.changeall(active_krankheit,content,update)
+        if 'ch_nurdieses' in rform:
+            db.Diagnostik.changeone(active_krankheit,content,update)
+    return redirect('/stoff')
+
+@app.route('/löschen_Diagnostiken', methods=['GET','POST'])
+def löschen_Diagnostiken():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method=='POST':
+        rform = request.form
+        content = rform.get('content')
+        active_krankheit=rform.get('active_krankheit')
+        session['active_krankheit']=active_krankheit
+        active_schema=rform.get('active_schema')
+        session['active_schema']=active_schema
+        if 'del_alle' in rform:
+            db.Diagnostik.deleteall(active_krankheit, content)
+        if 'del_nurdieses' in rform:
+            db.Diagnostik.deleteone(active_krankheit, content)
     return redirect('/stoff')
 
 @app.route('/hinzufügen_Therapien', methods=['GET','POST'])
@@ -228,8 +369,8 @@ def hinzufügen_Therapien():
         session['active_krankheit']=active_krankheit
     return redirect('/stoff')
 
-@app.route('/ändern', methods=['GET','POST'])
-def ändern():
+@app.route('/ändern_Therapien', methods=['GET','POST'])
+def ändern_Therapien():
     if not session.get('logged_in'):
         return redirect('/')
     if request.method=='POST':
@@ -241,14 +382,13 @@ def ändern():
         active_schema=rform.get('active_schema')
         session['active_schema']=active_schema
         if 'ch_alle' in rform:
-            db.Ursache.changeall(active_krankheit,content,update)
+            db.Therapie.changeall(active_krankheit,content,update)
         if 'ch_nurdieses' in rform:
-            db.Ursache.changeone(active_krankheit,content,update)
+            db.Therapie.changeone(active_krankheit,content,update)
     return redirect('/stoff')
 
-
-@app.route('/löschen', methods=['GET','POST'])
-def löschen():
+@app.route('/löschen_Therapien', methods=['GET','POST'])
+def löschen_Therapien():
     if not session.get('logged_in'):
         return redirect('/')
     if request.method=='POST':
@@ -259,11 +399,9 @@ def löschen():
         active_schema=rform.get('active_schema')
         session['active_schema']=active_schema
         if 'del_alle' in rform:
-            print('delalle')
-            print(content)
+            db.Therapie.deleteall(active_krankheit,content)
         if 'del_nurdieses' in rform:
-            print('deldieses')
-            print(content)
+            db.Therapie.deleteone(active_krankheit,content)
     return redirect('/stoff')
 
 @app.route('/fragen',methods=['GET','POST'])

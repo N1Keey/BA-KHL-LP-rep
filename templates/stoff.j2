@@ -126,7 +126,7 @@
                     {% for element in schemacontent %}
                         <li>
                             {% if element2change==element %}
-                                <form action='/ändern' method='POST'>
+                                <form action='/ändern_{{ active_schema }}' method='POST'>
                                     <input type='text' name='elemupdate' value='{{ element }}'>
                                     <input type='submit' name='abbruch' value=Abbruch>
                                     <input type='submit' name='ch_alle' value='Alle'>
@@ -136,7 +136,7 @@
                                     <input type="hidden" name="content" value="{{ element2change }}">
                                 </form>
                             {% elif element2delete==element %}
-                                <form action='/löschen' method='POST'>
+                                <form action='/löschen_{{ active_schema }}' method='POST'>
                                     {{ element }}
                                     <input type='submit' name='abbruch' value=Abbruch>
                                     <input type='submit' name='del_alle' value='Alle'>
