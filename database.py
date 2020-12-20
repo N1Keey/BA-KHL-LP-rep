@@ -180,7 +180,7 @@ class VerknüpfenderUmstand(Umstand):
     krankheit_id = Column(Integer, unique=True)
 
     __mapper_args__ = {
-    'polymorphic_identity':'umstanduok',
+    'polymorphic_identity':'verknüpfenderUmstand',
     'polymorphic_on':type
     }
 
@@ -246,7 +246,7 @@ class Ursache(VerknüpfenderUmstand):
 
     def deleteone(krankheit_name, element_name):
         element=session.query(Ursache).filter(Ursache.name==element_name).first()
-        if element.name is not None:
+        if element is not None:
             krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
             krankheit_elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
             krankheit_elemente.remove(element)
@@ -452,7 +452,7 @@ class Komplikation(VerknüpfenderUmstand):
 
     def deleteone(krankheit_name, element_name):
         element=session.query(Komplikation).filter(Komplikation.name==element_name).first()
-        if element.name is not None:
+        if element is not None:
             krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
             krankheit_elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
             krankheit_elemente.remove(element)
