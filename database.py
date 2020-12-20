@@ -421,7 +421,7 @@ class Komplikation(VerknüpfenderUmstand):
                 element2change=session.merge(element)
                 print('existing=%s new=%s'%(element2change.name, element.name))
         else:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==element4change).first()
+            krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
             krankheit.name=element_name
         session.commit()
     
