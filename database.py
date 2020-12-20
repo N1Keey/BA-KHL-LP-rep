@@ -240,7 +240,7 @@ class Ursache(VerknüpfenderUmstand):
     def deleteall(krankheit_name, element_name):
         element2delete=session.query(Ursache).filter(Ursache.name==element_name).first()
         if element2delete is None:
-            element2delete=session.query(Krankheit).filter(Krankheit.name==element_name).first    
+            element2delete=session.query(Krankheit).filter(Krankheit.name==element_name).first()   
         session.delete(element2delete)
         session.commit()
 
@@ -446,7 +446,7 @@ class Komplikation(VerknüpfenderUmstand):
     def deleteall(krankheit_name, element_name):
         element2delete=session.query(Komplikation).filter(Komplikation.name==element_name).first()
         if element2delete is None:
-            element2delete=session.query(Krankheit).filter(Krankheit.name==element_name).first    
+            element2delete=session.query(Krankheit).filter(Krankheit.name==element_name).first()   
         session.delete(element2delete)
         session.commit()
 
