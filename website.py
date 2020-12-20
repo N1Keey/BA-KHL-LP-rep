@@ -235,16 +235,15 @@ def ändern():
     if request.method=='POST':
         rform = request.form
         content = rform.get('content')
+        update = rform.get('elemupdate')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
         active_schema=rform.get('active_schema')
         session['active_schema']=active_schema
         if 'ch_alle' in rform:
-            print('challe')
-            print(content)
+            db.Ursache.changeall(active_krankheit,content,update)
         if 'ch_nurdieses' in rform:
-            print('chdieses')
-            print(content)
+            db.Ursache.changeone(active_krankheit,content,update)
     return redirect('/stoff')
 
 

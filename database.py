@@ -174,6 +174,113 @@ class Umstand(Base):
     'polymorphic_identity':'umstand',
     'polymorphic_on':type
     }
+    
+    def queryfromclass():
+        '''returns krankheit, umstand, krankheit2umstand'''
+        query_krankheit=session.query(Krankheit)
+        if __name__=='Ursache':
+            query_umstand=session.query(Ursache)
+            query_krankheit2umstand=query_krankheit.join(Krankheit.ursachen)
+        elif __name__=='Symptom':
+            query_umstand=session.query(Symptom)
+            query_krankheit2umstand=query_krankheit.join(Krankheit.symptome)
+        elif __name__=='Komplikation':
+            query_umstand=session.query(Komplikation)
+            query_krankheit2umstand=query_krankheit.join(Krankheit.komplikationen)
+        elif __name__=='Diagnostik':
+            query_umstand=session.query(Diagnostik)
+            query_krankheit2umstand=query_krankheit.join(Krankheit.diagnostiken)
+        elif __name__=='Therapie':
+            query_umstand=session.query(Therapie)
+            query_krankheit2umstand=query_krankheit.join(Krankheit.therapien)
+        else:
+            query_umstand='not found'
+            query_krankheit2umstand='not found'
+        return query_krankheit, query_umstand, query_krankheit2umstand
+
+    def link_Content2krankheit(krankheit, content):
+        if __name__=='Ursache':
+            krankheit.ursachen=content
+        elif __name__=='Symptom':
+            krankheit.symptome=content
+        elif __name__=='Komplikation':
+            krankheit.komplikationen=content
+        elif __name__=='Diagnostik':
+            krankheit.diagnostiken=content
+        elif __name__=='Therapie':
+            krankheit.therapien=content
+        session.commit()
+
+    def get_contentfromkrankheit(krankheit):
+        if __name__=='Ursache':
+            krankheit_dot_umstand=krankheit.ursachen
+        elif __name__=='Symptom':
+            krankheit_dot_umstand=krankheit.symptome
+        elif __name__=='Komplikation':
+            krankheit_dot_umstand=krankheit.komplikationen
+        elif __name__=='Diagnostik':
+            krankheit_dot_umstand=krankheit.diagnostiken
+        elif __name__=='Therapie':
+            krankheit_dot_umstand=krankheit.therapien
+        return krankheit_dot_umstand
+
+    def new_Object(object_name):
+        if __name__=='Ursache':
+            new_element=Ursache(name=object_name)
+        elif __name__=='Symptom':
+            new_element=Symptom(name=object_name)
+        elif __name__=='Komplikation':
+            new_element=Komplikation(name=object_name)
+        elif __name__=='Diagnostik':
+            new_element=Diagnostik(name=object_name)
+        elif __name__=='Therapie':
+            new_element=Therapie(name=object_name)
+        return new_element
+
+    def getelems_from_krankheit2umstand(krankheit):
+        krankheit_umstand=[]
+        krankheit_dot_umstand=Umstand.get_contentfromkrankheit(krankheit)
+        for elem in krankheit_dot_umstand:
+            krankheit_umstand.append(elem)
+        return krankheit_umstand  
+
+    def add(krankheit_name, element_name):
+        query_krankheit,query_umstand,query_krankheit2umstand=Umstand.queryclass()
+        query_element=query_umstand.filter(text('name=%s'%(element_name))).first() #query1 schemaelement
+        content=Umstand.getAll_fromKrankheit(krankheit_name, False) #3 get all schemaelements von kh
+        if query_element is None:
+            new_element=Umstand.new_Object(element_name) #2 anlegen von schemaelement fals noch nicht vorhanden
+            session_add_and_commit(new_element)
+            content.append(new_element)
+        else:
+            content.append(query_element)
+        krankheit=query_krankheit.filter(Krankheit.name==krankheit_name).first() #4 query krankheit
+        Umstand.link_Content2krankheit(krankheit,content)
+
+    def getAll_fromKrankheit(krankheit_name, toString=False):
+        query_krankheit,query_umstand,query_krankheit2umstand=Umstand.queryclass()
+        krankheit_umstand=[]
+        try:
+            krankheit=query_krankheit2umstand.filter(Krankheit.name==krankheit_name).first()
+            krankheit_umstand=Umstand.getelems_from_krankheit2umstand(krankheit)
+            if toString==True:
+                umstandstrings=[]
+                for elem in krankheit_umstand:
+                    if elem.name is None:
+                        umstand=query_krankheit.filter(Krankheit.id==elem.krankheit_id).first()
+                    umstandstrings.append(umstand.name)
+                krankheit_umstand=umstandstrings
+        except AttributeError:
+            krankheit_umstand=[]
+        return krankheit_umstand
+
+    def getAll():
+        query_krankheit,query_umstand,query_krankheit2umstand=Umstand.queryclass()
+        elemente=[]
+        elementesql=query_umstand.all()
+        for element in elementesql:
+            elemente.append(element.name)
+        return elemente
 
 class VerknüpfenderUmstand(Umstand):
     __abstract__ = True
@@ -189,18 +296,65 @@ class Ursache(VerknüpfenderUmstand):
 
     __mapper_args__ = {
     'polymorphic_identity':'ursache',
-    }
+    }      
 
-    def add(krankheit_name, ursache_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-        ursache=session.query(Ursache).filter(Ursache.name==ursache_name).first()
+    def add(krankheit_name, ursache_name):
+        ursache=session.query(Ursache).filter(Ursache.name==ursache_name).first() #query1 schemaelement
         if ursache is None:
-            ursache=Ursache(name=ursache_name)
+            ursache=Ursache(name=ursache_name) #2 anlegen von schemaelement fals noch nicht vorhanden
             session_add_and_commit(ursache)
-        krankheit_ursachen=Ursache.getAll_fromKrankheit(krankheit_name, False)
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        krankheit_ursachen=Ursache.getAll_fromKrankheit(krankheit_name, False) #3 get all schemaelements von kh
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
         krankheit_ursachen.append(ursache)
         krankheit.ursachen=krankheit_ursachen
         session.commit()
+    
+    def changeall(krankheit_name, ursache_name, ursache4change):
+        ursache=session.query(Ursache).filter(Ursache.name==ursache4change).first()
+        ursache2change=session.query(Ursache).filter(Ursache.name==ursache_name).first()
+        if ursache2change is not None: #None=> ursache2change = Krankheit
+            if ursache is None:
+                ursache2change.name=ursache4change
+                session_add_and_commit(ursache2change)
+            else:
+                print('existing=%s new=%s'%(ursache2change.name, ursache.name))
+                ursache2change=session.merge(ursache)
+                print('existing=%s new=%s'%(ursache2change.name, ursache.name))
+                session.commit()
+    
+    def changeone(krankheit_name, ursache_name, ursache4change):
+        ursache=session.query(Ursache).filter(Ursache.name==ursache_name).first()
+        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        new_ursache=session.query(Ursache).filter(Ursache.name==ursache4change).first()
+        if new_ursache is None: # new_ursache not existing
+            new_ursache=Ursache(name=ursache4change)
+        krankheit_ursachen=Ursache.getAll_fromKrankheit(krankheit_name, False)
+        krankheit_ursachen.remove(ursache)
+        krankheit_ursachen.append(new_ursache)
+        krankheit.ursachen=krankheit_ursachen
+        session.commit()
+    
+    def deleteall(krankheit_name, ursache_name):
+        ursache2delete=session.query(Ursache).filter(Ursache.name==ursache_name).first()
+        if ursache2delete is not None:
+            session.delete(ursache2delete)
+            session.commit()
+
+    def deleteone(krankheit_name, ursache_name):
+        ursache=session.query(Ursache).filter(Ursache.name==ursache_name).first()
+        if ursache is not None:
+            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+            krankheit_ursachen=Ursache.getAll_fromKrankheit(krankheit_name, False)
+            krankheit_ursachen.remove(ursache)
+            krankheit.ursachen=krankheit_ursachen
+        else:
+            krankheit=session.query(Krankheit).filter(Krankheit.name==ursache_name).first()
+            ursache_kh=session.query(Ursache).filter(Ursache.krankheit_id==krankheit.id).first()
+            ursachen=Ursache.getAll_fromKrankheit(krankheit_name, False)
+            ursachen.remove(ursache_kh)
+            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+            krankheit.ursachen=ursachen
+            session.commit()
 
     def getAll_fromKrankheit(krankheit_name, toString=False):
         krankheit_ursachen=[]
@@ -247,39 +401,7 @@ class Symptom(Umstand):
     __mapper_args__ = {
     'polymorphic_identity':'symptom',
     }
-    
-    def add(krankheit_name, symptom_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-        krankheit_symptome=Symptom.getAll_fromKrankheit(krankheit_name, False)
-        symptom=session.query(Symptom).filter(Symptom.name==symptom_name).first()
-        if symptom is None:
-            symptom=Symptom(name=symptom_name)
-            session_add_and_commit(symptom)
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        krankheit_symptome.append(symptom)
-        krankheit.symptome=krankheit_symptome
-        session.commit()
-
-    def getAll_fromKrankheit(krankheit_name, toString=False):
-        krankheit_symptome=[]
-        try:
-            krankheit=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name==krankheit_name).first()
-            for symptom in krankheit.symptome:
-                krankheit_symptome.append(symptom)
-            if toString==True:
-                symptomestrings=[]
-                for symptom in krankheit_symptome:
-                    symptomestrings.append(symptom.name)
-                krankheit_symptome=symptomestrings
-        except AttributeError:
-            krankheit_symptome=[]
-        return krankheit_symptome
-
-    def getAll():
-        elemente=[]
-        elementesql=session.query(Symptom).all()
-        for element in elementesql:
-            elemente.append(element.name)
-        return elemente
+    super()
 
 class Komplikation(VerknüpfenderUmstand):
     __tablename__='komplikation'
@@ -288,7 +410,7 @@ class Komplikation(VerknüpfenderUmstand):
     'polymorphic_identity':'komplikation',
     }
     
-    def add(krankheit_name, komplikation_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
+    def add(krankheit_name, komplikation_name):
         krankheit_komplikationen=Komplikation.getAll_fromKrankheit(krankheit_name, False)
         komplikation=session.query(Komplikation).filter(Komplikation.name==komplikation_name).first()
         if komplikation is None:
@@ -344,39 +466,7 @@ class Diagnostik(Umstand):
     __mapper_args__ = {
     'polymorphic_identity':'diagnostik',
     }
-
-    def add(krankheit_name, diagnostik_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-        krankheit_diagnostiken=Diagnostik.getAll_fromKrankheit(krankheit_name, False)
-        diagnostik=session.query(Diagnostik).filter(Diagnostik.name==diagnostik_name).first()
-        if diagnostik is None:
-            diagnostik=Diagnostik(name=diagnostik_name)
-            session_add_and_commit(diagnostik)
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        krankheit_diagnostiken.append(diagnostik)
-        krankheit.diagnostiken=krankheit_diagnostiken
-        session.commit()
-
-    def getAll_fromKrankheit(krankheit_name, toString=False):
-        krankheit_diagnostiken=[]
-        try:
-            krankheit=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name==krankheit_name).first()
-            for diagnostik in krankheit.diagnostiken:
-                krankheit_diagnostiken.append(diagnostik)
-            if toString==True:
-                diagnostikenstrings=[]
-                for diagnostik in krankheit_diagnostiken:
-                    diagnostikenstrings.append(diagnostik.name)
-                krankheit_diagnostiken=diagnostikenstrings
-        except AttributeError:
-            krankheit_diagnostiken=[]
-        return krankheit_diagnostiken
-
-    def getAll():
-        elemente=[]
-        elementesql=session.query(Diagnostik).all()
-        for element in elementesql:
-            elemente.append(element.name)
-        return elemente
+    super()
 
 class Therapie(Umstand):
     __tablename__='therapie'
@@ -384,39 +474,7 @@ class Therapie(Umstand):
     __mapper_args__ = {
     'polymorphic_identity':'therapie',
     }
-
-    def add(krankheit_name, therapie_name): #Wenn Eigenschaft schon vorhanden verbinde vorhandenes mit Krankheit -> fehlt noch
-        krankheit_therapien=Therapie.getAll_fromKrankheit(krankheit_name, False)
-        therapie=session.query(Therapie).filter(Therapie.name==therapie_name).first()
-        if therapie is None:
-            therapie=Therapie(name=therapie_name)
-            session_add_and_commit(therapie)
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        krankheit_therapien.append(therapie)
-        krankheit.therapien=krankheit_therapien
-        session.commit()
-
-    def getAll_fromKrankheit(krankheit_name, toString=False):
-        krankheit_therapien=[]
-        try:
-            krankheit=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name==krankheit_name).first()
-            for therapie in krankheit.therapien:
-                krankheit_therapien.append(therapie)
-            if toString==True:
-                therapienstrings=[]
-                for therapie in krankheit_therapien:
-                    therapienstrings.append(therapie.name)
-                krankheit_therapien=therapienstrings
-        except AttributeError:
-            krankheit_therapien=[]
-        return krankheit_therapien
-
-    def getAll():
-        elemente=[]
-        elementesql=session.query(Therapie).all()
-        for element in elementesql:
-            elemente.append(element.name)
-        return elemente
+    super()
 
 Base.metadata.create_all(engine)
 
