@@ -215,7 +215,7 @@ class Ursache(VerknüpfenderUmstand):
                 print('existing=%s new=%s'%(element2change.name, element.name))
         else:
             krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            krankheit.name=element_name
+            krankheit.name=element4change
         session.commit()
 
     def changeone(krankheit_name, element_name, element4change):
@@ -422,7 +422,7 @@ class Komplikation(VerknüpfenderUmstand):
                 print('existing=%s new=%s'%(element2change.name, element.name))
         else:
             krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            krankheit.name=element_name
+            krankheit.name=element4change
         session.commit()
     
     def changeone(krankheit_name, element_name, element4change):
