@@ -221,7 +221,7 @@ class Ursache(VerknüpfenderUmstand):
     def changeone(krankheit_name, element_name, element4change):
         element=session.query(Ursache).filter(Ursache.name==element_name).first()
         krankheit_elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
-        if element.name is None: #None => element=Krankheit
+        if element is None: #None => element=Krankheit
             element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
             krankheit_elemente.remove(element)
         else:
@@ -428,7 +428,7 @@ class Komplikation(VerknüpfenderUmstand):
     def changeone(krankheit_name, element_name, element4change):
         element=session.query(Komplikation).filter(Komplikation.name==element_name).first()
         krankheit_elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
-        if element.name is None: #None => element=Krankheit
+        if element is None: #None => element=Krankheit
             element=session.query(Krankheit).filter(Krankheit.name==element_name).first()
             krankheit_elemente.remove(element)
         else:
