@@ -34,7 +34,16 @@ def create_question_main(fragendict, schema):
     #fragen
     questiontext=ET.Element('questiontext', format='html')
     text=ET.Element('text')
-    text.text='Welche %s treten bei einer %s auf?'%(schema, fragendict.get('Krankheit'))
+    if schema == 'Ursachen':
+        text.text='Welche %s hat ein/e %s?'%(schema, fragendict.get('Krankheit'))
+    if schema == 'Symptome':
+        text.text='Welche %s treten bei einer/m %s auf?'%(schema, fragendict.get('Krankheit'))
+    if schema == 'Komplikationen':
+        text.text='Welche %s können bei einer/m %s auftreten?'%(schema, fragendict.get('Krankheit'))
+    if schema == 'Diagnostiken':
+        text.text='Welche %s nutzt man bei einer/m %s?'%(schema, fragendict.get('Krankheit'))
+    if schema == 'Therapien':
+        text.text='Welche %s nutzt man bei einer/m %s?'%(schema, fragendict.get('Krankheit'))  
     questiontext.append(text)
     question.append(questiontext)
     #settings

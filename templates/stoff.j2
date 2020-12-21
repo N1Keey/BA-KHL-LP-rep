@@ -102,9 +102,15 @@
             </table>
             <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
         </form>
-        {% if active_krankheit %} 
-            <h4> {{active_krankheit}} </h4> 
-            {% if active_schema %}
+        {% if active_krankheit %}
+            {% if not active_schema %} 
+                <h4> {{active_krankheit}} </h4> 
+                <form method='POST'>
+                    {{ element }}
+                    <button type='submit' name='löschen' value='{{ active_krankheit }}' id='btn_del'>🗑️</button>
+                    <button type = 'submit' name='ändern' value='{{ active_krankheit }}' id='btn_contentchange'>🖊️</button>
+                </form>
+            {% elif active_schema %}
                 <form action="hinzufügen_{{active_schema}}" method='POST'>
                     <input type="text" name="kh_new{{active_schema}}" placeholder="Neue {{ active_schema }}" autocomplete="off" autofocus id="tf_add">
                     <input type="submit" name="kh_add{{active_schema}}" id="btn_add" value="hinzufügen">
