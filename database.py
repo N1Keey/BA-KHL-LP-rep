@@ -263,7 +263,7 @@ class Ursache(VerknüpfenderUmstand):
     def getAll_fromKrankheit(krankheit_name, toString=False):
         krankheit_elemente=[]
         krankheit=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name==krankheit_name).first()
-        if krankheit.ursachen is not None:
+        if krankheit is not None:
             for element in krankheit.ursachen:
                 krankheit_elemente.append(element)
             if toString==True:
@@ -366,7 +366,7 @@ class Symptom(Umstand):
     def getAll_fromKrankheit(krankheit_name, toString=False):
         krankheit_elemente=[]
         krankheit=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name==krankheit_name).first()
-        if krankheit.symptome is not None:
+        if krankheit is not None:
             for element in krankheit.symptome:
                 krankheit_elemente.append(element)
             if toString==True:
@@ -466,7 +466,7 @@ class Komplikation(VerknüpfenderUmstand):
     def getAll_fromKrankheit(krankheit_name, toString=False):
         krankheit_elemente=[]
         krankheit=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name==krankheit_name).first()
-        if krankheit.komplikationen is not None:
+        if krankheit is not None:
             for element in krankheit.komplikationen:
                 krankheit_elemente.append(element)
             if toString==True:
@@ -569,7 +569,7 @@ class Diagnostik(Umstand):
     def getAll_fromKrankheit(krankheit_name, toString=False):
         krankheit_elemente=[]
         krankheit=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name==krankheit_name).first()
-        if krankheit.diagnostiken is not None:
+        if krankheit is not None:
             for element in krankheit.diagnostiken:
                 krankheit_elemente.append(element)
             if toString==True:
@@ -658,7 +658,7 @@ class Therapie(Umstand):
     def getAll_fromKrankheit(krankheit_name, toString=False):
         krankheit_elemente=[]
         krankheit=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name==krankheit_name).first()
-        if krankheit.therapien is not None:
+        if krankheit is not None:
             for element in krankheit.therapien:
                 krankheit_elemente.append(element)
             if toString==True:
