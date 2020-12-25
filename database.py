@@ -140,20 +140,22 @@ class Krankheit(Base):
             krankheitendict={'Krankheit':krankheit.name}
             ursachen=[]
             for ursache in krankheit.ursachen:
-                if ursache.name is None:
-                    ursache=session.query(Krankheit).filter(Krankheit.id==ursache.krankheit_id).first()
-                ursachen.append(ursache.name)
+                if ursache is not None:
+                    if ursache.name is None:
+                        ursache=session.query(Krankheit).filter(Krankheit.id==ursache.krankheit_id).first()
+                    ursachen.append(ursache.name)
             krankheitendict['Ursachen']=ursachen
             symptome=[]
             for symptom in krankheit.symptome:
                 symptome.append(symptom.name)
-            krankheitendict['Symptom']=symptome
+            krankheitendict['Symptome']=symptome
             komplikationen=[]
             for komplikation in krankheit.komplikationen:
-                if komplikation.name is None:
-                        komplikation=session.query(Krankheit).filter(Krankheit.id==komplikation.krankheit_id).first()
-                komplikationen.append(komplikation.name)
-            krankheitendict['Komplikation']=komplikationen
+                if komplikation is not None:
+                    if komplikation.name is None:
+                            komplikation=session.query(Krankheit).filter(Krankheit.id==komplikation.krankheit_id).first()
+                    komplikationen.append(komplikation.name)
+            krankheitendict['Komplikationen']=komplikationen
             diagnostiken=[]
             for diagnostik in krankheit.diagnostiken:
                 diagnostiken.append(diagnostik.name)
@@ -165,10 +167,136 @@ class Krankheit(Base):
             krankheitendicts.append(krankheitendict)
         return krankheitendicts  
 
+    def change(krankheit_name, new_name):
+        element2change=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        element2change.name=new_name
+        session_add_and_commit(element2change)       
+    
+    def delete(krankheit_name):
+        element2delete=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
+        session.delete(element2delete)
+        session.commit()
+
 class Umstand(Base):
     __abstract__ = True
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
+
+    @property
+    def getname(self):
+        return self.name
+
+    def add(_class, krankheit_name, element_name):
+        if issubclass(_class, Umstand):
+            element=session.query(_class).filter(_class.name==element_name).first() #query1 schemaelement
+            if element is None:
+                element=_class(name=element_name) #2 anlegen von schemaelement fals noch nicht vorhanden
+                session_add_and_commit(element)
+            krankheit_elemente=_class.getAll_fromKrankheit(_class, krankheit_name, False) #3 get all schemaelements von kh
+            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
+            krankheit_elemente.append(element)
+            setkh_Umstand_elemente(_class.__name__, krankheit, krankheit_elemente)
+            session.commit()
+        else:
+            pass # Fehlermeldung
+
+    def getAll(_class):
+        if issubclass(_class, Umstand):
+            elemente=[]
+            elementesql=session.query(_class).all()
+            for element in elementesql:
+                if element.name==None:
+                    element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
+                elemente.append(element.name)
+            return elemente
+        else:
+            pass # Fehlermeldung
+
+    def getAll_fromKrankheit(_class, krankheit_name, toString=False):
+        if issubclass(_class, Umstand):
+            krankheit_elemente=[]
+            joint=getkhJoint(_class.__name__)
+            krankheit=joint.filter(Krankheit.name==krankheit_name).first()
+            if krankheit is not None:
+                krankheit_umstände=getkh_umstände(_class.__name__,krankheit)
+                for element in krankheit_umstände:
+                    krankheit_elemente.append(element)
+                if toString==True:
+                    elementstrings=[]
+                    for element in krankheit_elemente:
+                        if element.name is None:
+                            element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
+                        if element is not None:  
+                            elementstrings.append(element.name)
+                    krankheit_elemente=elementstrings
+            return krankheit_elemente
+        else:
+            pass # Fehlermeldung
+
+    def changeall(_class, krankheit_name, element_name, newElement_name):
+        if issubclass(_class, Umstand):
+            element2change=session.query(_class).filter(_class.name==element_name).first()
+            if element2change is not None: #None=> element2change = Krankheit
+                element2change.name=newElement_name
+                session_add_and_commit(element2change)                
+            else:
+                krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
+                krankheit.name=newElement_name
+            session.commit()
+        else:
+            pass # Fehlermeldung
+
+    def changeone(_class, krankheit_name, element_name, newElement_name):
+        if issubclass(_class, Umstand):
+            _classquery=session.query(_class)
+            kh_query=session.query(Krankheit)
+            element=_classquery.filter(_class.name==element_name).first()
+            krankheit_elemente=_class.getAll_fromKrankheit(_class, krankheit_name, False)
+            krankheit_old=kh_query.filter(Krankheit.name==element_name).first()
+            if element is None: #None => element=Krankheit
+                element=_classquery.filter(_class.krankheit_id==krankheit_old.id).first()
+            krankheit_elemente.remove(element)
+            krankheit=kh_query.filter(Krankheit.name==krankheit_name).first()
+            new_kh_element=kh_query.filter(Krankheit.name==newElement_name).first()
+            if new_kh_element is None:
+                new_element=_classquery.filter(_class.name==newElement_name).first()
+                if new_element is None: # new_element not existing
+                    new_element=_class(name=newElement_name)  
+            else:
+                new_element=new_kh_element       
+            krankheit_elemente.append(new_element)
+            setkh_Umstand_elemente(_class.__name__, krankheit, krankheit_elemente)
+            session.commit()
+        else:
+            pass # Fehlermeldung
+
+    def deleteall(_class, krankheit_name, element_name):
+        if issubclass(_class, Umstand):
+            element2delete=session.query(_class).filter(_class.name==element_name).first()
+            if element2delete is None: #=> element2delete=Krankheit
+                element2delete=session.query(Krankheit).filter(Krankheit.name==element_name).first()   
+            session.delete(element2delete)
+            session.commit()
+        else:
+            pass # Fehlermeldung
+
+    def deleteone(_class, krankheit_name, element2del_name):
+        if issubclass(_class, Umstand):
+            _classquery=session.query(_class)
+            kh_query=session.query(Krankheit)
+            element2del=_classquery.filter(_class.name==element2del_name).first()
+            krankheit_elemente=Umstand.getAll_fromKrankheit(_class, krankheit_name, False)
+            krankheit=kh_query.filter(Krankheit.name==krankheit_name).first()
+            if element2del is not None:
+                krankheit_elemente.remove(element2del)
+            else:
+                krankheit2del=kh_query.filter(Krankheit.name==element2del_name).first()
+                element_kh=_classquery.filter(_class.krankheit_id==krankheit2del.id).first()
+                krankheit_elemente.remove(element_kh)
+            setkh_Umstand_elemente(_class.__name__, krankheit, krankheit_elemente)
+            session.commit()
+        else:
+            pass # Fehlermeldung
 
     __mapper_args__ = {
     'polymorphic_identity':'umstand',
@@ -179,125 +307,48 @@ class VerknüpfenderUmstand(Umstand):
     __abstract__ = True
     krankheit_id = Column(Integer, unique=True)
 
+    @property
+    def getname(self):
+        if self.krankheit_id is None:
+            return super().name
+        else:
+            pass # lookup
+    #u.name
+
+    def getname(self, name):
+        self.name = name        
+
+    def addKrankheit(_class, krankheit_name, krankheit2add):
+        """fügt eine Krankheit hinzu"""
+        if issubclass(_class, VerknüpfenderUmstand):
+            if krankheit_name!=krankheit2add:
+                kh_query=session.query(Krankheit)
+                krankheit=kh_query.filter(Krankheit.name==krankheit2add).first()
+                element_kh=session.query(_class).filter(_class.krankheit_id==krankheit.id).first()
+                if element_kh is None:
+                    element_kh=_class(krankheit_id=krankheit.id)
+                    session_add_and_commit(element_kh)
+                krankheit_elemente=VerknüpfenderUmstand.getAll_fromKrankheit(_class,krankheit_name, False)
+                krankheit=kh_query.filter(Krankheit.name==krankheit_name).first()
+                krankheit_elemente.append(element_kh)
+                setkh_Umstand_elemente(_class.__name__,krankheit,krankheit_elemente)
+                session.commit()
+        else:
+            pass # Fehlermeldung
+
     __mapper_args__ = {
-    'polymorphic_identity':'verknüpfenderUmstand',
+    'polymorphic_identity':'verknüpfenderumstand',
     'polymorphic_on':type
     }
 
 class Ursache(VerknüpfenderUmstand):
     __tablename__='ursache'
+    krankheit_id = Column(Integer, unique=True)
 
     __mapper_args__ = {
     'polymorphic_identity':'ursache',
     }
 
-    def add(krankheit_name, element_name):
-        element=session.query(Ursache).filter(Ursache.name==element_name).first() #query1 schemaelement
-        if element is None:
-            element=Ursache(name=element_name) #2 anlegen von schemaelement fals noch nicht vorhanden
-            session_add_and_commit(element)
-        krankheit_elemente=Ursache.getAll_fromKrankheit(krankheit_name, False) #3 get all schemaelements von kh
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
-        krankheit_elemente.append(element)
-        krankheit.ursachen=krankheit_elemente
-        session.commit()
-    
-    def changeall(krankheit_name, element_name, newElement_name):
-        element=session.query(Ursache).filter(Ursache.name==newElement_name).first()
-        element2change=session.query(Ursache).filter(Ursache.name==element_name).first()
-        if element2change is not None: #None=> element2change = Krankheit
-            if element is None: #=> Element not already existing
-                element2change.name=newElement_name
-                session_add_and_commit(element2change)
-            else: #=> Element already existing
-                print('existing=%s new=%s'%(element2change.name, element.name))
-                element2change=session.merge(element)
-                print('existing=%s new=%s'%(element2change.name, element.name))
-        else:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            krankheit.name=newElement_name
-        session.commit()
-
-    def changeone(krankheit_name, element_name, newElement_name):
-        element=session.query(Ursache).filter(Ursache.name==element_name).first()
-        krankheit_elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
-        krankheit_old=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-        if element is None: #None => element=Krankheit
-            element=session.query(Ursache).filter(Ursache.krankheit_id==krankheit_old.id).first()
-        krankheit_elemente.remove(element)
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        new_kh_element=session.query(Krankheit).filter(Krankheit.name==newElement_name).first()
-        if new_kh_element is None:
-            new_element=session.query(Ursache).filter(Ursache.name==newElement_name).first()
-            if new_element is None: # new_element not existing
-                new_element=Ursache(name=newElement_name)  
-        else:
-            new_element=new_kh_element       
-        krankheit_elemente.append(new_element)
-        krankheit.ursachen=krankheit_elemente
-        session.commit()
-    
-    def deleteall(krankheit_name, element_name):
-        element2delete=session.query(Ursache).filter(Ursache.name==element_name).first()
-        if element2delete is None: #=> element2delete=Krankheit
-            element2delete=session.query(Krankheit).filter(Krankheit.name==element_name).first()   
-        session.delete(element2delete)
-        session.commit()
-
-    def deleteone(krankheit_name, element_name):
-        element=session.query(Ursache).filter(Ursache.name==element_name).first()
-        if element is not None:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit_elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
-            krankheit_elemente.remove(element)
-            krankheit.ursachen=krankheit_elemente
-        else:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            element_kh=session.query(Ursache).filter(Ursache.krankheit_id==krankheit.id).first()
-            elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
-            elemente.remove(element_kh)
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit.ursachen=elemente
-        session.commit()
-
-    def getAll_fromKrankheit(krankheit_name, toString=False):
-        krankheit_elemente=[]
-        krankheit=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name==krankheit_name).first()
-        if krankheit is not None:
-            for element in krankheit.ursachen:
-                krankheit_elemente.append(element)
-            if toString==True:
-                elementstrings=[]
-                for element in krankheit_elemente:
-                    if element.name is None:
-                        element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-                        if element is not None:  
-                            elementstrings.append(element.name)
-                krankheit_elemente=elementstrings
-        return krankheit_elemente
-
-    def getAll():
-        elemente=[]
-        elementesql=session.query(Ursache).all()
-        for element in elementesql:
-            if element.name==None:
-                element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-            elemente.append(element.name)
-        return elemente
-
-    def addKrankheit(krankheit_name, krankheit2add):
-        """fügt bei Ursachen eine Krankheit hinzu"""
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
-        element_kh=session.query(Ursache).filter(Ursache.krankheit_id==krankheit.id).first()
-        if element_kh is None:
-            element_kh=Ursache(krankheit_id=krankheit.id)
-            session_add_and_commit(element_kh)
-        elemente=Ursache.getAll_fromKrankheit(krankheit_name, False)
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        elemente.append(element_kh)
-        krankheit.ursachen=elemente
-        session.commit()
-        
 class Symptom(Umstand):
     __tablename__='symptom'
     
@@ -305,88 +356,6 @@ class Symptom(Umstand):
     'polymorphic_identity':'symptom',
     }
     
-    def add(krankheit_name, element_name):
-        element=session.query(Symptom).filter(Symptom.name==element_name).first() #query1 schemaelement
-        if element is None:
-            element=Symptom(name=element_name) #2 anlegen von schemaelement fals noch nicht vorhanden
-            session_add_and_commit(element)
-        krankheit_elemente=Symptom.getAll_fromKrankheit(krankheit_name, False) #3 get all schemaelements von kh
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
-        krankheit_elemente.append(element)
-        krankheit.symptome=krankheit_elemente
-        session.commit()
-    
-    def changeall(krankheit_name, element_name, newElement_name):
-        element=session.query(Symptom).filter(Symptom.name==newElement_name).first()
-        element2change=session.query(Symptom).filter(Symptom.name==element_name).first()
-        if element2change is not None: #None=> element2change = Krankheit
-            if element is None:
-                element2change.name=newElement_name
-                session_add_and_commit(element2change)
-            else:
-                print('existing=%s new=%s'%(element2change.name, element.name))
-                element2change=session.merge(element)
-                print('existing=%s new=%s'%(element2change.name, element.name))
-                session.commit()
-    
-    def changeone(krankheit_name, element_name, newElement_name):
-        element=session.query(Symptom).filter(Symptom.name==element_name).first()
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        new_element=session.query(Symptom).filter(Symptom.name==newElement_name).first()
-        if new_element is None: # new_element not existing
-            new_element=Symptom(name=newElement_name)
-        krankheit_elemente=Symptom.getAll_fromKrankheit(krankheit_name, False)
-        krankheit_elemente.remove(element)
-        krankheit_elemente.append(new_element)
-        krankheit.symptome=krankheit_elemente
-        session.commit()
-    
-    def deleteall(krankheit_name, element_name):
-        element2delete=session.query(Symptom).filter(Symptom.name==element_name).first()
-        if element2delete is not None:
-            session.delete(element2delete)
-            session.commit()
-
-    def deleteone(krankheit_name, element_name):
-        element=session.query(Symptom).filter(Symptom.name==element_name).first()
-        if element.name is not None:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit_elemente=Symptom.getAll_fromKrankheit(krankheit_name, False)
-            krankheit_elemente.remove(element)
-            krankheit.symptome=krankheit_elemente
-        else:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            element_kh=session.query(Symptom).filter(Symptom.krankheit_id==krankheit.id).first()
-            elemente=Symptom.getAll_fromKrankheit(krankheit_name, False)
-            elemente.remove(element_kh)
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit.symptome=elemente
-            session.commit()
-
-    def getAll_fromKrankheit(krankheit_name, toString=False):
-        krankheit_elemente=[]
-        krankheit=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name==krankheit_name).first()
-        if krankheit is not None:
-            for element in krankheit.symptome:
-                krankheit_elemente.append(element)
-            if toString==True:
-                elementstrings=[]
-                for element in krankheit_elemente:
-                    if element.name is None:
-                        element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-                    elementstrings.append(element.name)
-                krankheit_elemente=elementstrings
-        return krankheit_elemente
-
-    def getAll():
-        elemente=[]
-        elementesql=session.query(Symptom).all()
-        for element in elementesql:
-            if element.name==None:
-                element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-            elemente.append(element.name)
-        return elemente
-
 class Komplikation(VerknüpfenderUmstand):
     __tablename__='komplikation'
 
@@ -394,290 +363,19 @@ class Komplikation(VerknüpfenderUmstand):
     'polymorphic_identity':'komplikation',
     }
     
-    def add(krankheit_name, element_name):
-        element=session.query(Komplikation).filter(Komplikation.name==element_name).first() #query1 schemaelement
-        if element is None:
-            element=Komplikation(name=element_name) #2 anlegen von schemaelement fals noch nicht vorhanden
-            session_add_and_commit(element)
-        krankheit_elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False) #3 get all schemaelements von kh
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
-        krankheit_elemente.append(element)
-        krankheit.komplikationen=krankheit_elemente
-        session.commit()
-    
-    def changeall(krankheit_name, element_name, newElement_name):
-        element=session.query(Komplikation).filter(Komplikation.name==newElement_name).first()
-        element2change=session.query(Komplikation).filter(Komplikation.name==element_name).first()
-        if element2change.name is not None: #None=> element2change = Krankheit
-            if element is None:
-                element2change.name=newElement_name
-                session_add_and_commit(element2change)
-            else:
-                print('existing=%s new=%s'%(element2change.name, element.name))
-                element2change=session.merge(element)
-                print('existing=%s new=%s'%(element2change.name, element.name))
-        else:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            krankheit.name=newElement_name
-        session.commit()
-    
-    def changeone(krankheit_name, element_name, newElement_name):
-        element=session.query(Komplikation).filter(Komplikation.name==element_name).first()
-        krankheit_elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
-        krankheit_old=session.query(Krankheit).filter(Krankheit.name==element_name)
-        if element is None: #None => element=Krankheit
-            element=session.query(Komplikation).filter(Komplikation.krankheit_id==krankheit_old.id).first()
-        krankheit_elemente.remove(element)
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        new_kh_element=session.query(Krankheit).filter(Krankheit.name==newElement_name).first()
-        if new_kh_element is None:
-            new_element=session.query(Komplikation).filter(Komplikation.name==newElement_name).first()
-            if new_element is None: # new_element not existing
-                new_element=Komplikation(name=newElement_name)  
-        else:
-            new_element=new_kh_element       
-        krankheit_elemente.append(new_element)
-        krankheit.komplikationen=krankheit_elemente
-        session.commit()
-    
-    def deleteall(krankheit_name, element_name):
-        element2delete=session.query(Komplikation).filter(Komplikation.name==element_name).first()
-        if element2delete is None:
-            element2delete=session.query(Krankheit).filter(Krankheit.name==element_name).first()   
-        session.delete(element2delete)
-        session.commit()
-
-    def deleteone(krankheit_name, element_name):
-        element=session.query(Komplikation).filter(Komplikation.name==element_name).first()
-        if element is not None:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit_elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
-            krankheit_elemente.remove(element)
-            krankheit.komplikationen=krankheit_elemente
-        else:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            element_kh=session.query(Komplikation).filter(Komplikation.krankheit_id==krankheit.id).first()
-            elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
-            elemente.remove(element_kh)
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit.komplikationen=elemente
-            session.commit()
-
-    def getAll_fromKrankheit(krankheit_name, toString=False):
-        krankheit_elemente=[]
-        krankheit=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name==krankheit_name).first()
-        if krankheit is not None:
-            for element in krankheit.komplikationen:
-                krankheit_elemente.append(element)
-            if toString==True:
-                elementstrings=[]
-                for element in krankheit_elemente:
-                    if element.name is None:
-                        element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-                        if element is not None:  
-                            elementstrings.append(element.name)
-                krankheit_elemente=elementstrings
-        return krankheit_elemente
-
-    def getAll():
-        elemente=[]
-        elementesql=session.query(Komplikation).all()
-        for element in elementesql:
-            if element.name==None:
-                element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-            elemente.append(element.name)
-        return elemente
-
-    def addKrankheit(krankheit_name, krankheit2add):
-        """fügt bei Komplikation eine Krankheit hinzu"""
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
-        element_kh=session.query(Komplikation).filter(Komplikation.krankheit_id==krankheit.id).first()
-        if element_kh is None:
-            element_kh=Komplikation(krankheit_id=krankheit.id)
-            session_add_and_commit(element_kh)
-        elemente=Komplikation.getAll_fromKrankheit(krankheit_name, False)
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        elemente.append(element_kh)
-        krankheit.komplikationen=elemente
-        session.commit()
-
 class Diagnostik(Umstand):
     __tablename__='diagnostik'
 
     __mapper_args__ = {
     'polymorphic_identity':'diagnostik',
     }
-
-    def add(krankheit_name, element_name):
-        element=session.query(Diagnostik).filter(Diagnostik.name==element_name).first() #query1 schemaelement
-        if element is None:
-            element=Diagnostik(name=element_name) #2 anlegen von schemaelement fals noch nicht vorhanden
-            session_add_and_commit(element)
-        krankheit_elemente=Diagnostik.getAll_fromKrankheit(krankheit_name, False) #3 get all schemaelements von kh
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
-        krankheit_elemente.append(element)
-        krankheit.diagnostiken=krankheit_elemente
-        session.commit()
     
-    def changeall(krankheit_name, element_name, newElement_name):
-        element=session.query(Diagnostik).filter(Diagnostik.name==newElement_name).first()
-        element2change=session.query(Diagnostik).filter(Diagnostik.name==element_name).first()
-        if element2change is not None: #None=> element2change = Krankheit
-            if element is None:
-                element2change.name=newElement_name
-                session_add_and_commit(element2change)
-            else:
-                print('existing=%s new=%s'%(element2change.name, element.name))
-                element2change=session.merge(element)
-                print('existing=%s new=%s'%(element2change.name, element.name))
-                session.commit()
-    
-    def changeone(krankheit_name, element_name, newElement_name):
-        element=session.query(Diagnostik).filter(Diagnostik.name==element_name).first()
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        new_element=session.query(Diagnostik).filter(Diagnostik.name==newElement_name).first()
-        if new_element is None: # new_element not existing
-            new_element=Diagnostik(name=newElement_name)
-        krankheit_elemente=Diagnostik.getAll_fromKrankheit(krankheit_name, False)
-        krankheit_elemente.remove(element)
-        krankheit_elemente.append(new_element)
-        krankheit.diagnostiken=krankheit_elemente
-        session.commit()
-    
-    def deleteall(krankheit_name, element_name):
-        element2delete=session.query(Diagnostik).filter(Diagnostik.name==element_name).first()
-        if element2delete is not None:
-            session.delete(element2delete)
-            session.commit()
-
-    def deleteone(krankheit_name, element_name):
-        element=session.query(Diagnostik).filter(Diagnostik.name==element_name).first()
-        if element.name is not None:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit_elemente=Diagnostik.getAll_fromKrankheit(krankheit_name, False)
-            krankheit_elemente.remove(element)
-            krankheit.diagnostiken=krankheit_elemente
-        else:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            element_kh=session.query(Diagnostik).filter(Diagnostik.krankheit_id==krankheit.id).first()
-            elemente=Diagnostik.getAll_fromKrankheit(krankheit_name, False)
-            elemente.remove(element_kh)
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit.diagnostiken=elemente
-            session.commit()
-
-    def getAll_fromKrankheit(krankheit_name, toString=False):
-        krankheit_elemente=[]
-        krankheit=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name==krankheit_name).first()
-        if krankheit is not None:
-            for element in krankheit.diagnostiken:
-                krankheit_elemente.append(element)
-            if toString==True:
-                elementstrings=[]
-                for element in krankheit_elemente:
-                    if element.name is None:
-                        element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-                    elementstrings.append(element.name)
-                krankheit_elemente=elementstrings
-        return krankheit_elemente
-
-    def getAll():
-        elemente=[]
-        elementesql=session.query(Diagnostik).all()
-        for element in elementesql:
-            if element.name==None:
-                element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-            elemente.append(element.name)
-        return elemente
-
 class Therapie(Umstand):
     __tablename__='therapie'
 
     __mapper_args__ = {
     'polymorphic_identity':'therapie',
     }
-
-    def add(krankheit_name, element_name):
-        element=session.query(Therapie).filter(Therapie.name==element_name).first() #query1 schemaelement
-        if element is None:
-            element=Therapie(name=element_name) #2 anlegen von schemaelement fals noch nicht vorhanden
-            session_add_and_commit(element)
-        krankheit_elemente=Therapie.getAll_fromKrankheit(krankheit_name, False) #3 get all schemaelements von kh
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
-        krankheit_elemente.append(element)
-        krankheit.therapien=krankheit_elemente
-        session.commit()
-    
-    def changeall(krankheit_name, element_name, newElement_name):
-        element=session.query(Therapie).filter(Therapie.name==newElement_name).first()
-        element2change=session.query(Therapie).filter(Therapie.name==element_name).first()
-        if element2change is not None: #None=> element2change = Krankheit
-            if element is None:
-                element2change.name=newElement_name
-                session_add_and_commit(element2change)
-            else:
-                print('existing=%s new=%s'%(element2change.name, element.name))
-                element2change=session.merge(element)
-                print('existing=%s new=%s'%(element2change.name, element.name))
-                session.commit()
-    
-    def changeone(krankheit_name, element_name, newElement_name):
-        element=session.query(Therapie).filter(Therapie.name==element_name).first()
-        krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-        new_element=session.query(Therapie).filter(Therapie.name==newElement_name).first()
-        if new_element is None: # new_element not existing
-            new_element=Therapie(name=newElement_name)
-        krankheit_elemente=Therapie.getAll_fromKrankheit(krankheit_name, False)
-        krankheit_elemente.remove(element)
-        krankheit_elemente.append(new_element)
-        krankheit.therapien=krankheit_elemente
-        session.commit()
-    
-    def deleteall(krankheit_name, element_name):
-        element2delete=session.query(Therapie).filter(Therapie.name==element_name).first()
-        if element2delete is not None:
-            session.delete(element2delete)
-            session.commit()
-
-    def deleteone(krankheit_name, element_name):
-        element=session.query(Therapie).filter(Therapie.name==element_name).first()
-        if element.name is not None:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit_elemente=Therapie.getAll_fromKrankheit(krankheit_name, False)
-            krankheit_elemente.remove(element)
-            krankheit.therapien=krankheit_elemente
-        else:
-            krankheit=session.query(Krankheit).filter(Krankheit.name==element_name).first()
-            element_kh=session.query(Therapie).filter(Therapie.krankheit_id==krankheit.id).first()
-            elemente=Therapie.getAll_fromKrankheit(krankheit_name, False)
-            elemente.remove(element_kh)
-            krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-            krankheit.therapien=elemente
-            session.commit()
-
-    def getAll_fromKrankheit(krankheit_name, toString=False):
-        krankheit_elemente=[]
-        krankheit=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name==krankheit_name).first()
-        if krankheit is not None:
-            for element in krankheit.therapien:
-                krankheit_elemente.append(element)
-            if toString==True:
-                elementstrings=[]
-                for element in krankheit_elemente:
-                    if element.name is None:
-                        element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-                    elementstrings.append(element.name)
-                krankheit_elemente=elementstrings
-        return krankheit_elemente
-
-    def getAll():
-        elemente=[]
-        elementesql=session.query(Therapie).all()
-        for element in elementesql:
-            if element.name==None:
-                element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-            elemente.append(element.name)
-        return elemente
 
 Base.metadata.create_all(engine)
 
@@ -693,20 +391,20 @@ def data4fragen2dict(krankheitenliste):
         for schema in schemas:
             krankheitendict4fragen[schema]={'Right':[],'Wrong':[]}
             if schema=='Ursachen':
-                schemaRights=Ursache.getAll_fromKrankheit(krankheit, True)
-                schemaAll=Ursache.getAll()
+                schemaRights=Ursache.getAll_fromKrankheit(Ursache,krankheit, True)
+                schemaAll=Ursache.getAll(Ursache)
             elif schema=='Symptome':
-                schemaRights=Symptom.getAll_fromKrankheit(krankheit, True)
-                schemaAll=Symptom.getAll()
+                schemaRights=Symptom.getAll_fromKrankheit(Symptom,krankheit, True)
+                schemaAll=Symptom.getAll(Symptom)
             elif schema=='Komplikationen':
-                schemaRights=Komplikation.getAll_fromKrankheit(krankheit, True)
-                schemaAll=Komplikation.getAll()
+                schemaRights=Komplikation.getAll_fromKrankheit(Komplikation,krankheit, True)
+                schemaAll=Komplikation.getAll(Komplikation)
             elif schema=='Diagnostiken':
-                schemaRights=Diagnostik.getAll_fromKrankheit(krankheit, True)
-                schemaAll=Diagnostik.getAll()
+                schemaRights=Diagnostik.getAll_fromKrankheit(Diagnostik,krankheit, True)
+                schemaAll=Diagnostik.getAll(Diagnostik)
             elif schema=='Therapien':
-                schemaRights=Therapie.getAll_fromKrankheit(krankheit, True)
-                schemaAll=Therapie.getAll()
+                schemaRights=Therapie.getAll_fromKrankheit(Therapie,krankheit, True)
+                schemaAll=Therapie.getAll(Therapie)
             for element in schemaRights:
                 krankheitendict4fragen[schema]['Right'].append(element)
                 if element in schemaAll:
@@ -749,7 +447,55 @@ def relationIDselect(schema, id):
     querytext=text(query)
     print(connection.execute(querytext).fetchall())
 
+def getkhJoint(_class_name):
+    '''
+        _class.__name__ => ursachen, symptome, komplikationen, diagnostiken or therapien
+        returns joint=session.query(Krankheit).join(Krankheit.umstände)
+    '''
+    if _class_name=='Ursache':
+        joint=session.query(Krankheit).join(Krankheit.ursachen)
+    elif _class_name=='Symptom':
+        joint=session.query(Krankheit).join(Krankheit.symptome)
+    elif _class_name=='Komplikation':
+        joint=session.query(Krankheit).join(Krankheit.komplikationen)
+    elif _class_name=='Diagnostik':
+        joint=session.query(Krankheit).join(Krankheit.diagnostiken)
+    elif _class_name=='Therapie':
+        joint=session.query(Krankheit).join(Krankheit.therapien)
+    else:
+        joint=''
+    return joint
 
+def getkh_umstände(_class_name,krankheit):
+    if _class_name=='Ursache':
+        krankheit_umstand=krankheit.ursachen
+    elif _class_name=='Symptom':
+        krankheit_umstand=krankheit.symptome
+    elif _class_name=='Komplikation':
+        krankheit_umstand=krankheit.komplikationen
+    elif _class_name=='Diagnostik':
+        krankheit_umstand=krankheit.diagnostiken
+    elif _class_name=='Therapie':
+        krankheit_umstand=krankheit.therapien
+    else:
+        krankheit_umstand=''
+    return krankheit_umstand
+
+def setkh_Umstand_elemente(_class_name, krankheit,krankheit_elemente):
+    '''
+        _class.__name__ => ursachen, symptome, komplikationen, diagnostiken or therapien
+        sets krankheit.umstände 2 krankheit_elemente
+    '''
+    if _class_name=='Ursache':
+        krankheit.ursachen=krankheit_elemente
+    elif _class_name=='Symptom':
+        krankheit.symptome=krankheit_elemente
+    elif _class_name=='Komplikation':
+        krankheit.komplikationen=krankheit_elemente
+    elif _class_name=='Diagnostik':
+        krankheit.diagnostiken=krankheit_elemente
+    elif _class_name=='Therapie':
+        krankheit.therapien=krankheit_elemente
 
 # look4AlikesinDB()
 # relationIDselect('therapie', 28)
