@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Table, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
+import json
 
 from pprint import pprint
 
@@ -379,6 +380,17 @@ class Therapie(Umstand):
 
 Base.metadata.create_all(engine)
 
+def fragendicts2json(dicts):
+    jsondict = json.dumps(dicts,ensure_ascii=False,)
+    with open("fragen.json","w", encoding='utf-8') as fw:
+        fw.write(jsondict)
+
+def json2fragendicts():
+    with open('fragen.json','r',encoding='utf-8') as fr:
+        jsonstring=fr.read()
+        dicts=json.loads(jsonstring)
+    return dicts
+    
 def session_add_and_commit(new_obj_name):
     session.add(new_obj_name)
     session.commit()

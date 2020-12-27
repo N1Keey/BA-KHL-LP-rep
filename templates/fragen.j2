@@ -95,7 +95,7 @@
                                 {% elif schema == 'Therapien' %}
                                     <h4>Welche <b>{{ schema }}</b> nutzt man bei einer/m <b>{{ krankheit['Krankheit'] }}</b>?</h4>
                                 {% endif %}
-                            <p>
+                                <p>
                                     <div class="Antworten">
                                         {% for antwort in krankheit.get(schema) %}
                                             <label {% if krankheit.get(schema).get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
@@ -104,6 +104,9 @@
                                         {% endfor %}
                                     </div>
                                 </p>
+                                <button type='submit' name='fragenupdate' value='{{schema}}'>🔄</button>
+                                <button type='submit' name='fragendelete' value='{{schema}}'>🗑️</button>
+                                <input type='hidden' name='krankheit' value='{{ krankheit["Krankheit"] }}'
                             </p>
                         </div>
                     {% endif %}

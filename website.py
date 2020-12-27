@@ -116,13 +116,20 @@ def fragen():
                             random.shuffle(keys)
                             fragenDict[schema]=dict(keys)
                     fragenDicts.append(fragenDict)
-                xml.create_file(fragenDicts)
+                db.fragendicts2json(fragenDicts)
+        if 'fragenupdate' in rform:
+            update=rform.get('fragenupdate')
+            krankheit=rform.get('krankheit')
+        if 'fragendelete' in rform:
+            update=rform.get('fragendelete')
+            krankheit=rform.get('krankheit')
         if 'cbx_allchecked' in rform:
             if rform.get('cbx_allchecked') == 'True':
                 cbx_checked=False
             else:
                 cbx_checked=True
         if 'exportdata' in rform:
+            xml.create_file(db.json2fragendicts())
             export='Quizexport.xml'
             return send_file(export, as_attachment=True)
     krankheiten=db.Krankheit.getall()
