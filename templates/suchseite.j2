@@ -1,0 +1,31 @@
+{% extends "_base.j2" %}
+{% set active_link = 'Suchseite' %}
+{% block styles %}
+  {{ super() }}
+  <style>
+  </style>
+{% endblock %}
+{% block title %} <title>Suchseite</title> {% endblock %}
+{% block navbar %}
+  {{ super() }}
+{% endblock %}
+{% block vert_navbar %}
+    <div class='vert-navbar'>
+
+    </div>
+{% endblock %}
+{% block content %}
+    <div class='content'>
+        <h3>{{ foundelement }}</h3>
+        <p>
+            <b>Krankheit/en:</b>
+            {% if foundkrankheitendict != [] %}
+                {% for krankheit in foundkrankheitendict %}
+                    <u>{{ krankheit.get('Krankheit') }} ({{ krankheit.get('Umstand') }})</u>
+                {% endfor %}
+            {% else %}
+                <u>Keine Krankheit gefunden</u>
+            {% endif %}
+        </p>
+    </div>
+{% endblock %}

@@ -189,6 +189,26 @@ def stoff():
     active_krankheit=active_krankheit, schemacontent=schemacontent, message=message, mode=mode, 
     element2change=element2change, element2delete=element2delete, krankheitendict=krankheitendict)
 
+@app.route('/suche', methods=['GET','POST'])
+def suche():
+    if not session.get('logged_in'):
+        return redirect('/')
+    suchelement=''
+    foundkrankheitendict=[]
+    if request.method=='POST':
+        rform=request.form
+        if rform.get('searchfield')!='':
+            suchelement=rform.get('searchfield')
+            krankheitendict=db.Krankheit.getall2dict()
+            for krankheit in krankheitendict:
+                for umstand in krankheit:
+                    for element in krankheit.get(umstand):
+                        if element.lower()==suchelement.lower():
+                            foundelement=element
+                            foundkrankheitdict={'Krankheit':krankheit.get('Krankheit'),'Umstand':umstand}
+                            foundkrankheitendict.append(foundkrankheitdict)
+    return render_template('suchseite.j2', foundelement=foundelement, foundkrankheitendict=foundkrankheitendict)
+
 @app.route('/hinzufügen_Krankheit', methods=['GET','POST'])
 def hinzufügen_Krankheit():
     if not session.get('logged_in'):
