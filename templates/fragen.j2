@@ -78,41 +78,40 @@
 {% endblock %}
 {% block content %}
     <div class='content'>
-        <form method='POST'>
-            {% for krankheit in fragenDicts %}
-                {% for schema in krankheit %}
-                    {% if schema != 'Krankheit' %}
-                        <div class="Frage-Antwort">
+        {% for krankheit in fragenDicts %}
+            {% for schema in krankheit %}
+                {% if schema != 'Krankheit' %}
+                    <div class="Frage-Antwort">
+                        <p>
+                            {% if schema == 'Ursachen' %}
+                                <h4>Welche <b>{{ schema }}</b> hat ein/e <b>{{ krankheit['Krankheit'] }}</b>?</h4>
+                            {% elif schema == 'Symptome' %}
+                                <h4>Welche <b>{{ schema }}</b> treten bei einer/m <b>{{ krankheit['Krankheit'] }}</b> auf?</h4>
+                            {% elif schema == 'Komplikationen' %}
+                                <h4>Welche <b>{{ schema }}</b> können bei einer/m <b>{{ krankheit['Krankheit'] }}</b> auftreten?</h4>
+                            {% elif schema == 'Diagnostiken' %}
+                                <h4>Welche <b>{{ schema }}</b> nutzt man bei einer/m <b>{{ krankheit['Krankheit'] }}</b>?</h4>
+                            {% elif schema == 'Therapien' %}
+                                <h4>Welche <b>{{ schema }}</b> nutzt man bei einer/m <b>{{ krankheit['Krankheit'] }}</b>?</h4>
+                            {% endif %}
                             <p>
-                                {% if schema == 'Ursachen' %}
-                                    <h4>Welche <b>{{ schema }}</b> hat ein/e <b>{{ krankheit['Krankheit'] }}</b>?</h4>
-                                {% elif schema == 'Symptome' %}
-                                    <h4>Welche <b>{{ schema }}</b> treten bei einer/m <b>{{ krankheit['Krankheit'] }}</b> auf?</h4>
-                                {% elif schema == 'Komplikationen' %}
-                                    <h4>Welche <b>{{ schema }}</b> können bei einer/m <b>{{ krankheit['Krankheit'] }}</b> auftreten?</h4>
-                                {% elif schema == 'Diagnostiken' %}
-                                    <h4>Welche <b>{{ schema }}</b> nutzt man bei einer/m <b>{{ krankheit['Krankheit'] }}</b>?</h4>
-                                {% elif schema == 'Therapien' %}
-                                    <h4>Welche <b>{{ schema }}</b> nutzt man bei einer/m <b>{{ krankheit['Krankheit'] }}</b>?</h4>
-                                {% endif %}
-                                <p>
-                                    <div class="Antworten">
-                                        {% for antwort in krankheit.get(schema) %}
-                                            <label {% if krankheit.get(schema).get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
-                                                {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get(schema).get(antwort) }}">
-                                            </label>
-                                        {% endfor %}
-                                    </div>
-                                </p>
-                                <button type='submit' name='fragenupdate' value='{{schema}}'>🔄</button>
-                                <button type='submit' name='fragendelete' value='{{schema}}'>🗑️</button>
-                                <input type='hidden' name='krankheit' value='{{ krankheit["Krankheit"] }}'
+                                <div class="Antworten">
+                                    {% for antwort in krankheit.get(schema) %}
+                                        <label {% if krankheit.get(schema).get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
+                                            {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get(schema).get(antwort) }}">
+                                        </label>
+                                    {% endfor %}
+                                </div>
                             </p>
-                        </div>
-                    {% endif %}
-                {% endfor %}
+                            <form method='POST'>
+                                <button type='submit' name='fragenupdate' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ schema }}"}'>🔄</button>
+                                <button type='submit' name='fragendelete' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ schema }}"}'>🗑️</button>
+                            <form>
+                        </p>
+                    </div>
+                {% endif %}
             {% endfor %}
-        <form>
+        {% endfor %}
         {% if fragenDicts != [] %}
             <form method="POST">
                 <button type="submit" name="exportdata" id="btn_fragen_cbxexport">Export</button>

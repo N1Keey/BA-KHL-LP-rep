@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, ForeignKey, Column, Integer, String, Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 import json
+import random
 
 from pprint import pprint
 
@@ -380,12 +381,12 @@ class Therapie(Umstand):
 
 Base.metadata.create_all(engine)
 
-def fragendicts2json(dicts):
+def save_fragendicts2json(dicts):
     jsondict = json.dumps(dicts,ensure_ascii=False,)
     with open("fragen.json","w", encoding='utf-8') as fw:
         fw.write(jsondict)
 
-def json2fragendicts():
+def save_json2fragendicts():
     with open('fragen.json','r',encoding='utf-8') as fr:
         jsonstring=fr.read()
         dicts=json.loads(jsonstring)
@@ -394,39 +395,6 @@ def json2fragendicts():
 def session_add_and_commit(new_obj_name):
     session.add(new_obj_name)
     session.commit()
-
-def data4fragen2dict(krankheitenliste):
-    krankheitendicts4fragen=[]
-    schemas=['Ursachen','Symptome','Komplikationen','Diagnostiken','Therapien']
-    for krankheit in krankheitenliste:
-        krankheitendict4fragen={'Krankheit':krankheit}
-        for schema in schemas:
-            krankheitendict4fragen[schema]={'Right':[],'Wrong':[]}
-            if schema=='Ursachen':
-                schemaRights=Ursache.getAll_fromKrankheit(Ursache,krankheit, True)
-                schemaAll=Ursache.getAll(Ursache)
-            elif schema=='Symptome':
-                schemaRights=Symptom.getAll_fromKrankheit(Symptom,krankheit, True)
-                schemaAll=Symptom.getAll(Symptom)
-            elif schema=='Komplikationen':
-                schemaRights=Komplikation.getAll_fromKrankheit(Komplikation,krankheit, True)
-                schemaAll=Komplikation.getAll(Komplikation)
-            elif schema=='Diagnostiken':
-                schemaRights=Diagnostik.getAll_fromKrankheit(Diagnostik,krankheit, True)
-                schemaAll=Diagnostik.getAll(Diagnostik)
-            elif schema=='Therapien':
-                schemaRights=Therapie.getAll_fromKrankheit(Therapie,krankheit, True)
-                schemaAll=Therapie.getAll(Therapie)
-            for element in schemaRights:
-                krankheitendict4fragen[schema]['Right'].append(element)
-                if element in schemaAll:
-                    schemaAll.remove(element)
-            if krankheit in schemaAll:
-                schemaAll.remove(krankheit)
-            for element in schemaAll:
-                krankheitendict4fragen[schema]['Wrong'].append(element)
-        krankheitendicts4fragen.append(krankheitendict4fragen)
-    return krankheitendicts4fragen
 
 def look4AlikesinDB():
     counter=0
@@ -508,6 +476,76 @@ def setkh_Umstand_elemente(_class_name, krankheit,krankheit_elemente):
         krankheit.diagnostiken=krankheit_elemente
     elif _class_name=='Therapie':
         krankheit.therapien=krankheit_elemente
+
+def fragen_prepare_Dicts(krankheiten4use):
+    krankheitenfragendicts=[]
+    for krankheit in krankheiten4use:
+        krankheitenfragendict={'Krankheit':krankheit,'Ursachen':[],'Symptome':[],
+        'Komplikationen':[], 'Diagnostiken':[], 'Therapien':[]}
+        krankheitenfragendicts.append(krankheitenfragendict)
+    return krankheitenfragendicts
+
+def fragen_filldicts_withalldata(krankheitendicts4fragen):
+    for krankheit in krankheitendicts4fragen:
+        for schema in krankheit:
+            if schema != 'Krankheit':
+                if krankheit.get(schema)==[]:
+                    krankheit[schema]={'Right':[],'Wrong':[]}
+                    if schema=='Ursachen':
+                        schemaRights=Ursache.getAll_fromKrankheit(Ursache,krankheit.get('Krankheit'), True)
+                        schemaAll=Ursache.getAll(Ursache)
+                    elif schema=='Symptome':
+                        schemaRights=Symptom.getAll_fromKrankheit(Symptom,krankheit.get('Krankheit'), True)
+                        schemaAll=Symptom.getAll(Symptom)
+                    elif schema=='Komplikationen':
+                        schemaRights=Komplikation.getAll_fromKrankheit(Komplikation,krankheit.get('Krankheit'), True)
+                        schemaAll=Komplikation.getAll(Komplikation)
+                    elif schema=='Diagnostiken':
+                        schemaRights=Diagnostik.getAll_fromKrankheit(Diagnostik,krankheit.get('Krankheit'), True)
+                        schemaAll=Diagnostik.getAll(Diagnostik)
+                    elif schema=='Therapien':
+                        schemaRights=Therapie.getAll_fromKrankheit(Therapie,krankheit.get('Krankheit'), True)
+                        schemaAll=Therapie.getAll(Therapie)
+                    for element in schemaRights:
+                        krankheit[schema]['Right'].append(element)
+                        if element in schemaAll:
+                            schemaAll.remove(element)
+                    if krankheit in schemaAll:
+                        schemaAll.remove(krankheit)
+                    for element in schemaAll:
+                        krankheit[schema]['Wrong'].append(element)
+    return krankheitendicts4fragen
+
+def fragen_builddicts_fromDatadicts(data4fragenDicts):
+    answercount=6 #legt anzahl antworten fest
+    for krankheit in data4fragenDicts:
+        for schema in krankheit:
+            if schema != 'Krankheit':
+                fragenDict={}
+                if 'Right' in krankheit.get(schema):
+                    rightAnsAll=krankheit[schema]['Right']
+                    rightAns=[]
+                    rnd=random.randint(1,answercount-1)
+                    if answercount > len(rightAnsAll):
+                        rnd=random.randint(1,len(rightAnsAll))
+                    while len(rightAns) < rnd:
+                        rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
+                        if rightAn not in rightAns:
+                            rightAns.append(rightAn)
+                            fragenDict[schema][rightAn]='right'
+                    if 'Wrong' in krankheit.get(schema):
+                        wrongAnsAll=krankheit[schema]['Wrong']
+                        wrongAns=[]
+                        while len(wrongAns) < answercount-rnd:
+                            wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
+                            if wrongAn not in wrongAns:
+                                wrongAns.append(wrongAn)      
+                                fragenDict[schema][wrongAn]='wrong' 
+                keys=list(fragenDict[schema].items())
+                random.shuffle(keys)
+                fragenDict[schema]=dict(keys)
+        fragenDicts.append(fragenDict)
+        return fragenDicts
 
 # look4AlikesinDB()
 # relationIDselect('therapie', 28)

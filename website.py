@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, redirect, session,send_file, 
 from flask_mail import Mail, Message
 import database as db
 import xml_export as xml
-import random
+import json
 
 app = Flask(__name__)
 app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
@@ -88,48 +88,43 @@ def fragen():
         if 'checkbox_Krankheit' in rform:
             if rform['checkbox_Krankheit'] != '':
                 krankheiten4use = request.form.getlist('checkbox_Krankheit')
-                data4fragenDicts=db.data4fragen2dict(krankheiten4use)
-                fragenAnzmax=6
-                for krankheit in data4fragenDicts:
-                    fragenDict={'Krankheit':krankheit['Krankheit']}
-                    for schema in krankheit:
-                        if schema != 'Krankheit':
-                            fragenDict[schema]={}
-                            rightAnsAll=krankheit[schema]['Right']
-                            rightAns=[]
-                            rnd=random.randint(1,fragenAnzmax-1)
-                            if fragenAnzmax > len(rightAnsAll):
-                                rnd=random.randint(1,len(rightAnsAll))
-                            while len(rightAns) < rnd:
-                                rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
-                                if rightAn not in rightAns:
-                                    rightAns.append(rightAn)
-                                    fragenDict[schema][rightAn]='right'
-                            wrongAnsAll=krankheit[schema]['Wrong']
-                            wrongAns=[]
-                            while len(wrongAns) < fragenAnzmax-rnd:
-                                wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
-                                if wrongAn not in wrongAns:
-                                    wrongAns.append(wrongAn)      
-                                    fragenDict[schema][wrongAn]='wrong' 
-                            keys=list(fragenDict[schema].items())
-                            random.shuffle(keys)
-                            fragenDict[schema]=dict(keys)
-                    fragenDicts.append(fragenDict)
-                db.fragendicts2json(fragenDicts)
+                krankheitenfragendicts=db.fragen_prepare_Dicts(krankheiten4use)
+                data4fragenDicts=db.fragen_filldicts_withalldata(krankheitenfragendicts)
+                fragenDicts=db.fragen_builddicts_fromDatadicts(data4fragenDicts)
+                db.save_fragendicts2json(fragenDicts)
+
         if 'fragenupdate' in rform:
             update=rform.get('fragenupdate')
-            krankheit=rform.get('krankheit')
+            delete=json.loads(update)
+            _krankheit=delete.get('krankheit')
+            _umstand=delete.get('umstand')
+            fragenDicts=db.save_json2fragendicts()
+            for krankheit in fragenDicts:
+                if krankheit.get('Krankheit')==_krankheit:
+                    krankheit[_umstand]=[]  
+                    filled_fragenDicts=db.fragen_filldicts_withalldata(fragenDicts)  
+                    fragenDicts=db.fragen_builddicts_fromDatadicts(filled_fragenDicts)  
+                    db.save_fragendicts2json(fragenDicts)
         if 'fragendelete' in rform:
-            update=rform.get('fragendelete')
-            krankheit=rform.get('krankheit')
+            delete=rform.get('fragendelete')
+            delete=json.loads(delete)
+            krankheit=delete.get('krankheit')
+            umstand=delete.get('umstand')
+            fragendicts=db.save_json2fragendicts()
+            for fragenkh in fragendicts:
+                if fragenkh.get('Krankheit') == krankheit:
+                    fragenkh.pop(umstand)
+            db.save_fragendicts2json(fragendicts)
+        if 'fragendelete' or 'fragenupdate' in rform:
+            fragenDicts=db.save_json2fragendicts()
+
         if 'cbx_allchecked' in rform:
             if rform.get('cbx_allchecked') == 'True':
                 cbx_checked=False
             else:
                 cbx_checked=True
         if 'exportdata' in rform:
-            xml.create_file(db.json2fragendicts())
+            xml.create_file(db.save_json2fragendicts())
             export='Quizexport.xml'
             return send_file(export, as_attachment=True)
     krankheiten=db.Krankheit.getall()
