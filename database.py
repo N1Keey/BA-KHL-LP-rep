@@ -490,7 +490,7 @@ def fragen_filldicts_withalldata(krankheitendicts4fragen):
         for schema in krankheit:
             if schema != 'Krankheit':
                 if krankheit.get(schema)==[]:
-                    krankheit[schema]={'Right':[],'Wrong':[]}
+                    krankheit[schema]={'Frage':'','Antworten':{'Right':[],'Wrong':[]}}
                     if schema=='Ursachen':
                         schemaRights=Ursache.getAll_fromKrankheit(Ursache,krankheit.get('Krankheit'), True)
                         schemaAll=Ursache.getAll(Ursache)
@@ -507,14 +507,28 @@ def fragen_filldicts_withalldata(krankheitendicts4fragen):
                         schemaRights=Therapie.getAll_fromKrankheit(Therapie,krankheit.get('Krankheit'), True)
                         schemaAll=Therapie.getAll(Therapie)
                     for element in schemaRights:
-                        krankheit[schema]['Right'].append(element)
+                        krankheit[schema]['Antworten']['Right'].append(element)
                         if element in schemaAll:
                             schemaAll.remove(element)
                     if krankheit in schemaAll:
                         schemaAll.remove(krankheit)
                     for element in schemaAll:
-                        krankheit[schema]['Wrong'].append(element)
+                        krankheit[schema]['Antworten']['Wrong'].append(element)
     return krankheitendicts4fragen
+
+def fragen_buildFrage4dict(krankheit, umstand):
+    if umstand == 'Ursachen':
+        frage='Welche %s hat ein/e %s?'
+    elif umstand == 'Symptome':
+        frage='Welche %s treten bei einer/m %s auf?'
+    elif umstand == 'Komplikationen':
+        frage='Welche %s können bei einer/m %s auftreten?'
+    elif umstand == 'Diagnostiken':
+        frage='Welche %s nutzt man bei einer/m %s?'
+    elif umstand == 'Therapien':
+        frage='Welche %s nutzt man bei einer/m %s?'
+    frage=frage%(umstand,krankheit)
+    return frage
 
 def fragen_builddicts_fromDatadicts(data4fragenDicts):
     answercount=6 #legt anzahl antworten fest
@@ -522,8 +536,8 @@ def fragen_builddicts_fromDatadicts(data4fragenDicts):
         for schema in krankheit:
             if schema != 'Krankheit':
                 fragenDict={}
-                if 'Right' in krankheit.get(schema):
-                    rightAnsAll=krankheit[schema]['Right']
+                if 'Right' in krankheit.get(schema).get('Antworten'):
+                    rightAnsAll=krankheit.get(schema).get('Antworten').get('Right')
                     rightAns=[]
                     rnd=random.randint(1,answercount-1)
                     if answercount > len(rightAnsAll):
@@ -532,20 +546,23 @@ def fragen_builddicts_fromDatadicts(data4fragenDicts):
                         rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
                         if rightAn not in rightAns:
                             rightAns.append(rightAn)
-                            fragenDict[schema][rightAn]='right'
-                    if 'Wrong' in krankheit.get(schema):
-                        wrongAnsAll=krankheit[schema]['Wrong']
-                        wrongAns=[]
-                        while len(wrongAns) < answercount-rnd:
-                            wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
-                            if wrongAn not in wrongAns:
-                                wrongAns.append(wrongAn)      
-                                fragenDict[schema][wrongAn]='wrong' 
-                keys=list(fragenDict[schema].items())
-                random.shuffle(keys)
-                fragenDict[schema]=dict(keys)
-        fragenDicts.append(fragenDict)
-        return fragenDicts
+                            fragenDict[rightAn]='right'
+                if 'Wrong' in krankheit.get(schema).get('Antworten'):
+                    wrongAnsAll=krankheit.get(schema).get('Antworten').get('Wrong')
+                    wrongAns=[]
+                    while len(wrongAns) < answercount-rnd:
+                        wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
+                        if wrongAn not in wrongAns:
+                            wrongAns.append(wrongAn)      
+                            fragenDict[wrongAn]='wrong' 
+                if 'Right' in krankheit.get(schema).get('Antworten') or 'Wrong' in krankheit.get(schema).get('Antworten'):
+                    keys=list(fragenDict.items())
+                    random.shuffle(keys)
+                    fragenDict=dict(keys)
+                    krankheit[schema]['Antworten']=fragenDict
+                    krankheit[schema]['Frage']=fragen_buildFrage4dict(krankheit.get('Krankheit'), schema)
+    return data4fragenDicts
+
 
 # look4AlikesinDB()
 # relationIDselect('therapie', 28)

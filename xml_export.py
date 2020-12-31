@@ -34,16 +34,7 @@ def create_question_main(fragendict, schema):
     #fragen
     questiontext=ET.Element('questiontext', format='html')
     text=ET.Element('text')
-    if schema == 'Ursachen':
-        text.text='Welche %s hat ein/e %s?'%(schema, fragendict.get('Krankheit'))
-    if schema == 'Symptome':
-        text.text='Welche %s treten bei einer/m %s auf?'%(schema, fragendict.get('Krankheit'))
-    if schema == 'Komplikationen':
-        text.text='Welche %s können bei einer/m %s auftreten?'%(schema, fragendict.get('Krankheit'))
-    if schema == 'Diagnostiken':
-        text.text='Welche %s nutzt man bei einer/m %s?'%(schema, fragendict.get('Krankheit'))
-    if schema == 'Therapien':
-        text.text='Welche %s nutzt man bei einer/m %s?'%(schema, fragendict.get('Krankheit'))  
+    text.text=fragendict.get(schema).get('Frage')
     questiontext.append(text)
     question.append(questiontext)
     #settings
@@ -97,13 +88,13 @@ def create_feedback_main():
 
 def create_answer_main(question, schema, fragendict):
     rcounter=0
-    for antwort in fragendict.get(schema):
-        if fragendict.get(schema).get(antwort)=='right':
+    for antwort in fragendict.get(schema).get('Antworten'):
+        if fragendict.get(schema).get('Antworten').get(antwort)=='right':
             rcounter+=1
     pointsright=100/rcounter
     pointswrong=150/len(fragendict.get(schema))
-    for antwort in fragendict.get(schema):
-        if fragendict.get(schema).get(antwort)=='right':
+    for antwort in fragendict.get(schema).get('Antworten'):
+        if fragendict.get(schema).get('Antworten').get(antwort)=='right':
             answer=ET.Element('answer', format='html', fraction='%s'%pointsright)
         else:
             answer=ET.Element('answer', format='html', fraction='-%s'%pointswrong)

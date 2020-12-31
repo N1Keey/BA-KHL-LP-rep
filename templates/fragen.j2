@@ -83,22 +83,12 @@
                 {% if schema != 'Krankheit' %}
                     <div class="Frage-Antwort">
                         <p>
-                            {% if schema == 'Ursachen' %}
-                                <h4>Welche <b>{{ schema }}</b> hat ein/e <b>{{ krankheit['Krankheit'] }}</b>?</h4>
-                            {% elif schema == 'Symptome' %}
-                                <h4>Welche <b>{{ schema }}</b> treten bei einer/m <b>{{ krankheit['Krankheit'] }}</b> auf?</h4>
-                            {% elif schema == 'Komplikationen' %}
-                                <h4>Welche <b>{{ schema }}</b> können bei einer/m <b>{{ krankheit['Krankheit'] }}</b> auftreten?</h4>
-                            {% elif schema == 'Diagnostiken' %}
-                                <h4>Welche <b>{{ schema }}</b> nutzt man bei einer/m <b>{{ krankheit['Krankheit'] }}</b>?</h4>
-                            {% elif schema == 'Therapien' %}
-                                <h4>Welche <b>{{ schema }}</b> nutzt man bei einer/m <b>{{ krankheit['Krankheit'] }}</b>?</h4>
-                            {% endif %}
+                            <h4>{{ krankheit.get(schema).get('Frage') }}</h4>
                             <p>
                                 <div class="Antworten">
-                                    {% for antwort in krankheit.get(schema) %}
-                                        <label {% if krankheit.get(schema).get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
-                                            {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get(schema).get(antwort) }}">
+                                    {% for antwort in krankheit.get(schema).get('Antworten') %}
+                                        <label {% if krankheit.get(schema).get('Antworten').get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
+                                            {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get(schema).get('Antworten').get(antwort) }}">
                                         </label>
                                     {% endfor %}
                                 </div>
