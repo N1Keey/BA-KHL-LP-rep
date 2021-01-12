@@ -485,7 +485,7 @@ def fragen_prepare_Dicts(krankheiten4use):
         krankheitenfragendicts.append(krankheitenfragendict)
     return krankheitenfragendicts
 
-def fragen_filldicts_withalldata(krankheitendicts4fragen):
+def fragen_filldicts_withdata_Fragenart(krankheitendicts4fragen):
     for krankheit in krankheitendicts4fragen:
         for schema in krankheit:
             if schema != 'Krankheit':

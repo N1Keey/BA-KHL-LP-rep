@@ -93,10 +93,12 @@
                                     {% endfor %}
                                 </div>
                             </p>
-                            <form method='POST'>
+                            <form style='display:inline;' action='/fragen_update' method='POST'>
                                 <button type='submit' name='fragenupdate' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ schema }}"}'>🔄</button>
+                            </form>
+                            <form style='display:inline;' action='/fragen_delete' method='POST'>
                                 <button type='submit' name='fragendelete' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ schema }}"}'>🗑️</button>
-                            <form>
+                            </form>
                         </p>
                     </div>
                 {% endif %}

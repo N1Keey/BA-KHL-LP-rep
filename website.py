@@ -81,7 +81,10 @@ def home():
 def fragen():
     if not session.get('logged_in'):
         return redirect('/')
-    fragenDicts=[]
+    if session.get('fragenChanged'):
+        fragenDicts=db.save_json2fragendicts()
+    else:
+        fragenDicts=[]
     cbx_checked=False
     if request.method == 'POST':
         rform = request.form
@@ -89,35 +92,9 @@ def fragen():
             if rform['checkbox_Krankheit'] != '':
                 krankheiten4use = request.form.getlist('checkbox_Krankheit')
                 krankheitenfragendicts=db.fragen_prepare_Dicts(krankheiten4use)
-                data4fragenDicts=db.fragen_filldicts_withalldata(krankheitenfragendicts)
+                data4fragenDicts=db.fragen_filldicts_withdata_Fragenart(krankheitenfragendicts)
                 fragenDicts=db.fragen_builddicts_fromDatadicts(data4fragenDicts)
                 db.save_fragendicts2json(fragenDicts)
-
-        if 'fragenupdate' in rform:
-            update=rform.get('fragenupdate')
-            delete=json.loads(update)
-            _krankheit=delete.get('krankheit')
-            _umstand=delete.get('umstand')
-            fragenDicts=db.save_json2fragendicts()
-            for krankheit in fragenDicts:
-                if krankheit.get('Krankheit')==_krankheit:
-                    krankheit[_umstand]=[]  
-                    filled_fragenDicts=db.fragen_filldicts_withalldata(fragenDicts)  
-                    fragenDicts=db.fragen_builddicts_fromDatadicts(filled_fragenDicts)  
-                    db.save_fragendicts2json(fragenDicts)
-        if 'fragendelete' in rform:
-            delete=rform.get('fragendelete')
-            delete=json.loads(delete)
-            krankheit=delete.get('krankheit')
-            umstand=delete.get('umstand')
-            fragendicts=db.save_json2fragendicts()
-            for fragenkh in fragendicts:
-                if fragenkh.get('Krankheit') == krankheit:
-                    fragenkh.pop(umstand)
-            db.save_fragendicts2json(fragendicts)
-        if 'fragendelete' or 'fragenupdate' in rform:
-            fragenDicts=db.save_json2fragendicts()
-
         if 'cbx_allchecked' in rform:
             if rform.get('cbx_allchecked') == 'True':
                 cbx_checked=False
@@ -129,6 +106,44 @@ def fragen():
             return send_file(export, as_attachment=True)
     krankheiten=db.Krankheit.getall()
     return render_template('fragen.j2', krankheiten=krankheiten, fragenDicts=fragenDicts, cbx_checked=cbx_checked)
+
+@app.route('/fragen_update',methods=['GET','POST'])
+def fragen_update():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method == 'POST':
+        rform = request.form
+        update=rform.get('fragenupdate')
+        delete=json.loads(update)
+        _krankheit=delete.get('krankheit')
+        _umstand=delete.get('umstand')
+        fragenDicts=db.save_json2fragendicts()
+        for krankheit in fragenDicts:
+            if krankheit.get('Krankheit')==_krankheit:
+                krankheit[_umstand]=[]  
+                filled_fragenDicts=db.fragen_filldicts_withdata_Fragenart(fragenDicts)  
+                fragenDicts=db.fragen_builddicts_fromDatadicts(filled_fragenDicts)  
+                db.save_fragendicts2json(fragenDicts)
+    session['fragenChanged']=True
+    return redirect('/fragen')
+
+@app.route('/fragen_delete',methods=['GET','POST'])
+def fragen_delete():
+    if not session.get('logged_in'):
+        return redirect('/')
+    if request.method == 'POST':
+        rform = request.form
+        delete=rform.get('fragendelete')
+        delete=json.loads(delete)
+        krankheit=delete.get('krankheit')
+        umstand=delete.get('umstand')
+        fragendicts=db.save_json2fragendicts()
+        for fragenkh in fragendicts:
+            if fragenkh.get('Krankheit') == krankheit:
+                fragenkh.pop(umstand)
+        db.save_fragendicts2json(fragendicts)
+    session['fragenChanged']=True
+    return redirect('/fragen')
 
 @app.route('/fragen2xml', methods=['GET','POST'])
 def fragen2xml():

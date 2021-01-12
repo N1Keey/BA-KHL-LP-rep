@@ -24,18 +24,18 @@
     <form action="/usermanagement" method='POST'>
       <table>
         <tr>
-          <th>ID</th>
           <th>Email</th>
-          <th>Roles</th>
+          <th>Rollen</th>
           <th>Löschen</th>
         </tr>
         {% for user in users %}
-          <tr>
-            <td>{{ user['ID'] }}</td>
-            <td>{{ user['Email'] }}</td>
-            <td>{{ user['Roles'] }}</td> 
-            <td><button type="submit" class='X_Button' name= "Button_del" value={{ user['ID'] }}>X</button></td>
-          </tr>
+          {% if user.get('Email') != 'Nschick@mail.hs-ulm.de'%}
+            <tr>
+              <td>{{ user['Email'] }}</td>
+              <td>{{ user['Roles'] }}</td> 
+              <td><button type="submit" class='X_Button' name= "Button_del" value={{ user['ID'] }}>X</button></td>
+            </tr>
+          {% endif %}
         {% endfor %}
       </table>
       <p><a href="/registrieren">User Registrieren</a></p>
