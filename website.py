@@ -17,7 +17,6 @@ app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
 #     MAIL_USERNAME = 'KHL.Usermanagement@gmail.com',
 #     MAIL_PASSWORD = 'Passwort',
 # ))
-
 # mail=Mail(app)
 
 @app.route('/', methods=['GET','POST'])
@@ -160,10 +159,10 @@ def fragen2xml():
 def stoff():
     if not session.get('logged_in'):
         return redirect('/')
-    schemacontent=''
+    umstandcontent=''
     message = '' #Message für User
     active_krankheit = session.get('active_krankheit') #Gerade Aktive Krankheit
-    active_schema = session.get('active_schema') #Gerade Aktives Schema
+    active_umstand = session.get('active_umstand') #Gerade Aktiver Umstand
     mode = session.get('mode') #Modus um bei Ursachen oder Komplikationen Krankheiten hinzuzufügen 
     element2change=''
     element2delete=''
@@ -171,39 +170,39 @@ def stoff():
         rform=request.form
         if rform.get('active_krankheit')!='None':
             active_krankheit=rform.get('active_krankheit')
-            session['actives_schema']=''
-            active_schema=''
-        if 'active_krankheit' in rform and 'active_schema' in rform:
-            active_schema=rform['active_schema']
+            session['actives_umstand']=''
+            active_umstand=''
+        if 'active_krankheit' in rform and 'active_umstand' in rform:
+            active_umstand=rform['active_umstand']
         if 'ändern' in rform:
             element2change=rform.get('ändern')
         elif 'löschen' in rform:
             element2delete=rform.get('löschen')
         else:
             message='Zuerst Krankheit auswählen dann Eigenschaft'
-    if active_schema=='Ursachen':
+    if active_umstand=='Ursachen':
         kh_ursachen=db.Ursache.getAll_fromKrankheit(db.Ursache,active_krankheit, True)
-        schemacontent=kh_ursachen
-    elif active_schema=='Symptome':
+        umstandcontent=kh_ursachen
+    elif active_umstand=='Symptome':
         kh_symptome=db.Symptom.getAll_fromKrankheit(db.Symptom,active_krankheit, True)
-        schemacontent=kh_symptome
-    elif active_schema=='Komplikationen':
+        umstandcontent=kh_symptome
+    elif active_umstand=='Komplikationen':
         kh_komplikationen=db.Komplikation.getAll_fromKrankheit(db.Komplikation,active_krankheit, True)
-        schemacontent=kh_komplikationen
-    elif active_schema=='Diagnostiken':
+        umstandcontent=kh_komplikationen
+    elif active_umstand=='Diagnostiken':
         kh_diagnostiken=db.Diagnostik.getAll_fromKrankheit(db.Diagnostik,active_krankheit, True)
-        schemacontent=kh_diagnostiken
-    elif active_schema=='Therapien':
+        umstandcontent=kh_diagnostiken
+    elif active_umstand=='Therapien':
         kh_therapien=db.Therapie.getAll_fromKrankheit(db.Therapie,active_krankheit, True)
-        schemacontent=kh_therapien
+        umstandcontent=kh_therapien
     elif element2change!='' or element2delete!='':
         pass
     else:
-        message='Links Krankheit auswählen und oben das Schema'
+        message='Links Krankheit auswählen und oben den Umstand'
     krankheiten=db.Krankheit.getall()
     krankheitendict=db.Krankheit.getall2dict()
-    return render_template('stoff.j2', krankheiten=krankheiten, active_schema=active_schema, 
-    active_krankheit=active_krankheit, schemacontent=schemacontent, message=message, mode=mode, 
+    return render_template('stoff.j2', krankheiten=krankheiten, active_umstand=active_umstand, 
+    active_krankheit=active_krankheit, umstandcontent=umstandcontent, message=message, mode=mode, 
     element2change=element2change, element2delete=element2delete, krankheitendict=krankheitendict)
 
 @app.route('/suche', methods=['GET','POST'])
@@ -266,7 +265,7 @@ def hinzufügen_Ursachen():
             if rform['kh_newUrsachen'] != '':
                 ursache_name=rform['kh_newUrsachen']
                 db.Ursache.add(db.Ursache, active_krankheit, ursache_name) 
-        session['active_schema']='Ursachen'
+        session['active_umstand']='Ursachen'
         session['active_krankheit']=active_krankheit
         if 'mode' in rform:
             if rform['mode']=='uok_Addkhmode' and session.get('mode')=='uok_Addkhmode':
@@ -291,8 +290,8 @@ def ändern_Ursachen():
         update = rform.get('elemupdate')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
             db.Ursache.changeall(db.Ursache, active_krankheit,content,update)
         if 'ch_nurdieses' in rform:
@@ -308,8 +307,8 @@ def löschen_Ursachen():
         content = rform.get('content')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'del_alle' in rform:
             db.Umstand.deleteall(db.Ursache, active_krankheit, content)
         if 'del_nurdieses' in rform:
@@ -326,7 +325,7 @@ def hinzufügen_Symptome():
         if rform['kh_newSymptome'] != '':
             symptom_name=rform['kh_newSymptome']
             db.Symptom.add(db.Symptom, active_krankheit, symptom_name) 
-        session['active_schema']='Symptome'
+        session['active_umstand']='Symptome'
         session['active_krankheit']=active_krankheit
     return redirect('/stoff')
 
@@ -340,8 +339,8 @@ def ändern_Symptome():
         update = rform.get('elemupdate')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
             db.Symptom.changeall(db.Symptom, active_krankheit,content,update)
         if 'ch_nurdieses' in rform:
@@ -357,8 +356,8 @@ def löschen_Symptome():
         content = rform.get('content')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'del_alle' in rform:
             db.Symptom.deleteall(db.Symptom, active_krankheit, content)
         if 'del_nurdieses' in rform:
@@ -376,7 +375,7 @@ def hinzufügen_Komplikationen():
             if rform['kh_newKomplikationen'] != '':
                 komplikation_name=rform['kh_newKomplikationen']
                 db.Komplikation.add(db.Komplikation, active_krankheit, komplikation_name) 
-        session['active_schema']='Komplikationen'
+        session['active_umstand']='Komplikationen'
         session['active_krankheit']=active_krankheit
         if 'mode' in rform:
             if rform['mode']=='uok_Addkhmode' and session.get('mode')=='uok_Addkhmode':
@@ -401,8 +400,8 @@ def ändern_Komplikationen():
         update = rform.get('elemupdate')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
             db.Komplikation.changeall(db.Komplikation, active_krankheit,content,update)
         if 'ch_nurdieses' in rform:
@@ -418,8 +417,8 @@ def löschen_Komplikationen():
         content = rform.get('content')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'del_alle' in rform:
             db.Komplikation.deleteall(db.Komplikation, active_krankheit,content)
         if 'del_nurdieses' in rform:
@@ -437,7 +436,7 @@ def hinzufügen_Diagnostiken():
         if rform['kh_newDiagnostiken'] != '':
             diagnostik_name=rform['kh_newDiagnostiken']
             db.Diagnostik.add(db.Diagnostik, active_krankheit, diagnostik_name) 
-        session['active_schema']='Diagnostiken'
+        session['active_umstand']='Diagnostiken'
         session['active_krankheit']=active_krankheit
     return redirect('/stoff')
 
@@ -451,8 +450,8 @@ def ändern_Diagnostiken():
         update = rform.get('elemupdate')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
             db.Diagnostik.changeall(db.Diagnostik, active_krankheit,content,update)
         if 'ch_nurdieses' in rform:
@@ -468,8 +467,8 @@ def löschen_Diagnostiken():
         content = rform.get('content')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'del_alle' in rform:
             db.Diagnostik.deleteall(db.Diagnostik, active_krankheit, content)
         if 'del_nurdieses' in rform:
@@ -486,7 +485,7 @@ def hinzufügen_Therapien():
         if rform['kh_newTherapien'] != '':
             therapie_name=rform['kh_newTherapien']
             db.Therapie.add(db.Therapie, active_krankheit, therapie_name) 
-        session['active_schema']='Therapien'
+        session['active_umstand']='Therapien'
         session['active_krankheit']=active_krankheit
     return redirect('/stoff')
 
@@ -500,8 +499,8 @@ def ändern_Therapien():
         update = rform.get('elemupdate')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
             db.Therapie.changeall(db.Therapie, active_krankheit,content,update)
         if 'ch_nurdieses' in rform:
@@ -517,8 +516,8 @@ def löschen_Therapien():
         content = rform.get('content')
         active_krankheit=rform.get('active_krankheit')
         session['active_krankheit']=active_krankheit
-        active_schema=rform.get('active_schema')
-        session['active_schema']=active_schema
+        active_umstand=rform.get('active_umstand')
+        session['active_umstand']=active_umstand
         if 'del_alle' in rform:
             db.Therapie.deleteall(db.Therapie, active_krankheit,content)
         if 'del_nurdieses' in rform:

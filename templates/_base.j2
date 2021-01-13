@@ -1,6 +1,7 @@
 <link rel="stylesheet" href="static/bootstrap.css">
 {% block styles %}
     <style>
+        html, body {margin: 0; height: 100%; overflow: hidden}
         input[type=email], input[type=password] {
             width: 300px;
         }
@@ -11,7 +12,10 @@
         .navbar { 
             margin-bottom: 0;
         }
-        .vert_navbar{
+        .space4Navbar{
+            height:20px;
+        }
+        .left_navbar{
             float:left;
             width:25%;
             position: relative;
@@ -23,18 +27,18 @@
             width:75%;
             position:relative;
         }
-        .btn_kh, .cbx_kh {
+        .button_krankheit, .checkbox_krankheit {
             padding: 0;
             margin-top:-14;
             width: 25%;
             overflow-y: auto;
             position: fixed;
-            height:86.5%;
+            height:85%;
         }
-        .cbx_kh {
+        .checkbox_krankheit {
             height:82.2%
         }
-        #btn_kh:hover, .kh_checkbox_label:hover, #btn_schema:hover{
+        #btn_kh:hover, .kh_checkbox_label:hover, #btn_umstand:hover{
             background-color:lightgreen;
         }
         #cbx_kh{
@@ -59,25 +63,23 @@
 {% endblock %}
 {% block title %} <title>Title</title> {% endblock %}
 {% block navbar %}
-    <nav class="navbar navbar-default">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="/home">KHL-Lernprogramm</a>
+    <nav class="navbar navbar-expand-sm bg-light navbar-light sticky-top">
+        <a class="navbar-brand" href="/home">KHL-Lernprogramm</a>
             </div>
-            <ul class="nav navbar-nav">
-                <li {% if active_link == 'Home' %} class="active" {% endif %}> <a href="/home">Home</a></li>
-                <li {% if active_link == 'Fragen' %} class="active" {% endif %}> <a href="/fragen">Fragen</a></li>
-                <li {% if active_link == 'Stoff' %} class="active" {% endif %}> <a href="/stoff">Stoff</a></li>
+            <ul class="navbar-nav">
+                <li {% if active_link == 'Home' %} class="active" {% endif %}> <a class = "nav-link" href="/home">Home</a></li>
+                <li {% if active_link == 'Fragen' %} class="active" {% endif %}> <a class = "nav-link" href="/fragen">Fragen</a></li>
+                <li {% if active_link == 'Stoff' %} class="active" {% endif %}> <a class = "nav-link" href="/stoff">Stoff</a></li>
             </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <li {% if active_link == 'Usermanagement' %} class="active" {% endif %}> <a href="/admin_auth">Usermanagement</a></li>
-                <li><a href="/logout">Logout</a></li>
+            <ul class="navbar-nav mr-auto">
+                <li {% if active_link == 'Usermanagement' %} class="active" {% endif %}> <a class = "nav-link" href="/admin_auth">Usermanagement</a></li>
+                <li><a class = "nav-link" href="/logout">Logout</a></li>
             </ul>
         </div>
     </nav>
 {% endblock %}
-{% block vert_navbar %}
-    <div class='vert-navbar'>
+{% block left_navbar %}
+    <div class='left_navbar'>
 
     </div>
 {% endblock %}

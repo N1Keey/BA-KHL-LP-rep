@@ -190,11 +190,11 @@ class Umstand(Base):
 
     def add(_class, krankheit_name, element_name):
         if issubclass(_class, Umstand):
-            element=session.query(_class).filter(_class.name==element_name).first() #query1 schemaelement
+            element=session.query(_class).filter(_class.name==element_name).first() #query1 umstandelement
             if element is None:
-                element=_class(name=element_name) #2 anlegen von schemaelement fals noch nicht vorhanden
+                element=_class(name=element_name) #2 anlegen von umstandelement fals noch nicht vorhanden
                 session_add_and_commit(element)
-            krankheit_elemente=_class.getAll_fromKrankheit(_class, krankheit_name, False) #3 get all schemaelements von kh
+            krankheit_elemente=_class.getAll_fromKrankheit(_class, krankheit_name, False) #3 get all umstandelements von kh
             krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
             krankheit_elemente.append(element)
             setkh_Umstand_elemente(_class.__name__, krankheit, krankheit_elemente)
@@ -416,14 +416,14 @@ def look4AlikesinDB():
                             charaufbauy=''
                             print('Counter=%d\nElement 1: %s (%d)\nElement 2: %s (%d)\n'%(counter,elementx.name,elementx.id, elementy.name,elementy.id))
 
-def relationIDupdate(keepID, deleteID, schema):
-    query='UPDATE kh2%s SET %s_id=%s WHERE %s_id == %s'%(schema, schema, keepID, schema, deleteID)
+def relationIDupdate(keepID, deleteID, umstand):
+    query='UPDATE kh2%s SET %s_id=%s WHERE %s_id == %s'%(umstand, umstand, keepID, umstand, deleteID)
     querytext=text(query)
     connection.execute(querytext)
     session.commit()
 
-def relationIDselect(schema, id):
-    query='SELECT %s_id FROM kh2%s WHERE %s_id == %d'%(schema,schema,schema,id)
+def relationIDselect(umstand, id):
+    query='SELECT %s_id FROM kh2%s WHERE %s_id == %d'%(umstand,umstand,umstand,id)
     querytext=text(query)
     print(connection.execute(querytext).fetchall())
 
@@ -487,33 +487,33 @@ def fragen_prepare_Dicts(krankheiten4use):
 
 def fragen_filldicts_withdata_Fragenart(krankheitendicts4fragen):
     for krankheit in krankheitendicts4fragen:
-        for schema in krankheit:
-            if schema != 'Krankheit':
-                if krankheit.get(schema)==[]:
-                    krankheit[schema]={'Frage':'','Antworten':{'Right':[],'Wrong':[]}}
-                    if schema=='Ursachen':
-                        schemaRights=Ursache.getAll_fromKrankheit(Ursache,krankheit.get('Krankheit'), True)
-                        schemaAll=Ursache.getAll(Ursache)
-                    elif schema=='Symptome':
-                        schemaRights=Symptom.getAll_fromKrankheit(Symptom,krankheit.get('Krankheit'), True)
-                        schemaAll=Symptom.getAll(Symptom)
-                    elif schema=='Komplikationen':
-                        schemaRights=Komplikation.getAll_fromKrankheit(Komplikation,krankheit.get('Krankheit'), True)
-                        schemaAll=Komplikation.getAll(Komplikation)
-                    elif schema=='Diagnostiken':
-                        schemaRights=Diagnostik.getAll_fromKrankheit(Diagnostik,krankheit.get('Krankheit'), True)
-                        schemaAll=Diagnostik.getAll(Diagnostik)
-                    elif schema=='Therapien':
-                        schemaRights=Therapie.getAll_fromKrankheit(Therapie,krankheit.get('Krankheit'), True)
-                        schemaAll=Therapie.getAll(Therapie)
-                    for element in schemaRights:
-                        krankheit[schema]['Antworten']['Right'].append(element)
-                        if element in schemaAll:
-                            schemaAll.remove(element)
-                    if krankheit in schemaAll:
-                        schemaAll.remove(krankheit)
-                    for element in schemaAll:
-                        krankheit[schema]['Antworten']['Wrong'].append(element)
+        for umstand in krankheit:
+            if umstand != 'Krankheit':
+                if krankheit.get(umstand)==[]:
+                    krankheit[umstand]={'Frage':'','Antworten':{'Right':[],'Wrong':[]}}
+                    if umstand=='Ursachen':
+                        umstandRights=Ursache.getAll_fromKrankheit(Ursache,krankheit.get('Krankheit'), True)
+                        umstandAll=Ursache.getAll(Ursache)
+                    elif umstand=='Symptome':
+                        umstandRights=Symptom.getAll_fromKrankheit(Symptom,krankheit.get('Krankheit'), True)
+                        umstandAll=Symptom.getAll(Symptom)
+                    elif umstand=='Komplikationen':
+                        umstandRights=Komplikation.getAll_fromKrankheit(Komplikation,krankheit.get('Krankheit'), True)
+                        umstandAll=Komplikation.getAll(Komplikation)
+                    elif umstand=='Diagnostiken':
+                        umstandRights=Diagnostik.getAll_fromKrankheit(Diagnostik,krankheit.get('Krankheit'), True)
+                        umstandAll=Diagnostik.getAll(Diagnostik)
+                    elif umstand=='Therapien':
+                        umstandRights=Therapie.getAll_fromKrankheit(Therapie,krankheit.get('Krankheit'), True)
+                        umstandAll=Therapie.getAll(Therapie)
+                    for element in umstandRights:
+                        krankheit[umstand]['Antworten']['Right'].append(element)
+                        if element in umstandAll:
+                            umstandAll.remove(element)
+                    if krankheit in umstandAll:
+                        umstandAll.remove(krankheit)
+                    for element in umstandAll:
+                        krankheit[umstand]['Antworten']['Wrong'].append(element)
     return krankheitendicts4fragen
 
 def fragen_buildFrage4dict(krankheit, umstand):
@@ -533,11 +533,11 @@ def fragen_buildFrage4dict(krankheit, umstand):
 def fragen_builddicts_fromDatadicts(data4fragenDicts):
     answercount=6 #legt anzahl antworten fest
     for krankheit in data4fragenDicts:
-        for schema in krankheit:
-            if schema != 'Krankheit':
+        for umstand in krankheit:
+            if umstand != 'Krankheit':
                 fragenDict={}
-                if 'Right' in krankheit.get(schema).get('Antworten'):
-                    rightAnsAll=krankheit.get(schema).get('Antworten').get('Right')
+                if 'Right' in krankheit.get(umstand).get('Antworten'):
+                    rightAnsAll=krankheit.get(umstand).get('Antworten').get('Right')
                     rightAns=[]
                     rnd=random.randint(1,answercount-1)
                     if answercount > len(rightAnsAll):
@@ -547,20 +547,20 @@ def fragen_builddicts_fromDatadicts(data4fragenDicts):
                         if rightAn not in rightAns:
                             rightAns.append(rightAn)
                             fragenDict[rightAn]='right'
-                if 'Wrong' in krankheit.get(schema).get('Antworten'):
-                    wrongAnsAll=krankheit.get(schema).get('Antworten').get('Wrong')
+                if 'Wrong' in krankheit.get(umstand).get('Antworten'):
+                    wrongAnsAll=krankheit.get(umstand).get('Antworten').get('Wrong')
                     wrongAns=[]
                     while len(wrongAns) < answercount-rnd:
                         wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
                         if wrongAn not in wrongAns:
                             wrongAns.append(wrongAn)      
                             fragenDict[wrongAn]='wrong' 
-                if 'Right' in krankheit.get(schema).get('Antworten') or 'Wrong' in krankheit.get(schema).get('Antworten'):
+                if 'Right' in krankheit.get(umstand).get('Antworten') or 'Wrong' in krankheit.get(umstand).get('Antworten'):
                     keys=list(fragenDict.items())
                     random.shuffle(keys)
                     fragenDict=dict(keys)
-                    krankheit[schema]['Antworten']=fragenDict
-                    krankheit[schema]['Frage']=fragen_buildFrage4dict(krankheit.get('Krankheit'), schema)
+                    krankheit[umstand]['Antworten']=fragenDict
+                    krankheit[umstand]['Frage']=fragen_buildFrage4dict(krankheit.get('Krankheit'), umstand)
     return data4fragenDicts
 
 

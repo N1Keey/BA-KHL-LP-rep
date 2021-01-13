@@ -2,9 +2,9 @@
 {% block styles %}
     {{ super() }}
     <style>
-        .cbx_kh{
-            top:66px;
-            height:87.2%;
+        .checkbox_krankheit{
+            top:67px;
+            height:86%;
         }
         .fragen_checkbox_label_right, .fragen_checkbox_label_wrong{
             border-style:solid;
@@ -21,11 +21,19 @@
         .fragen_checkbox_label_wrong{
             border-color:red;
         }
+        .Fragen{
+            height:90%;
+            overflow:hidden; 
+            overflow-y:scroll;
+        }
         .Frage-Antwort{
             margin-bottom:5;
             border-style:solid;
             border-color:lightgrey;
             border-width: 3px;
+        }
+        .Frage{
+            margin-left:2px;
         }
         .Antworten{
             margin-left:5px
@@ -56,10 +64,10 @@
 {% block navbar %}
     {{ super() }}
 {% endblock %}
-{% block vert_navbar %}
-    <div class='vert_navbar'>
+{% block left_navbar %}
+    <div class='left_navbar'>
         <form method='POST'>
-            <ul class="cbx_kh">
+            <ul class="checkbox_krankheit">
                 {% for krankheit in krankheiten %}
                     <li>
                         <label class='kh_checkbox_label'>
@@ -78,36 +86,38 @@
 {% endblock %}
 {% block content %}
     <div class='content'>
-        {% for krankheit in fragenDicts %}
-            {% for schema in krankheit %}
-                {% if schema != 'Krankheit' %}
-                    <div class="Frage-Antwort">
-                        <p>
-                            <h4>{{ krankheit.get(schema).get('Frage') }}</h4>
+        <div class='Fragen'>
+            {% for krankheit in fragenDicts %}
+                {% for umstand in krankheit %}
+                    {% if umstand != 'Krankheit' %}
+                        <div class="Frage-Antwort">
                             <p>
-                                <div class="Antworten">
-                                    {% for antwort in krankheit.get(schema).get('Antworten') %}
-                                        <label {% if krankheit.get(schema).get('Antworten').get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
-                                            {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get(schema).get('Antworten').get(antwort) }}">
-                                        </label>
-                                    {% endfor %}
-                                </div>
+                                <h4 class="Frage">{{ krankheit.get(umstand).get('Frage') }}</h4>
+                                <p>
+                                    <div class="Antworten">
+                                        {% for antwort in krankheit.get(umstand).get('Antworten') %}
+                                            <label {% if krankheit.get(umstand).get('Antworten').get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
+                                                {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get(umstand).get('Antworten').get(antwort) }}">
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </p>
+                                <form style='display:inline;' action='/fragen_update' method='POST'>
+                                    <button type='submit' name='fragenupdate' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ umstand }}"}'>🔄</button>
+                                </form>
+                                <form style='display:inline;' action='/fragen_delete' method='POST'>
+                                    <button type='submit' name='fragendelete' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ umstand }}"}'>🗑️</button>
+                                </form>
                             </p>
-                            <form style='display:inline;' action='/fragen_update' method='POST'>
-                                <button type='submit' name='fragenupdate' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ schema }}"}'>🔄</button>
-                            </form>
-                            <form style='display:inline;' action='/fragen_delete' method='POST'>
-                                <button type='submit' name='fragendelete' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ schema }}"}'>🗑️</button>
-                            </form>
-                        </p>
-                    </div>
-                {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-        {% if fragenDicts != [] %}
-            <form method="POST">
-                <button type="submit" name="exportdata" id="btn_fragen_cbxexport">Export</button>
-            </form>
-        {% endif %}
+            {% if fragenDicts != [] %}
+                <form method="POST">
+                    <button type="submit" name="exportdata" id="btn_fragen_cbxexport">Export</button>
+                </form>
+            {% endif %}
+        </div>
     </div>
 {% endblock %}

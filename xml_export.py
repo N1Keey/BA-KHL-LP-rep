@@ -8,9 +8,9 @@ def create_quiz(headerelements, fragendicts):
     for textelement in headerelements:
         quiz.append(create_question_header(textelement))
     for fragendict in fragendicts:
-        for schema in fragendict:
-            if schema != 'Krankheit':
-                quiz.append(create_question_main(fragendict, schema))
+        for umstand in fragendict:
+            if umstand != 'Krankheit':
+                quiz.append(create_question_main(fragendict, umstand))
     return quiz
 
 def create_question_header(headerelement):
@@ -28,13 +28,13 @@ def create_text_header(headerelement):
     text.text=headerelement
     return text
 
-def create_question_main(fragendict, schema):
+def create_question_main(fragendict, umstand):
     question=ET.Element('question', type='multichoice')
-    question.append(create_name_main_kh(fragendict.get('Krankheit'), schema))
+    question.append(create_name_main_kh(fragendict.get('Krankheit'), umstand))
     #fragen
     questiontext=ET.Element('questiontext', format='html')
     text=ET.Element('text')
-    text.text=fragendict.get(schema).get('Frage')
+    text.text=fragendict.get(umstand).get('Frage')
     questiontext.append(text)
     question.append(questiontext)
     #settings
@@ -56,17 +56,17 @@ def create_question_main(fragendict, schema):
     question.append(partiallycorrectfeedback)
     question.append(incorrectfeedback)
     #antworten           
-    question=create_answer_main(question, schema, fragendict)
+    question=create_answer_main(question, umstand, fragendict)
     return question
 
-def create_name_main_kh(krankheit, schema):
+def create_name_main_kh(krankheit, umstand):
     name=ET.Element('name')
-    name.append(create_text_main_kh(krankheit, schema))
+    name.append(create_text_main_kh(krankheit, umstand))
     return name
 
-def create_text_main_kh(krankheit, schema):
+def create_text_main_kh(krankheit, umstand):
     text=ET.Element('text')
-    text.text='%s (%s)'%(krankheit, schema)
+    text.text='%s (%s)'%(krankheit, umstand)
     return text
 
 def create_feedback_main():
@@ -86,15 +86,15 @@ def create_feedback_main():
     incorrectfeedback.append(text)
     return correctfeedback, partiallycorrectfeedback, incorrectfeedback
 
-def create_answer_main(question, schema, fragendict):
+def create_answer_main(question, umstand, fragendict):
     rcounter=0
-    for antwort in fragendict.get(schema).get('Antworten'):
-        if fragendict.get(schema).get('Antworten').get(antwort)=='right':
+    for antwort in fragendict.get(umstand).get('Antworten'):
+        if fragendict.get(umstand).get('Antworten').get(antwort)=='right':
             rcounter+=1
     pointsright=100/rcounter
-    pointswrong=150/len(fragendict.get(schema))
-    for antwort in fragendict.get(schema).get('Antworten'):
-        if fragendict.get(schema).get('Antworten').get(antwort)=='right':
+    pointswrong=150/len(fragendict.get(umstand))
+    for antwort in fragendict.get(umstand).get('Antworten'):
+        if fragendict.get(umstand).get('Antworten').get(antwort)=='right':
             answer=ET.Element('answer', format='html', fraction='%s'%pointsright)
         else:
             answer=ET.Element('answer', format='html', fraction='-%s'%pointswrong)
