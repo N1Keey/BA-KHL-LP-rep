@@ -1,23 +1,10 @@
 from flask import Flask, request, render_template, redirect, session,send_file, flash
-from flask_mail import Mail, Message
 import database as db
 import xml_export as xml
 import json
 
 app = Flask(__name__)
 app.secret_key='(\x89\x8e\xc4\xa1\xf4\xfd\xce@\xaf\xe5\xf6'
-
-## Funzt nicht D:
-# app.config.update(dict(
-#     DEBUG = True,
-#     MAIL_SERVER = 'smtp.gmail.com',
-#     MAIL_PORT = 587,
-#     MAIL_USE_TLS = True,
-#     MAIL_USE_SSL = False,
-#     MAIL_USERNAME = 'KHL.Usermanagement@gmail.com',
-#     MAIL_PASSWORD = 'Passwort',
-# ))
-# mail=Mail(app)
 
 @app.route('/', methods=['GET','POST'])
 def login():
@@ -559,4 +546,4 @@ def test():
     return render_template('test.j2')
 
 if __name__=='__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
