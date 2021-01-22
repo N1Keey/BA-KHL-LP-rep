@@ -78,7 +78,7 @@ def fragen():
             if rform['checkbox_Krankheit'] != '':
                 krankheiten4use = request.form.getlist('checkbox_Krankheit')
                 krankheitenfragendicts=db.fragen_prepare_Dicts(krankheiten4use)
-                data4fragenDicts=db.fragen_filldicts_withdata_Fragenart(krankheitenfragendicts)
+                data4fragenDicts=db.fragen_filldicts_withdata(krankheitenfragendicts)
                 fragenDicts=db.fragen_builddicts_fromDatadicts(data4fragenDicts)
                 db.save_fragendicts2json(fragenDicts)
         if 'cbx_allchecked' in rform:
@@ -107,7 +107,7 @@ def fragen_update():
         for krankheit in fragenDicts:
             if krankheit.get('Krankheit')==_krankheit:
                 krankheit[_umstand]=[]  
-                filled_fragenDicts=db.fragen_filldicts_withdata_Fragenart(fragenDicts)  
+                filled_fragenDicts=db.fragen_filldicts_withdata(fragenDicts)  
                 fragenDicts=db.fragen_builddicts_fromDatadicts(filled_fragenDicts)  
                 db.save_fragendicts2json(fragenDicts)
     session['fragenChanged']=True
@@ -280,7 +280,7 @@ def ändern_Ursachen():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
-            db.Ursache.changeall(db.Ursache, active_krankheit,content,update)
+            db.Ursache.changeall(db.Ursache, content, update)
         if 'ch_nurdieses' in rform:
             db.Ursache.changeone(db.Ursache, active_krankheit,content,update)
     return redirect('/stoff')
@@ -297,7 +297,7 @@ def löschen_Ursachen():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'del_alle' in rform:
-            db.Umstand.deleteall(db.Ursache, active_krankheit, content)
+            db.Umstand.deleteall(db.Ursache, content)
         if 'del_nurdieses' in rform:
             db.Ursache.deleteone(db.Ursache, active_krankheit, content)
     return redirect('/stoff')
@@ -329,7 +329,7 @@ def ändern_Symptome():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
-            db.Symptom.changeall(db.Symptom, active_krankheit,content,update)
+            db.Symptom.changeall(db.Symptom, content, update)
         if 'ch_nurdieses' in rform:
             db.Symptom.changeone(db.Symptom, active_krankheit,content,update)
     return redirect('/stoff')
@@ -346,7 +346,7 @@ def löschen_Symptome():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'del_alle' in rform:
-            db.Symptom.deleteall(db.Symptom, active_krankheit, content)
+            db.Symptom.deleteall(db.Symptom, content)
         if 'del_nurdieses' in rform:
             db.Symptom.deleteone(db.Symptom, active_krankheit, content)
     return redirect('/stoff')
@@ -390,7 +390,7 @@ def ändern_Komplikationen():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
-            db.Komplikation.changeall(db.Komplikation, active_krankheit,content,update)
+            db.Komplikation.changeall(db.Komplikation, content,update)
         if 'ch_nurdieses' in rform:
             db.Komplikation.changeone(db.Komplikation, active_krankheit,content,update)
     return redirect('/stoff')
@@ -407,7 +407,7 @@ def löschen_Komplikationen():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'del_alle' in rform:
-            db.Komplikation.deleteall(db.Komplikation, active_krankheit,content)
+            db.Komplikation.deleteall(db.Komplikation, content)
         if 'del_nurdieses' in rform:
             db.Komplikation.deleteone(db.Komplikation, active_krankheit,content)
 
@@ -440,7 +440,7 @@ def ändern_Diagnostiken():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
-            db.Diagnostik.changeall(db.Diagnostik, active_krankheit,content,update)
+            db.Diagnostik.changeall(db.Diagnostik, content,update)
         if 'ch_nurdieses' in rform:
             db.Diagnostik.changeone(db.Diagnostik, active_krankheit,content,update)
     return redirect('/stoff')
@@ -457,7 +457,7 @@ def löschen_Diagnostiken():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'del_alle' in rform:
-            db.Diagnostik.deleteall(db.Diagnostik, active_krankheit, content)
+            db.Diagnostik.deleteall(db.Diagnostik, content)
         if 'del_nurdieses' in rform:
             db.Diagnostik.deleteone(db.Diagnostik, active_krankheit, content)
     return redirect('/stoff')
@@ -489,7 +489,7 @@ def ändern_Therapien():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'ch_alle' in rform:
-            db.Therapie.changeall(db.Therapie, active_krankheit,content,update)
+            db.Therapie.changeall(db.Therapie, content,update)
         if 'ch_nurdieses' in rform:
             db.Therapie.changeone(db.Therapie, active_krankheit, content, update)
     return redirect('/stoff')
@@ -506,7 +506,7 @@ def löschen_Therapien():
         active_umstand=rform.get('active_umstand')
         session['active_umstand']=active_umstand
         if 'del_alle' in rform:
-            db.Therapie.deleteall(db.Therapie, active_krankheit,content)
+            db.Therapie.deleteall(db.Therapie, content)
         if 'del_nurdieses' in rform:
             db.Therapie.deleteone(db.Therapie, active_krankheit,content)
     return redirect('/stoff')

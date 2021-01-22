@@ -184,15 +184,11 @@ class Umstand(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(40), unique=True)
 
-    @property
-    def getname(self):
-        return self.name
-
     def add(_class, krankheit_name, element_name):
         if issubclass(_class, Umstand):
             element=session.query(_class).filter(_class.name==element_name).first() #query1 umstandelement
             if element is None:
-                element=_class(name=element_name) #2 anlegen von umstandelement fals noch nicht vorhanden
+                element=_class(name=element_name) #2 anlegen von umstandelement falls noch nicht vorhanden
                 session_add_and_commit(element)
             krankheit_elemente=_class.getAll_fromKrankheit(_class, krankheit_name, False) #3 get all umstandelements von kh
             krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
@@ -235,7 +231,7 @@ class Umstand(Base):
         else:
             pass # Fehlermeldung
 
-    def changeall(_class, krankheit_name, element_name, newElement_name):
+    def changeall(_class, element_name, newElement_name):
         if issubclass(_class, Umstand):
             element2change=session.query(_class).filter(_class.name==element_name).first()
             if element2change is not None: #None=> element2change = Krankheit
@@ -272,7 +268,7 @@ class Umstand(Base):
         else:
             pass # Fehlermeldung
 
-    def deleteall(_class, krankheit_name, element_name):
+    def deleteall(_class, element_name):
         if issubclass(_class, Umstand):
             element2delete=session.query(_class).filter(_class.name==element_name).first()
             if element2delete is None: #=> element2delete=Krankheit
@@ -307,18 +303,7 @@ class Umstand(Base):
 
 class VerknüpfenderUmstand(Umstand):
     __abstract__ = True
-    krankheit_id = Column(Integer, unique=True)
-
-    @property
-    def getname(self):
-        if self.krankheit_id is None:
-            return super().name
-        else:
-            pass # lookup
-    #u.name
-
-    def getname(self, name):
-        self.name = name        
+    krankheit_id = Column(Integer, unique=True)       
 
     def addKrankheit(_class, krankheit_name, krankheit2add):
         """fügt eine Krankheit hinzu"""
@@ -345,7 +330,6 @@ class VerknüpfenderUmstand(Umstand):
 
 class Ursache(VerknüpfenderUmstand):
     __tablename__='ursache'
-    krankheit_id = Column(Integer, unique=True)
 
     __mapper_args__ = {
     'polymorphic_identity':'ursache',
@@ -416,17 +400,6 @@ def look4AlikesinDB():
                             charaufbauy=''
                             print('Counter=%d\nElement 1: %s (%d)\nElement 2: %s (%d)\n'%(counter,elementx.name,elementx.id, elementy.name,elementy.id))
 
-def relationIDupdate(keepID, deleteID, umstand):
-    query='UPDATE kh2%s SET %s_id=%s WHERE %s_id == %s'%(umstand, umstand, keepID, umstand, deleteID)
-    querytext=text(query)
-    connection.execute(querytext)
-    session.commit()
-
-def relationIDselect(umstand, id):
-    query='SELECT %s_id FROM kh2%s WHERE %s_id == %d'%(umstand,umstand,umstand,id)
-    querytext=text(query)
-    print(connection.execute(querytext).fetchall())
-
 def getkhJoint(_class_name):
     '''
         _class.__name__ => ursachen, symptome, komplikationen, diagnostiken or therapien
@@ -485,7 +458,7 @@ def fragen_prepare_Dicts(krankheiten4use):
         krankheitenfragendicts.append(krankheitenfragendict)
     return krankheitenfragendicts
 
-def fragen_filldicts_withdata_Fragenart(krankheitendicts4fragen):
+def fragen_filldicts_withdata(krankheitendicts4fragen):
     for krankheit in krankheitendicts4fragen:
         for umstand in krankheit:
             if umstand != 'Krankheit':
@@ -510,8 +483,6 @@ def fragen_filldicts_withdata_Fragenart(krankheitendicts4fragen):
                         krankheit[umstand]['Antworten']['Right'].append(element)
                         if element in umstandAll:
                             umstandAll.remove(element)
-                    if krankheit in umstandAll:
-                        umstandAll.remove(krankheit)
                     for element in umstandAll:
                         krankheit[umstand]['Antworten']['Wrong'].append(element)
     return krankheitendicts4fragen
@@ -562,109 +533,3 @@ def fragen_builddicts_fromDatadicts(data4fragenDicts):
                     krankheit[umstand]['Antworten']=fragenDict
                     krankheit[umstand]['Frage']=fragen_buildFrage4dict(krankheit.get('Krankheit'), umstand)
     return data4fragenDicts
-
-
-# look4AlikesinDB()
-# relationIDselect('therapie', 28)
-# relationIDupdate(38, 28, 'therapie')
-# relationIDselect('therapie', 28)
-
-
-
-# for element in elements:
-#     if element.name == 'Übergewichtig':
-#         id=element.id
-
-# def uok_addKrankheit(schema_name, krankheit_name, krankheit2add):
-#     """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
-#     krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
-#     schemacontent=kh_SchemaContentGetall(krankheit_name, schema_name, False)
-#     if schema_name=='Ursachen':
-#         new_schemacontent=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
-#         schemacontent.append(new_schemacontent)
-#         krankheit.ursachen=schemacontent
-#     elif schema_name=='Komplikationen':
-#         new_schemacontent=session.query(Krankheit).filter(Krankheit.name==krankheit2add).first()
-#         schemacontent.append(new_schemacontent)
-#         krankheit.komplikationen=schemacontent
-#     session.commit() #hier scheitert es wahrscheinlich, weil es nicht mit dem Objekt Krankheit rechnet -> mit TextSql händisch Ids verbinden?
-
-# def uok_addKrankheit_text(schema_name, krankheit_name, krankheit2add):
-#     """fügt bei Ursachen oder Komplikationen Krankheiten hinzu"""
-#     sqladdrelation("krankheiten","krankheiten",krankheit2add, krankheit_name, "kh2%s"%(schema_name.lower()),True)
-
-# def kh_getAll_text(table, column='name', join_table='', join_column='', condition=''):
-#     """table->'tablename', column->'columnname', join_table->'tablename', join_column->'columnname', 
-#     condition->'Krankheiten.name==krankheit_name'"""
-#     join=''
-#     where=''
-#     if join_table != '' and join_column != '':
-#         join='JOIN %s.%s'%(join_table,join_column)
-#     if where != '':
-#         where='WHERE %s'%(condition)
-#     result=sqlselectAll("SELECT %s FROM %s %s %s"%(column, table, join, where))
-#     return result
-
-   
-# # krankheit_ursachen=session.query(Krankheit).join(Krankheit.ursachen).filter(Krankheit.name=='Arteriosklerose').first()
-# # krankheit_symptome=session.query(Krankheit).join(Krankheit.symptome).filter(Krankheit.name=='Arteriosklerose').first()
-# # krankheit_komplikationen=session.query(Krankheit).join(Krankheit.komplikationen).filter(Krankheit.name=='Arteriosklerose').first()
-# # krankheit_diagnostiken=session.query(Krankheit).join(Krankheit.diagnostiken).filter(Krankheit.name=='Arteriosklerose').first()
-# # krankheit_therapien=session.query(Krankheit).join(Krankheit.therapien).filter(Krankheit.name=='Arteriosklerose').first()
-
-# # for therapien in krankheit_therapien:
-# #     print(therapien) 
-
-# #######################
-# #SQL-TEXT-Functions
-# #######################
-
-# def sqladd(query):
-#     """Query like: 'INSERT INTO table (column1,..) VALUES(value1,..)
-#     without return"""
-#     querytext=text(query)
-#     connection.execute(querytext)
-#     session.commit()
-
-# def sqlGetid(table_name, value_name, column_name='name'):
-#     """"""
-#     query="SELECT id FROM %s WHERE %s='%s'"%(table_name,column_name,value_name)
-#     result=sqlselectOne(query)
-#     return result
-
-# def sqladdrelation(table1, table2, value1, value2, relation_table, kh_uok_relation=False):
-#     """Fügt in relation_table im Column table1_id und table2_id die jeweiligen ids ein
-#     kh_uok_relation True: Verbindung von Krankheiten -> uok"""
-#     kh_uok_string=''
-#     if kh_uok_relation is True:
-#         kh_uok_string='_kh'
-#     id1=sqlGetid(table1, value1)
-#     id2=sqlGetid(table2, value2)
-#     query="INSERT INTO %s (%s_id, %s_id%s) VALUES ('%s', '%s')"%(relation_table, table1, table2, kh_uok_string, id1, id2)
-#     sqladd(query)   
-
-# def sqlselectAll(query):
-#     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
-#     returns with fetchall() 
-#     """
-#     querytext=text(query)
-#     result=connection.execute(querytext).fetchall()
-#     list_result=[]
-#     for row in result:
-#         (element,) = row
-#         list_result.append(element)
-#     return list_result
-
-# def sqlselectOne(query):
-#     """Query like: 'SELECT column FROM table INNER JOIN table.column WHERE condition'
-#     returns with fetchone()
-#     """
-#     querytext=text(query)
-#     (result,)=connection.execute(querytext).fetchone()
-#     return result
-
-# # def krankheit_getSchemacontent(schema_name, krankheit_name, where=''):
-# #     "where like: 'WHERE krankheiten.name='Arteriosklerose''"
-# #     query=("SELECT %s.name FROM krankheiten INNER JOIN %s %s"%(schema_name, schema_name, where))
-# #     result=sqlselectAll(query)
-# #     return result
