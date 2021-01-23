@@ -139,7 +139,7 @@ class Krankheit(Base):
         krankheiten=session.query(Krankheit).all()
         krankheitendicts=[]
         for krankheit in krankheiten:
-            krankheitendict={'Krankheit':krankheit.name, 'Umstände':[]}
+            krankheitendict={'Krankheit':krankheit.name, 'Umstände':{}}
             ursachen=[]
             for ursache in krankheit.ursachen:
                 if ursache is not None:

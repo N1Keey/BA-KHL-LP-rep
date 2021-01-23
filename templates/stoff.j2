@@ -151,15 +151,13 @@
                     {% for krankheit in krankheitendict %}
                         {% if krankheit.get('Krankheit') == active_krankheit %}
                             <ul class='kh_umstände'>
-                                {% for umstand in krankheit %}
-                                    {% if umstand != 'Krankheit' %}
-                                        <li><h5><b>{{umstand}}</b></h5></li>
-                                            <ul>
-                                                {% for element in krankheit.get(umstand) %}
-                                                    <li>{{ element }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                    {% endif %}
+                                {% for umstand in krankheit.get('Umstände') %}
+                                    <li><h5><b>{{umstand}}</b></h5></li>
+                                        <ul>
+                                            {% for element in krankheit.get('Umstände').get(umstand) %}
+                                                <li>{{ element }}</li>
+                                            {% endfor %}
+                                        </ul>
                                 {% endfor %}
                             </ul>
                         {% endif %}

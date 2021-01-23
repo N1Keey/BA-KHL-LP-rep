@@ -119,14 +119,14 @@ def fragen_delete():
         return redirect('/')
     if request.method == 'POST':
         rform = request.form
-        delete=rform.get('fragendelete')
-        delete=json.loads(delete)
-        krankheit=delete.get('krankheit')
-        umstand=delete.get('umstand')
+        umstand2delete=rform.get('fragendelete')
+        umstand2delete=json.loads(umstand2delete)
+        krankheit=umstand2delete.get('krankheit')
+        umstand=umstand2delete.get('umstand')
         fragendicts=db.save_json2fragendicts()
         for fragenkh in fragendicts:
             if fragenkh.get('Krankheit') == krankheit:
-                fragenkh.pop(umstand)
+                fragenkh.get('Umstände').pop(umstand)
         db.save_fragendicts2json(fragendicts)
     session['fragenChanged']=True
     return redirect('/fragen')
@@ -204,8 +204,8 @@ def suche():
             suchelement=rform.get('searchfield')
             krankheitendict=db.Krankheit.getall2dict()
             for krankheit in krankheitendict:
-                for umstand in krankheit:
-                    for element in krankheit.get(umstand):
+                for umstand in krankheit.get('Umstände'):
+                    for element in krankheit.get('Umstände').get(umstand):
                         if element.lower()==suchelement.lower():
                             foundelement=element
                             foundkrankheitdict={'Krankheit':krankheit.get('Krankheit'),'Umstand':umstand}
