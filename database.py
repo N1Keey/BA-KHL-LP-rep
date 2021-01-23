@@ -139,33 +139,33 @@ class Krankheit(Base):
         krankheiten=session.query(Krankheit).all()
         krankheitendicts=[]
         for krankheit in krankheiten:
-            krankheitendict={'Krankheit':krankheit.name}
+            krankheitendict={'Krankheit':krankheit.name, 'Umstände':[]}
             ursachen=[]
             for ursache in krankheit.ursachen:
                 if ursache is not None:
                     if ursache.name is None:
                         ursache=session.query(Krankheit).filter(Krankheit.id==ursache.krankheit_id).first()
                     ursachen.append(ursache.name)
-            krankheitendict['Ursachen']=ursachen
+            krankheitendict.get('Umstände')['Ursachen']=ursachen
             symptome=[]
             for symptom in krankheit.symptome:
                 symptome.append(symptom.name)
-            krankheitendict['Symptome']=symptome
+            krankheitendict.get('Umstände')['Symptome']=symptome
             komplikationen=[]
             for komplikation in krankheit.komplikationen:
                 if komplikation is not None:
                     if komplikation.name is None:
                             komplikation=session.query(Krankheit).filter(Krankheit.id==komplikation.krankheit_id).first()
                     komplikationen.append(komplikation.name)
-            krankheitendict['Komplikationen']=komplikationen
+            krankheitendict.get('Umstände')['Komplikationen']=komplikationen
             diagnostiken=[]
             for diagnostik in krankheit.diagnostiken:
                 diagnostiken.append(diagnostik.name)
-            krankheitendict['Diagnostiken']=diagnostiken
+            krankheitendict.get('Umstände')['Diagnostiken']=diagnostiken
             therapien=[]
             for therapie in krankheit.therapien:
                 therapien.append(therapie.name)
-            krankheitendict['Therapien']=therapien
+            krankheitendict.get('Umstände')['Therapien']=therapien
             krankheitendicts.append(krankheitendict)
         return krankheitendicts  
 
@@ -365,6 +365,110 @@ class Therapie(Umstand):
 
 Base.metadata.create_all(engine)
 
+class Frage():
+    def prepare_Dicts(krankheiten4use, fragentyp):
+        def prepare_kh2umstand(fragentyp):
+            if fragentyp==1 or fragentyp==2:
+                krankheitenfragendict={'Krankheit':krankheit, 'Umstände':{'Ursachen':[],'Symptome':[],
+                'Komplikationen':[], 'Diagnostiken':[], 'Therapien':[]},'Fragentyp':fragentyp}
+                return krankheitenfragendict
+            else:
+                print('falscher fragentyp: %s'%(fragentyp))
+        krankheitenfragendicts=[]
+        for krankheit in krankheiten4use:
+            krankheitenfragendicts.append(prepare_kh2umstand(1))
+            krankheitenfragendicts.append(prepare_kh2umstand(2))
+        return krankheitenfragendicts
+    def filldicts_withdata(krankheitendicts4fragen, update=False):
+        def fill(krankheit,umstand):
+            krankheit.get('Umstände')[umstand]={'Frage':'','Antworten':{'Right':[],'Wrong':[]}}
+            (umstandAll, umstandRights)=decide_umstand(krankheit,umstand)
+            for element in umstandRights:
+                krankheit.get('Umstände')[umstand]['Antworten']['Right'].append(element)
+                if element in umstandAll:
+                    umstandAll.remove(element)
+            for element in umstandAll:
+                krankheit.get('Umstände')[umstand]['Antworten']['Wrong'].append(element)           
+        def decide_umstand(krankheit,umstand):
+            if umstand=='Ursachen':
+                umstandRights=Ursache.getAll_fromKrankheit(Ursache,krankheit.get('Krankheit'), True)
+                umstandAll=Ursache.getAll(Ursache)
+            elif umstand=='Symptome':
+                umstandRights=Symptom.getAll_fromKrankheit(Symptom,krankheit.get('Krankheit'), True)
+                umstandAll=Symptom.getAll(Symptom)
+            elif umstand=='Komplikationen':
+                umstandRights=Komplikation.getAll_fromKrankheit(Komplikation,krankheit.get('Krankheit'), True)
+                umstandAll=Komplikation.getAll(Komplikation)
+            elif umstand=='Diagnostiken':
+                umstandRights=Diagnostik.getAll_fromKrankheit(Diagnostik,krankheit.get('Krankheit'), True)
+                umstandAll=Diagnostik.getAll(Diagnostik)
+            elif umstand=='Therapien':
+                umstandRights=Therapie.getAll_fromKrankheit(Therapie,krankheit.get('Krankheit'), True)
+                umstandAll=Therapie.getAll(Therapie)
+            return umstandAll,umstandRights
+        def fill_kh2umstand(krankheitendicts4fragen):
+            for krankheit in krankheitendicts4fragen:
+                for umstand in krankheit.get('Umstände'):
+                    if krankheit.get('Umstände').get(umstand)==[]: # Wenn neu generiert und nicht aktuallisiert
+                        fill(krankheit,umstand)
+        fill_kh2umstand(krankheitendicts4fragen)
+    def builddicts_fromDatadicts(data4fragenDicts):
+        def buildFragetext4dict(krankheit, umstand, fragentyp):
+            if fragentyp==2:
+                nicht=' <u>nicht</u>'
+            else:
+                nicht=''
+            if umstand == 'Ursachen':
+                frage='Welche %s hat ein/e %s%s?'
+            elif umstand == 'Symptome':
+                frage='Welche %s treten bei einer/m %s%s auf?'
+            elif umstand == 'Komplikationen':
+                frage='Welche %s können bei einer/m %s%s auftreten?'
+            elif umstand == 'Diagnostiken':
+                frage='Welche %s nutzt man bei einer/m %s%s?'
+            elif umstand == 'Therapien':
+                frage='Welche %s nutzt man bei einer/m %s%s?'
+            frage=frage%(umstand,krankheit,nicht)
+            return frage
+        def build(krankheit, umstand):
+            fragenDict={}
+            if 'Right' in krankheit.get('Umstände').get(umstand).get('Antworten'):
+                rightAnsAll=krankheit.get('Umstände').get(umstand).get('Antworten').get('Right')
+                rightAns=[]
+                rnd=random.randint(1,answercount-1)
+                if answercount > len(rightAnsAll):
+                    rnd=random.randint(1,len(rightAnsAll))
+                while len(rightAns) < rnd:
+                    rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
+                    if rightAn not in rightAns:
+                        rightAns.append(rightAn)
+                        if krankheit.get('Fragentyp')==2:
+                            fragenDict[rightAn]='wrong'
+                        else:
+                            fragenDict[rightAn]='right'
+            if 'Wrong' in krankheit.get('Umstände').get(umstand).get('Antworten'):
+                wrongAnsAll=krankheit.get('Umstände').get(umstand).get('Antworten').get('Wrong')
+                wrongAns=[]
+                while len(wrongAns) < answercount-rnd:
+                    wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
+                    if wrongAn not in wrongAns:
+                        wrongAns.append(wrongAn)  
+                        if krankheit.get('Fragentyp')==2:
+                            fragenDict[wrongAn]='right' 
+                        else:
+                            fragenDict[wrongAn]='wrong' 
+            if 'Right' in krankheit.get('Umstände').get(umstand).get('Antworten') or 'Wrong' in krankheit.get('Umstände').get(umstand).get('Antworten'):
+                keys=list(fragenDict.items())
+                random.shuffle(keys)
+                fragenDict=dict(keys)
+                krankheit.get('Umstände')[umstand]['Antworten']=fragenDict
+                krankheit.get('Umstände')[umstand]['Frage']=buildFragetext4dict(krankheit.get('Krankheit'), umstand, krankheit.get('Fragentyp'))
+        answercount=6 #legt anzahl antworten fest
+        for krankheit in data4fragenDicts:
+            for umstand in krankheit.get('Umstände'):
+                build(krankheit, umstand)
+        return data4fragenDicts
+
 def save_fragendicts2json(dicts):
     jsondict = json.dumps(dicts,ensure_ascii=False,)
     with open("fragen.json","w", encoding='utf-8') as fw:
@@ -450,86 +554,5 @@ def setkh_Umstand_elemente(_class_name, krankheit,krankheit_elemente):
     elif _class_name=='Therapie':
         krankheit.therapien=krankheit_elemente
 
-def fragen_prepare_Dicts(krankheiten4use):
-    krankheitenfragendicts=[]
-    for krankheit in krankheiten4use:
-        krankheitenfragendict={'Krankheit':krankheit,'Ursachen':[],'Symptome':[],
-        'Komplikationen':[], 'Diagnostiken':[], 'Therapien':[]}
-        krankheitenfragendicts.append(krankheitenfragendict)
-    return krankheitenfragendicts
 
-def fragen_filldicts_withdata(krankheitendicts4fragen):
-    for krankheit in krankheitendicts4fragen:
-        for umstand in krankheit:
-            if umstand != 'Krankheit':
-                if krankheit.get(umstand)==[]:
-                    krankheit[umstand]={'Frage':'','Antworten':{'Right':[],'Wrong':[]}}
-                    if umstand=='Ursachen':
-                        umstandRights=Ursache.getAll_fromKrankheit(Ursache,krankheit.get('Krankheit'), True)
-                        umstandAll=Ursache.getAll(Ursache)
-                    elif umstand=='Symptome':
-                        umstandRights=Symptom.getAll_fromKrankheit(Symptom,krankheit.get('Krankheit'), True)
-                        umstandAll=Symptom.getAll(Symptom)
-                    elif umstand=='Komplikationen':
-                        umstandRights=Komplikation.getAll_fromKrankheit(Komplikation,krankheit.get('Krankheit'), True)
-                        umstandAll=Komplikation.getAll(Komplikation)
-                    elif umstand=='Diagnostiken':
-                        umstandRights=Diagnostik.getAll_fromKrankheit(Diagnostik,krankheit.get('Krankheit'), True)
-                        umstandAll=Diagnostik.getAll(Diagnostik)
-                    elif umstand=='Therapien':
-                        umstandRights=Therapie.getAll_fromKrankheit(Therapie,krankheit.get('Krankheit'), True)
-                        umstandAll=Therapie.getAll(Therapie)
-                    for element in umstandRights:
-                        krankheit[umstand]['Antworten']['Right'].append(element)
-                        if element in umstandAll:
-                            umstandAll.remove(element)
-                    for element in umstandAll:
-                        krankheit[umstand]['Antworten']['Wrong'].append(element)
-    return krankheitendicts4fragen
 
-def fragen_buildFrage4dict(krankheit, umstand):
-    if umstand == 'Ursachen':
-        frage='Welche %s hat ein/e %s?'
-    elif umstand == 'Symptome':
-        frage='Welche %s treten bei einer/m %s auf?'
-    elif umstand == 'Komplikationen':
-        frage='Welche %s können bei einer/m %s auftreten?'
-    elif umstand == 'Diagnostiken':
-        frage='Welche %s nutzt man bei einer/m %s?'
-    elif umstand == 'Therapien':
-        frage='Welche %s nutzt man bei einer/m %s?'
-    frage=frage%(umstand,krankheit)
-    return frage
-
-def fragen_builddicts_fromDatadicts(data4fragenDicts):
-    answercount=6 #legt anzahl antworten fest
-    for krankheit in data4fragenDicts:
-        for umstand in krankheit:
-            if umstand != 'Krankheit':
-                fragenDict={}
-                if 'Right' in krankheit.get(umstand).get('Antworten'):
-                    rightAnsAll=krankheit.get(umstand).get('Antworten').get('Right')
-                    rightAns=[]
-                    rnd=random.randint(1,answercount-1)
-                    if answercount > len(rightAnsAll):
-                        rnd=random.randint(1,len(rightAnsAll))
-                    while len(rightAns) < rnd:
-                        rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
-                        if rightAn not in rightAns:
-                            rightAns.append(rightAn)
-                            fragenDict[rightAn]='right'
-                if 'Wrong' in krankheit.get(umstand).get('Antworten'):
-                    wrongAnsAll=krankheit.get(umstand).get('Antworten').get('Wrong')
-                    wrongAns=[]
-                    while len(wrongAns) < answercount-rnd:
-                        wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
-                        if wrongAn not in wrongAns:
-                            wrongAns.append(wrongAn)      
-                            fragenDict[wrongAn]='wrong' 
-                if 'Right' in krankheit.get(umstand).get('Antworten') or 'Wrong' in krankheit.get(umstand).get('Antworten'):
-                    keys=list(fragenDict.items())
-                    random.shuffle(keys)
-                    fragenDict=dict(keys)
-                    krankheit[umstand]['Antworten']=fragenDict
-                    krankheit[umstand]['Frage']=fragen_buildFrage4dict(krankheit.get('Krankheit'), umstand)
-    return data4fragenDicts

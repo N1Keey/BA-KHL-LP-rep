@@ -88,29 +88,27 @@
     <div class='content'>
         <div class='Fragen'>
             {% for krankheit in fragenDicts %}
-                {% for umstand in krankheit %}
-                    {% if umstand != 'Krankheit' %}
-                        <div class="Frage-Antwort">
+                {% for umstand in krankheit.get('Umstände') %}
+                    <div class="Frage-Antwort">
+                        <p>
+                            <h4 class="Frage">{{ krankheit.get('Umstände').get(umstand).get('Frage') }}</h4>
                             <p>
-                                <h4 class="Frage">{{ krankheit.get(umstand).get('Frage') }}</h4>
-                                <p>
-                                    <div class="Antworten">
-                                        {% for antwort in krankheit.get(umstand).get('Antworten') %}
-                                            <label {% if krankheit.get(umstand).get('Antworten').get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
-                                                {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get(umstand).get('Antworten').get(antwort) }}">
-                                            </label>
-                                        {% endfor %}
-                                    </div>
-                                </p>
-                                <form style='display:inline;' action='/fragen_update' method='POST'>
-                                    <button type='submit' name='fragenupdate' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ umstand }}"}'>🔄</button>
-                                </form>
-                                <form style='display:inline;' action='/fragen_delete' method='POST'>
-                                    <button type='submit' name='fragendelete' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ umstand }}"}'>🗑️</button>
-                                </form>
+                                <div class="Antworten">
+                                    {% for antwort in krankheit.get('Umstände').get(umstand).get('Antworten') %}
+                                        <label {% if krankheit.get('Umstände').get(umstand).get('Antworten').get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
+                                            {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get('Umstände').get(umstand).get('Antworten').get(antwort) }}">
+                                        </label>
+                                    {% endfor %}
+                                </div>
                             </p>
-                        </div>
-                    {% endif %}
+                            <form style='display:inline;' action='/fragen_update' method='POST'>
+                                <button type='submit' name='fragenupdate' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ umstand }}"}'>🔄</button>
+                            </form>
+                            <form style='display:inline;' action='/fragen_delete' method='POST'>
+                                <button type='submit' name='fragendelete' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ umstand }}"}'>🗑️</button>
+                            </form>
+                        </p>
+                    </div>
                 {% endfor %}
             {% endfor %}
             {% if fragenDicts != [] %}

@@ -77,9 +77,9 @@ def fragen():
         if 'checkbox_Krankheit' in rform:
             if rform['checkbox_Krankheit'] != '':
                 krankheiten4use = request.form.getlist('checkbox_Krankheit')
-                krankheitenfragendicts=db.fragen_prepare_Dicts(krankheiten4use)
-                data4fragenDicts=db.fragen_filldicts_withdata(krankheitenfragendicts)
-                fragenDicts=db.fragen_builddicts_fromDatadicts(data4fragenDicts)
+                fragenDicts=db.Frage.prepare_Dicts(krankheiten4use, 1)
+                db.Frage.filldicts_withdata(fragenDicts, 1)
+                db.Frage.builddicts_fromDatadicts(fragenDicts)
                 db.save_fragendicts2json(fragenDicts)
         if 'cbx_allchecked' in rform:
             if rform.get('cbx_allchecked') == 'True':
@@ -106,9 +106,9 @@ def fragen_update():
         fragenDicts=db.save_json2fragendicts()
         for krankheit in fragenDicts:
             if krankheit.get('Krankheit')==_krankheit:
-                krankheit[_umstand]=[]  
-                filled_fragenDicts=db.fragen_filldicts_withdata(fragenDicts)  
-                fragenDicts=db.fragen_builddicts_fromDatadicts(filled_fragenDicts)  
+                krankheit.get('Umstände')[_umstand]=[]  
+                db.Frage.filldicts_withdata(fragenDicts, 1)  
+                db.Frage.builddicts_fromDatadicts(fragenDicts)  
                 db.save_fragendicts2json(fragenDicts)
     session['fragenChanged']=True
     return redirect('/fragen')
