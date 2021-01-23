@@ -202,15 +202,8 @@ def suche():
         rform=request.form
         if rform.get('searchfield')!='':
             suchelement=rform.get('searchfield')
-            krankheitendict=db.Krankheit.getall2dict()
-            for krankheit in krankheitendict:
-                for umstand in krankheit.get('Umstände'):
-                    for element in krankheit.get('Umstände').get(umstand):
-                        if element.lower()==suchelement.lower():
-                            foundelement=element
-                            foundkrankheitdict={'Krankheit':krankheit.get('Krankheit'),'Umstand':umstand}
-                            foundkrankheitendict.append(foundkrankheitdict)
-    return render_template('suchseite.j2', foundelement=foundelement, foundkrankheitendict=foundkrankheitendict)
+            foundkrankheitendict=db.Umstand.elementsearch(suchelement)
+    return render_template('suchseite.j2', foundkrankheitendict=foundkrankheitendict)
 
 @app.route('/hinzufügen_Krankheit', methods=['GET','POST'])
 def hinzufügen_Krankheit():

@@ -296,6 +296,22 @@ class Umstand(Base):
         else:
             pass # Fehlermeldung
 
+    def elementsearch(element2look4):
+        krankheitendict=Krankheit.getall2dict()
+        foundkrankheitendict={'Foundelement':'', 'Hideouts':[]}
+        for krankheit in krankheitendict:
+            for umstand in krankheit.get('Umstände'):
+                for element in krankheit.get('Umstände').get(umstand):
+                    if element.lower()==element2look4.lower():
+                        foundelement=element
+                        foundkrankheitendict['Foundelement']=foundelement
+                        krankheitendict=Krankheit.getall2dict()
+                        hideout={'Krankheit':krankheit.get('Krankheit'),'Umstand':umstand}
+                        foundkrankheitendict.get('Hideouts').append(hideout)         
+        if foundkrankheitendict.get('Foundelement')=='':
+            foundkrankheitendict['Foundelement']=element2look4
+        return foundkrankheitendict
+
     __mapper_args__ = {
     'polymorphic_identity':'umstand',
     'polymorphic_on':type
@@ -366,7 +382,7 @@ class Therapie(Umstand):
 Base.metadata.create_all(engine)
 
 class Frage():
-    def prepare_Dicts(krankheiten4use, fragentyp):
+    def prepare_Dicts(krankheiten4use):
         def prepare_kh2umstand(fragentyp):
             if fragentyp==1 or fragentyp==2:
                 krankheitenfragendict={'Krankheit':krankheit, 'Umstände':{'Ursachen':[],'Symptome':[],
@@ -468,6 +484,10 @@ class Frage():
             for umstand in krankheit.get('Umstände'):
                 build(krankheit, umstand)
         return data4fragenDicts
+
+    # def build_element2kh():
+    #     krankheitendicts=Krankheit.getall2dict()
+    #     for krankheit in krankheitendicts
 
 def save_fragendicts2json(dicts):
     jsondict = json.dumps(dicts,ensure_ascii=False,)

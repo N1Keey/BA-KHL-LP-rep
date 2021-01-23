@@ -16,11 +16,11 @@
 {% endblock %}
 {% block content %}
     <div class='content'>
-        <h3>{{ foundelement }}</h3>
+        <h3>{{ foundkrankheitendict.get('Foundelement') }}</h3>
         <p>
             <b>Krankheit/en:</b>
-            {% if foundkrankheitendict != [] %}
-                {% for krankheit in foundkrankheitendict %}
+            {% if foundkrankheitendict.get('Hideouts') != [] %}
+                {% for krankheit in foundkrankheitendict.get('Hideouts') %}
                     <u>{{ krankheit.get('Krankheit') }} ({{ krankheit.get('Umstand') }})</u>
                 {% endfor %}
             {% else %}
