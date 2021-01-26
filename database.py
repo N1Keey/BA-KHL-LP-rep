@@ -382,20 +382,17 @@ class Therapie(Umstand):
 Base.metadata.create_all(engine)
 
 class Frage():
-    def prepare_Dicts(krankheiten4use):
+    def kh2umstand_prepare_Dicts(krankheiten4use):
         def prepare_kh2umstand(fragentyp):
-            if fragentyp==1 or fragentyp==2:
-                krankheitenfragendict={'Krankheit':krankheit, 'Umstände':{'Ursachen':[],'Symptome':[],
-                'Komplikationen':[], 'Diagnostiken':[], 'Therapien':[]},'Fragentyp':fragentyp}
-                return krankheitenfragendict
-            else:
-                print('falscher fragentyp: %s'%(fragentyp))
+            krankheitenfragendict={'Krankheit':krankheit, 'Umstände':{'Ursachen':[],'Symptome':[],
+            'Komplikationen':[], 'Diagnostiken':[], 'Therapien':[]},'Fragentyp':fragentyp}
+            return krankheitenfragendict
         krankheitenfragendicts=[]
         for krankheit in krankheiten4use:
             krankheitenfragendicts.append(prepare_kh2umstand(1))
             krankheitenfragendicts.append(prepare_kh2umstand(2))
         return krankheitenfragendicts
-    def filldicts_withdata(krankheitendicts4fragen, update=False):
+    def kh2umstand_filldicts_withdata(krankheitendicts4fragen, update=False):
         def fill(krankheit,umstand):
             krankheit.get('Umstände')[umstand]={'Frage':'','Antworten':{'Right':[],'Wrong':[]}}
             (umstandAll, umstandRights)=decide_umstand(krankheit,umstand)
@@ -428,7 +425,7 @@ class Frage():
                     if krankheit.get('Umstände').get(umstand)==[]: # Wenn neu generiert und nicht aktuallisiert
                         fill(krankheit,umstand)
         fill_kh2umstand(krankheitendicts4fragen)
-    def builddicts_fromDatadicts(data4fragenDicts):
+    def kh2umstand_builddicts_fromDatadicts(data4fragenDicts):
         def buildFragetext4dict(krankheit, umstand, fragentyp):
             if fragentyp==2:
                 nicht=' <u>nicht</u>'
@@ -448,8 +445,9 @@ class Frage():
             return frage
         def build(krankheit, umstand):
             fragenDict={}
-            if 'Right' in krankheit.get('Umstände').get(umstand).get('Antworten'):
-                rightAnsAll=krankheit.get('Umstände').get(umstand).get('Antworten').get('Right')
+            antworten=krankheit.get('Umstände').get(umstand).get('Antworten')
+            if 'Right' in antworten:
+                rightAnsAll=antworten.get('Right')
                 rightAns=[]
                 rnd=random.randint(1,answercount-1)
                 if answercount > len(rightAnsAll):
@@ -462,8 +460,8 @@ class Frage():
                             fragenDict[rightAn]='wrong'
                         else:
                             fragenDict[rightAn]='right'
-            if 'Wrong' in krankheit.get('Umstände').get(umstand).get('Antworten'):
-                wrongAnsAll=krankheit.get('Umstände').get(umstand).get('Antworten').get('Wrong')
+            if 'Wrong' in antworten:
+                wrongAnsAll=antworten.get('Wrong')
                 wrongAns=[]
                 while len(wrongAns) < answercount-rnd:
                     wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
@@ -473,7 +471,7 @@ class Frage():
                             fragenDict[wrongAn]='right' 
                         else:
                             fragenDict[wrongAn]='wrong' 
-            if 'Right' in krankheit.get('Umstände').get(umstand).get('Antworten') or 'Wrong' in krankheit.get('Umstände').get(umstand).get('Antworten'):
+            if 'Right' in antworten or 'Wrong' in antworten:
                 keys=list(fragenDict.items())
                 random.shuffle(keys)
                 fragenDict=dict(keys)
@@ -484,17 +482,120 @@ class Frage():
             for umstand in krankheit.get('Umstände'):
                 build(krankheit, umstand)
         return data4fragenDicts
+    def kh2umstand_initiatefragen(krankheiten4use):
+        fragenDicts=Frage.kh2umstand_prepare_Dicts(krankheiten4use)
+        Frage.kh2umstand_filldicts_withdata(fragenDicts)
+        Frage.kh2umstand_builddicts_fromDatadicts(fragenDicts)
+        save_fragendicts2json(fragenDicts)
+        return fragenDicts
+    def kh2umstand_updatefrage(fragenDicts):
+        Frage.kh2umstand_filldicts_withdata(fragenDicts, True)  
+        Frage.kh2umstand_builddicts_fromDatadicts(fragenDicts)  
+        save_fragendicts2json(fragenDicts)
+    
+    def kh2umstand_prepare_fragen4xml(savedfragen):
+        fragendicts=[]
+        for krankheit in savedfragen:
+            for fragedict in krankheit.get('Umstände').values():
+                fragendicts.append(fragedict)
+        return fragendicts
 
-    # def build_element2kh():
-    #     krankheitendicts=Krankheit.getall2dict()
-    #     for krankheit in krankheitendicts
+    def element2kh_get_fittingelements():
+        countermax=3
+        krankheitendict=Krankheit.getall2dict()
+        fittingelements=[]
+        for krankheit in krankheitendict:
+            for umstand in krankheit.get('Umstände'):
+                for element in krankheit.get('Umstände').get(umstand):
+                    elementcounter=0
+                    elementkhs=[]
+                    for _krankheit in krankheitendict:
+                        for _element in _krankheit.get('Umstände').get(umstand):
+                            if element ==_element:
+                                elementcounter+=1
+                                elementkhs.append(_krankheit.get('Krankheit'))
+                    if elementcounter >=countermax:
+                        fittingelement={'Element':element, 'Umstand':umstand, 'Krankheiten':elementkhs}
+                        if fittingelement not in fittingelements:
+                            fittingelements.append(fittingelement)
+        return fittingelements   
+    def element2kh_getrandomfitting(fittingelements):
+        rnd=random.randint(0,len(fittingelements)-1)
+        return fittingelements[rnd]
+    def element2kh_buildfragetext(element4frage):
+        umstand=element4frage.get('Umstand')
+        element=element4frage.get('Element')
+        if umstand=='Ursachen':
+            fragetext='Welche Krankheiten können aus der Ursache %s entstehen?'%(element)
+        elif umstand=='Symptome':
+            fragetext='Bei welchen Krankheiten tritt das Symptom %s auf?'%(element)
+        elif umstand=='Komplikationen':
+            fragetext='Bei welchen Krankheiten kommt es zu der Komplikation %s?'%(element)
+        elif umstand=='Diagnostiken':
+            fragetext='Bei welchen Krankheiten nutzt man das diagnostische Mittel %s?'%(element)
+        elif umstand=='Therapien':
+            fragetext='Bei welchen Krankheiten hilft die Therapie %s?'%(element)
+        else:
+            fragetext=''
+        return fragetext
+    def element2kh_pickantworten(element4frage):
+        def element2kh_prepareantworten(element4frage):
+            antworten=[]
+            krankheitenwrong=Krankheit.getall()
+            krankheitenright=element4frage.get('Krankheiten')
+            for krankheit in krankheitenright:
+                if krankheit in krankheitenwrong:
+                    krankheitenwrong.remove(krankheit)
+            for krankheitright in krankheitenright:
+                antworten.append({krankheitright:'right'})
+            for krankheitwrong in krankheitenwrong:
+                antworten.append({krankheitwrong:'wrong'})
+            return antworten
+        antworten=element2kh_prepareantworten(element4frage)
+        antworten4frage={}
+        antwortenanzahl=6
+        while len(antworten4frage) < antwortenanzahl:
+            rnd=random.randint(0,len(antworten)-1)
+            rndantwort=antworten[rnd]
+            antwortkeys=list(rndantwort.keys())
+            antwortvalues=list(rndantwort.values())
+            if antwortkeys[0] not in antworten4frage:
+                antworten4frage[antwortkeys[0]]=antwortvalues[0]
+        return antworten4frage
+    def element2kh_build_frage(element):
+        frage=Frage.element2kh_buildfragetext(element)
+        antworten=Frage.element2kh_pickantworten(element)
+        fragedict={'Frage':frage,'Antworten':antworten}
+        return fragedict
+    def element2kh_initiatefragen(fragenanzahl):
+        fragendicts=[]
+        fittingelements=Frage.element2kh_get_fittingelements()
+        elements4frage=[]
+        for i in range(fragenanzahl):
+            randelement=Frage.element2kh_getrandomfitting(fittingelements)
+            if randelement not in elements4frage:
+                elements4frage.append(randelement)
+            else:
+                i-=1
+        for element in elements4frage:
+            fragendicts.append(Frage.element2kh_build_frage(element))
+        return fragendicts   
+    def element2kh_updatefrage():
+        fragedict=element2kh_build_frage()
+        return fragedict
+
+    def addfragenzahl(fragendict):
+        i=1
+        for frage in fragendict:
+            frage['Fragenzahl']=i
+            i+=1
 
 def save_fragendicts2json(dicts):
     jsondict = json.dumps(dicts,ensure_ascii=False,)
     with open("fragen.json","w", encoding='utf-8') as fw:
         fw.write(jsondict)
 
-def save_json2fragendicts():
+def load_json2fragendicts():
     with open('fragen.json','r',encoding='utf-8') as fr:
         jsonstring=fr.read()
         dicts=json.loads(jsonstring)
@@ -574,5 +675,12 @@ def setkh_Umstand_elemente(_class_name, krankheit,krankheit_elemente):
     elif _class_name=='Therapie':
         krankheit.therapien=krankheit_elemente
 
-
+def element_getall():
+    elemente=[]
+    elemente+=Ursache.getAll(Ursache)
+    elemente+=Symptom.getAll(Symptom)
+    elemente+=Komplikation.getAll(Komplikation)
+    elemente+=Diagnostik.getAll(Diagnostik)
+    elemente+=Therapie.getAll(Therapie)
+    return elemente
 

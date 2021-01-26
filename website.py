@@ -68,7 +68,7 @@ def fragen():
     if not session.get('logged_in'):
         return redirect('/')
     if session.get('fragenChanged'):
-        fragenDicts=db.save_json2fragendicts()
+        fragenDicts=db.load_json2fragendicts()
     else:
         fragenDicts=[]
     cbx_checked=False
@@ -77,17 +77,17 @@ def fragen():
         if 'checkbox_Krankheit' in rform:
             if rform['checkbox_Krankheit'] != '':
                 krankheiten4use = request.form.getlist('checkbox_Krankheit')
-                fragenDicts=db.Frage.prepare_Dicts(krankheiten4use, 1)
-                db.Frage.filldicts_withdata(fragenDicts, 1)
-                db.Frage.builddicts_fromDatadicts(fragenDicts)
-                db.save_fragendicts2json(fragenDicts)
+                fragenDicts=db.Frage.kh2umstand_initiatefragen(krankheiten4use)
         if 'cbx_allchecked' in rform:
             if rform.get('cbx_allchecked') == 'True':
                 cbx_checked=False
             else:
                 cbx_checked=True
         if 'exportdata' in rform:
-            xml.create_file(db.save_json2fragendicts())
+            preparedfragentyp_1_2=db.Frage.kh2umstand_prepare_fragen4xml(db.load_json2fragendicts())
+            fragentyp1_2_3=preparedfragentyp_1_2+db.Frage.element2kh_initiatefragen(5)
+            db.Frage.addfragenzahl(fragentyp1_2_3)
+            xml.create_file(fragentyp1_2_3)
             export='Quizexport.xml'
             return send_file(export, as_attachment=True)
     krankheiten=db.Krankheit.getall()
@@ -103,13 +103,11 @@ def fragen_update():
         delete=json.loads(update)
         _krankheit=delete.get('krankheit')
         _umstand=delete.get('umstand')
-        fragenDicts=db.save_json2fragendicts()
+        fragenDicts=db.load_json2fragendicts()
         for krankheit in fragenDicts:
             if krankheit.get('Krankheit')==_krankheit:
                 krankheit.get('Umstände')[_umstand]=[]  
-                db.Frage.filldicts_withdata(fragenDicts, 1)  
-                db.Frage.builddicts_fromDatadicts(fragenDicts)  
-                db.save_fragendicts2json(fragenDicts)
+                db.Frage.kh2umstand_updatefrage(fragenDicts)
     session['fragenChanged']=True
     return redirect('/fragen')
 
@@ -123,7 +121,7 @@ def fragen_delete():
         umstand2delete=json.loads(umstand2delete)
         krankheit=umstand2delete.get('krankheit')
         umstand=umstand2delete.get('umstand')
-        fragendicts=db.save_json2fragendicts()
+        fragendicts=db.load_json2fragendicts()
         for fragenkh in fragendicts:
             if fragenkh.get('Krankheit') == krankheit:
                 fragenkh.get('Umstände').pop(umstand)
