@@ -38,7 +38,7 @@ def create_question_main(fragendict):
     question.append(questiontext)
     #settings
     defaultgrade=ET.Element('defaultgrade')
-    defaultgrade.text='6'
+    defaultgrade.text='%s'%(len(fragendict.get('Antworten')))
     question.append(defaultgrade)
     singleans=ET.Element('single')
     singleans.text='false'
@@ -94,7 +94,7 @@ def create_answer_main(question, fragendict):
         pointsright=0
     else:
         pointsright=100/rcounter
-    pointswrong=150/len(fragendict.get('Antworten'))
+    pointswrong=100/((len(fragendict.get('Antworten'))-rcounter))
     for antwort in fragendict.get('Antworten'):
         if fragendict.get('Antworten').get(antwort)=='right':
             answer=ET.Element('answer', format='html', fraction='%s'%pointsright)

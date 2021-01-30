@@ -446,6 +446,7 @@ class Frage():
         def build(krankheit, umstand):
             antwortenDict={}
             antworten=krankheit.get('Umstände').get(umstand).get('Antworten')
+            fragentyp = krankheit.get('Fragentyp')
             if 'Right' in antworten:
                 rightAnsAll=antworten.get('Right')
                 rightAns=[]
@@ -456,7 +457,7 @@ class Frage():
                     rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
                     if rightAn not in rightAns:
                         rightAns.append(rightAn)
-                        if krankheit.get('Fragentyp')==2:
+                        if fragentyp==2:
                             antwortenDict[rightAn]='wrong'
                         else:
                             antwortenDict[rightAn]='right'
@@ -467,7 +468,7 @@ class Frage():
                     wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
                     if wrongAn not in wrongAns:
                         wrongAns.append(wrongAn)  
-                        if krankheit.get('Fragentyp')==2:
+                        if fragentyp==2:
                             antwortenDict[wrongAn]='right' 
                         else:
                             antwortenDict[wrongAn]='wrong' 
@@ -477,6 +478,7 @@ class Frage():
                 antwortenDict=dict(keys)
                 krankheit.get('Umstände')[umstand]['Antworten']=antwortenDict
                 krankheit.get('Umstände')[umstand]['Frage']=buildFragetext4dict(krankheit.get('Krankheit'), umstand, krankheit.get('Fragentyp'))
+                krankheit.get('Umstände')[umstand]['Fragentitel']='Typ %s - %s (%s)'%(fragentyp, krankheit.get('Krankheit'), umstand)
         answercount=6 #legt anzahl antworten fest
         for krankheit in data4fragenDicts:
             for umstand in krankheit.get('Umstände'):
@@ -494,12 +496,10 @@ class Frage():
         save_fragendicts2json(fragenDicts)
     
     def kh2umstand_prepare_fragen4xml(savedfragen):
+        fragendicts=[]
         for krankheit in savedfragen:
-            umstände=list(krankheit.get('Umstände').keys())
-            fragendicts=list(krankheit.get('Umstände').values())
-            for i in range(len(umstände)):
-                umstand=umstände[i]
-                fragendicts[i]['Fragentitel']='%s (%s)'%(krankheit.get('Krankheit'),umstand)
+            for fragedict in krankheit.get('Umstände').values():
+                fragendicts.append(fragedict)
         return fragendicts
 
     def element2kh_get_fittingelements():
@@ -567,7 +567,7 @@ class Frage():
     def element2kh_build_frage(element):
         frage=Frage.element2kh_buildfragetext(element)
         antworten=Frage.element2kh_pickantworten(element)
-        fragedict={'Frage':frage,'Antworten':antworten, 'Fragentitel':element.get('Element')}
+        fragedict={'Frage':frage,'Antworten':antworten, 'Fragentitel':'Typ 3 - %s'%(element.get('Element'))}
         return fragedict
     def element2kh_initiatefragen(fragenanzahl):
         fragendicts=[]
