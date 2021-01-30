@@ -28,8 +28,8 @@ def create_text_header(headerelement):
 
 def create_question_main(fragendict):
     question=ET.Element('question', type='multichoice')
-    fragenzahl=fragendict.get('Fragenzahl')
-    question.append(create_name_main_kh(fragenzahl))
+    fragentitel=fragendict.get('Fragentitel')
+    question.append(create_name_main_kh(fragentitel))
     #fragen
     questiontext=ET.Element('questiontext', format='html')
     text=ET.Element('text')
@@ -58,14 +58,14 @@ def create_question_main(fragendict):
     question=create_answer_main(question, fragendict)
     return question
 
-def create_name_main_kh(fragenzahl):
+def create_name_main_kh(fragentitel):
     name=ET.Element('name')
-    name.append(create_text_main_kh(fragenzahl))
+    name.append(create_text_main_kh(fragentitel))
     return name
 
-def create_text_main_kh(fragenzahl):
+def create_text_main_kh(fragentitel):
     text=ET.Element('text')
-    text.text='Frage %s'%(fragenzahl)
+    text.text=fragentitel
     return text
 
 def create_feedback_main():

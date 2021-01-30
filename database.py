@@ -444,7 +444,7 @@ class Frage():
             frage=frage%(umstand,krankheit,nicht)
             return frage
         def build(krankheit, umstand):
-            fragenDict={}
+            antwortenDict={}
             antworten=krankheit.get('Umstände').get(umstand).get('Antworten')
             if 'Right' in antworten:
                 rightAnsAll=antworten.get('Right')
@@ -457,9 +457,9 @@ class Frage():
                     if rightAn not in rightAns:
                         rightAns.append(rightAn)
                         if krankheit.get('Fragentyp')==2:
-                            fragenDict[rightAn]='wrong'
+                            antwortenDict[rightAn]='wrong'
                         else:
-                            fragenDict[rightAn]='right'
+                            antwortenDict[rightAn]='right'
             if 'Wrong' in antworten:
                 wrongAnsAll=antworten.get('Wrong')
                 wrongAns=[]
@@ -468,14 +468,14 @@ class Frage():
                     if wrongAn not in wrongAns:
                         wrongAns.append(wrongAn)  
                         if krankheit.get('Fragentyp')==2:
-                            fragenDict[wrongAn]='right' 
+                            antwortenDict[wrongAn]='right' 
                         else:
-                            fragenDict[wrongAn]='wrong' 
+                            antwortenDict[wrongAn]='wrong' 
             if 'Right' in antworten or 'Wrong' in antworten:
-                keys=list(fragenDict.items())
+                keys=list(antwortenDict.items())
                 random.shuffle(keys)
-                fragenDict=dict(keys)
-                krankheit.get('Umstände')[umstand]['Antworten']=fragenDict
+                antwortenDict=dict(keys)
+                krankheit.get('Umstände')[umstand]['Antworten']=antwortenDict
                 krankheit.get('Umstände')[umstand]['Frage']=buildFragetext4dict(krankheit.get('Krankheit'), umstand, krankheit.get('Fragentyp'))
         answercount=6 #legt anzahl antworten fest
         for krankheit in data4fragenDicts:
@@ -494,14 +494,16 @@ class Frage():
         save_fragendicts2json(fragenDicts)
     
     def kh2umstand_prepare_fragen4xml(savedfragen):
-        fragendicts=[]
         for krankheit in savedfragen:
-            for fragedict in krankheit.get('Umstände').values():
-                fragendicts.append(fragedict)
+            umstände=list(krankheit.get('Umstände').keys())
+            fragendicts=list(krankheit.get('Umstände').values())
+            for i in range(len(umstände)):
+                umstand=umstände[i]
+                fragendicts[i]['Fragentitel']='%s (%s)'%(krankheit.get('Krankheit'),umstand)
         return fragendicts
 
     def element2kh_get_fittingelements():
-        countermax=3
+        elementcountermax=2
         krankheitendict=Krankheit.getall2dict()
         fittingelements=[]
         for krankheit in krankheitendict:
@@ -514,7 +516,7 @@ class Frage():
                             if element ==_element:
                                 elementcounter+=1
                                 elementkhs.append(_krankheit.get('Krankheit'))
-                    if elementcounter >=countermax:
+                    if elementcounter >=elementcountermax:
                         fittingelement={'Element':element, 'Umstand':umstand, 'Krankheiten':elementkhs}
                         if fittingelement not in fittingelements:
                             fittingelements.append(fittingelement)
@@ -565,7 +567,7 @@ class Frage():
     def element2kh_build_frage(element):
         frage=Frage.element2kh_buildfragetext(element)
         antworten=Frage.element2kh_pickantworten(element)
-        fragedict={'Frage':frage,'Antworten':antworten}
+        fragedict={'Frage':frage,'Antworten':antworten, 'Fragentitel':element.get('Element')}
         return fragedict
     def element2kh_initiatefragen(fragenanzahl):
         fragendicts=[]
@@ -583,12 +585,6 @@ class Frage():
     def element2kh_updatefrage():
         fragedict=element2kh_build_frage()
         return fragedict
-
-    def addfragenzahl(fragendict):
-        i=1
-        for frage in fragendict:
-            frage['Fragenzahl']=i
-            i+=1
 
 def save_fragendicts2json(dicts):
     jsondict = json.dumps(dicts,ensure_ascii=False,)

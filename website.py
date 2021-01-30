@@ -86,7 +86,6 @@ def fragen():
         if 'exportdata' in rform:
             preparedfragentyp_1_2=db.Frage.kh2umstand_prepare_fragen4xml(db.load_json2fragendicts())
             fragentyp1_2_3=preparedfragentyp_1_2+db.Frage.element2kh_initiatefragen(5)
-            db.Frage.addfragenzahl(fragentyp1_2_3)
             xml.create_file(fragentyp1_2_3)
             export='Quizexport.xml'
             return send_file(export, as_attachment=True)
