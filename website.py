@@ -61,7 +61,14 @@ def registrieren():
 def home():
     if not session.get('logged_in'):
         return redirect('/')
-    return render_template('home.j2')
+    nKrankheiten=db.Krankheit.countelements()
+    nUrsachen=db.Umstand.countelements(db.Ursache)
+    nSymptome=db.Umstand.countelements(db.Symptom)
+    nKomplikationen=db.Umstand.countelements(db.Komplikation)
+    nDiagnostiken=db.Umstand.countelements(db.Diagnostik)
+    nTherapien=db.Umstand.countelements(db.Therapie)
+    nPossibles=db.Frage.count_possibles()
+    return render_template('home.j2', nKrankheiten=nKrankheiten, nUrsachen=nUrsachen, nSymptome=nSymptome,nKomplikationen=nKomplikationen,nDiagnostiken=nDiagnostiken,nTherapien=nTherapien,nPossibles=nPossibles)
 
 @app.route('/fragen',methods=['GET','POST'])
 def fragen():

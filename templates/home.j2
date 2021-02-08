@@ -6,3 +6,10 @@
   </style>
 {% endblock %}
 {% block title %} <title>Home</title> {% endblock %}
+{% block content %}
+  <div class='content'>
+      Mit aktuell <u>{{nKrankheiten}} Krankheiten</u>, <u>{{nUrsachen}} Ursachen</u>, <u>{{nSymptome}} Symptomen</u>, <u>{{nKomplikationen}} Komplikationen</u>, <u>{{nDiagnostiken}} Diagnostiken</u>, <u>{{nTherapien}} Therapien</u>
+      <p>sind <b>{{nPossibles}}</b> unterschiedliche <u>Fragen</u> möglich</p>
+  </div>
+{% endblock %}
+

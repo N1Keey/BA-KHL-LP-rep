@@ -3,8 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 import json
 import random
-
-from pprint import pprint
+import math
 
 engine = create_engine('sqlite:///khl_lp.db',connect_args={'check_same_thread': False})
 
@@ -179,6 +178,10 @@ class Krankheit(Base):
         session.delete(element2delete)
         session.commit()
 
+    def countelements():
+        nKrankheiten = session.query(Krankheit.id).count()
+        return nKrankheiten
+
 class Umstand(Base):
     __abstract__ = True
     id = Column(Integer, primary_key=True)
@@ -203,14 +206,18 @@ class Umstand(Base):
             elemente=[]
             elementesql=session.query(_class).all()
             for element in elementesql:
-                if element.name==None:
-                    element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
-                elemente.append(element.name)
+                if element.name==None: # => element = Krankheit
+                    element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first() # element = Krankheit
+                elemente.append(element.name) # Namestrings
             return elemente
         else:
             pass # Fehlermeldung
 
     def getAll_fromKrankheit(_class, krankheit_name, toString=False):
+        ''' _class => Umstand 
+            toString = True => return Namestrings
+            toString = False => return sqlelements 
+        '''
         if issubclass(_class, Umstand):
             krankheit_elemente=[]
             joint=getkhJoint(_class.__name__)
@@ -312,6 +319,10 @@ class Umstand(Base):
             foundkrankheitendict['Foundelement']=element2look4
         return foundkrankheitendict
 
+    def countelements(_class):
+        nUmstand = session.query(_class.id).count()
+        return nUmstand
+
     __mapper_args__ = {
     'polymorphic_identity':'umstand',
     'polymorphic_on':type
@@ -382,6 +393,7 @@ class Therapie(Umstand):
 Base.metadata.create_all(engine)
 
 class Frage():
+    nAntworten=6
     def kh2umstand_prepare_Dicts(krankheiten4use):
         def prepare_kh2umstand(fragentyp):
             krankheitenfragendict={'Krankheit':krankheit, 'Umstände':{'Ursachen':[],'Symptome':[],
@@ -450,8 +462,8 @@ class Frage():
             if 'Right' in antworten:
                 rightAnsAll=antworten.get('Right')
                 rightAns=[]
-                rnd=random.randint(1,answercount-1)
-                if answercount > len(rightAnsAll):
+                rnd=random.randint(1,Frage.nAntworten-1)
+                if Frage.nAntworten > len(rightAnsAll):
                     rnd=random.randint(1,len(rightAnsAll))
                 while len(rightAns) < rnd:
                     rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
@@ -464,7 +476,7 @@ class Frage():
             if 'Wrong' in antworten:
                 wrongAnsAll=antworten.get('Wrong')
                 wrongAns=[]
-                while len(wrongAns) < answercount-rnd:
+                while len(wrongAns) < Frage.nAntworten-rnd:
                     wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
                     if wrongAn not in wrongAns:
                         wrongAns.append(wrongAn)  
@@ -479,7 +491,6 @@ class Frage():
                 krankheit.get('Umstände')[umstand]['Antworten']=antwortenDict
                 krankheit.get('Umstände')[umstand]['Frage']=buildFragetext4dict(krankheit.get('Krankheit'), umstand, krankheit.get('Fragentyp'))
                 krankheit.get('Umstände')[umstand]['Fragentitel']='Typ %s - %s (%s)'%(fragentyp, krankheit.get('Krankheit'), umstand)
-        answercount=6 #legt anzahl antworten fest
         for krankheit in data4fragenDicts:
             for umstand in krankheit.get('Umstände'):
                 build(krankheit, umstand)
@@ -555,8 +566,7 @@ class Frage():
             return antworten
         antworten=element2kh_prepareantworten(element4frage)
         antworten4frage={}
-        antwortenanzahl=6
-        while len(antworten4frage) < antwortenanzahl:
+        while len(antworten4frage) < Frage.nAntworten:
             rnd=random.randint(0,len(antworten)-1)
             rndantwort=antworten[rnd]
             antwortkeys=list(rndantwort.keys())
@@ -572,6 +582,7 @@ class Frage():
     def element2kh_initiatefragen(fragenanzahl):
         fragendicts=[]
         fittingelements=Frage.element2kh_get_fittingelements()
+        f3fittingelements=len(fittingelements)
         elements4frage=[]
         for i in range(fragenanzahl):
             randelement=Frage.element2kh_getrandomfitting(fittingelements)
@@ -585,6 +596,54 @@ class Frage():
     def element2kh_updatefrage():
         fragedict=element2kh_build_frage()
         return fragedict
+
+    def count_possibles():
+        nKrankheiten = session.query(Krankheit.id).count()
+        nUrsachen = session.query(Ursache.id).count()
+        nSymptome = session.query(Symptom.id).count()
+        nKomplikationen = session.query(Komplikation.id).count()
+        nDiagnostiken = session.query(Diagnostik.id).count()
+        nTherapien = session.query(Therapie.id).count()
+        nElemente_f3 = len(Frage.element2kh_get_fittingelements())
+        dict_nUmstände={'Ursachen':nUrsachen, 'Symptome':nSymptome, 'Komplikationen':nKomplikationen, 'Diagnostiken':nDiagnostiken, 'Therapien':nTherapien}
+        
+        krankheiten=Krankheit.getall()
+
+        def count_elements_p_Krankheit_p_Umstand_2dict():
+            counterdicts=[]
+            krankheiten = Krankheit.getall2dict()
+            for krankheit in krankheiten:
+                counterdict={'Krankheit':krankheit.get('Krankheit'), 'Umstände':{}}
+                umstandscounter={}
+                for umstand in krankheit.get('Umstände'):
+                    elements=krankheit.get('Umstände').get(umstand)
+                    umstandscounter[umstand]=len(elements)
+                counterdict['Umstände']=umstandscounter
+                counterdicts.append(counterdict)
+            return counterdicts
+        
+        def calc_possibles_pUmstand(nUmstand, nUmstand_p_krankheit):
+            nPossibles=math.comb(nUmstand, Frage.nAntworten)-math.comb(nUmstand-nUmstand_p_krankheit,Frage.nAntworten)
+            return nPossibles
+        
+        def calc_possibles_f3():
+            nPossibles_f3=math.comb(nElemente_f3,Frage.nAntworten)
+            return nPossibles_f3
+
+        dict_nElements_pKrankheit_pUmstand = count_elements_p_Krankheit_p_Umstand_2dict()
+        nPossibles_f1=0
+        for krankheit in dict_nElements_pKrankheit_pUmstand:
+            for umstand in krankheit.get('Umstände'):
+                nUmstand=dict_nUmstände.get(umstand)
+                elementcount=krankheit.get('Umstände').get(umstand)
+                nPossibles_pUmstand=calc_possibles_pUmstand(nUmstand, elementcount)
+                nPossibles_f1+=nPossibles_pUmstand
+                krankheit.get('Umstände')[umstand]=nPossibles_pUmstand
+
+        nPossibles_f1_f2=nPossibles_f1*2
+        nPossibles_f3=calc_possibles_f3()
+        nPossibles=nPossibles_f1_f2+nPossibles_f3
+        return nPossibles
 
 def save_fragendicts2json(dicts):
     jsondict = json.dumps(dicts,ensure_ascii=False,)
