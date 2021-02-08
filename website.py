@@ -15,7 +15,7 @@ def login():
         login_bool=db.User.login(email,password) #prüft, ob login daten mit db übereinstimmen gibt True oder False
         if login_bool==True:
             session['logged_in']=True
-            return render_template('home.j2')
+            return redirect('/home')
         else:
             flash('Email oder Passwort falsch!')
     return render_template('login.j2')
