@@ -627,7 +627,8 @@ class Frage():
             return nPossibles
         
         def calc_possibles_f3():
-            nPossibles_f3=math.comb(nElemente_f3,Frage.nAntworten)
+            nPossibles_pf3=math.comb(nKrankheiten,Frage.nAntworten)
+            nPossibles_f3=nPossibles_pf3*nElemente_f3
             return nPossibles_f3
 
         dict_nElements_pKrankheit_pUmstand = count_elements_p_Krankheit_p_Umstand_2dict()
