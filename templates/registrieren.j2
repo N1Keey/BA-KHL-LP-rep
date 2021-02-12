@@ -1,5 +1,5 @@
 {% extends "_base.j2" %}
-
+{# wird über Usermanagement aufgerufen #}
 {% block title %} <title>Registrieren</title> {% endblock %}
 {% block navbar %} {% endblock %}
 {% block content %}
@@ -14,6 +14,7 @@
             <p><input type="password" id="pw_validation" name="pw_validation" placeholder="Passwort bestätigen" required></p>
             <p><input type="submit" id="Registrieren" name="Registrieren" value="Registrieren"></p>
         </form>
+        {# Passwörter stimmen nicht überein! #}
         {% for message in get_flashed_messages() %}
             <div class="alert-error">{{ message }}</div>
         {% endfor %}

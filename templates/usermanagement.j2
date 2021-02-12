@@ -36,6 +36,7 @@
           <th>Löschen</th>
         </tr>
         {% for user in users %}
+          {# die Mail des Admins wollte ich nicht anzeigen lassen => nicht löschbar #}
           {% if user.get('Email') != 'Nschick@mail.hs-ulm.de'%}
             <tr>
               <td>{{ user['Email'] }}</td>

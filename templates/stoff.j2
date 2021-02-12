@@ -71,14 +71,17 @@
 {% block navbar %}
     {{ super() }}
 {% endblock %}
+{# Krankheitsauswahl #}
 {% block left_navbar %}
     <div class='left_navbar'>
         <form action='/hinzufügen_Krankheit' method='POST'>
             <input type="text" id="tf_addkh" name="Krankheit_name" placeholder="Neue Krankheit:" autocomplete="off">
             <button type="submit" name= "Btn_add_Krankheit" id="btn_addkh">einfügen</button>
         </form>
+        {# Modus um Krankheiten zu Ursachen oder Komplikationen hinzu zufügen #}
         {% if mode=='uok_Addkhmode' and (active_umstand=='Ursachen' or active_umstand =='Komplikationen') %}
             <form action="hinzufügen_{{ active_umstand }}" method='POST'>
+                {# Checkboxauswahl der Krankheiten die hinzugefügt werden sollen #}
                 <ul class="checkbox_krankheit">
                     {% for krankheit in krankheiten %}
                         <li>
@@ -88,14 +91,16 @@
                         </li>
                     {% endfor %}
                 </ul>
-                <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
+                <input type="hidden" name="active_krankheit" value="{{active_krankheit}}"> {# zuordnung zu aktiver Krankheit #}
                 <input type="submit" name="uok_Addkh" value="Krankheit hinzufügen" id="btn_kh_cbxsubmit">
             </form>
         {% else %}
+            {# Buttonauswahl der Krankheiten => Normaler Modus #}
             <form method='POST'>
                 <ul class="Button_Krankheit">
                     {% for krankheit in krankheiten %}
                         <li>
+                            {# kh_active => Button ist grünlich #}
                             <button {% if active_krankheit == krankheit %} class="kh_active" {% endif %} type="submit" name="active_krankheit" value="{{ krankheit }}" id="btn_kh">{{ krankheit }}</button>
                         </li>
                     {% endfor %}
@@ -106,14 +111,17 @@
 {% endblock %}
 {% block content %}
     <div class='content'>
+        {# Suchfeld #}
         <form action='/suche' method='POST'>
             <span>
                 <input type='text' name='searchfield' placeholder='Zu suchendes Element:' id='searchfield'><input type='submit' name='searchsubmit' value='Suche' id='searchsubmit'>
             </span>
         </form>
         <form method='POST'>
+            {# Umstandsauswahl #}
             <table class='btns_umstand'>
                 <tr>
+                    {# umstand_active => Button ist grünlich #}
                     <th><button {% if active_umstand == 'Ursachen' %} class="umstand_active" {% endif %} type="submit" name="active_umstand" value="Ursachen" id="btn_umstand">Ursachen</button></th>
                     <th><button {% if active_umstand == 'Symptome' %} class="umstand_active" {% endif %} type="submit" name="active_umstand" value="Symptome" id="btn_umstand">Symptome</button></th>
                     <th><button {% if active_umstand == 'Komplikationen' %} class="umstand_active" {% endif %} type="submit" name="active_umstand" value="Komplikationen" id="btn_umstand">Komplikationen</button></th>
@@ -121,10 +129,13 @@
                     <th><button {% if active_umstand == 'Therapien' %} class="umstand_active" {% endif %} type="submit" name="active_umstand" value="Therapien" id="btn_umstand">Therapien</button></th>
                 </tr>
             </table>
-            <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
+            <input type="hidden" name="active_krankheit" value="{{active_krankheit}}"> {# Damit aktive Krankheit weiter besteht auch nach neuladen durch Knopfdruck #}
         </form>
         {% if active_krankheit %}
+            {# Krankheitsübersicht #}
+            {# Hier kann Krankheit angepasst oder gelöscht werden #}
             {% if not active_umstand %} 
+                {# Zwischensegment zum Ändern #}
                 {% if element2change %}
                     <form action='/ändern_Krankheit' method='POST'>
                         <input type='text' name='elemupdate' value='{{ element2change }}' autocomplete="off">
@@ -133,6 +144,7 @@
                         <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
                     </form>
                 {% elif element2delete %}
+                {# Zwischensegment zum Löschen #}
                     <form action='/löschen_Krankheit' method='POST'>
                         Sicher?
                         <input type='submit' name='abbruch' value=Abbruch>
@@ -140,6 +152,7 @@
                         <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
                     </form>
                 {% else %}
+                {# Lösch- und Änder-Button#}
                     <span id='krankheit_ändern'>
                         <form method='POST'>
                             <h3>{{active_krankheit}}</h3>
@@ -148,6 +161,7 @@
                             <input type="hidden" name="active_krankheit" value="{{ active_krankheit }}">
                         </form>
                     </span>
+                    {# Bildung von Krankheitsübersicht #}
                     {% for krankheit in krankheitendict %}
                         {% if krankheit.get('Krankheit') == active_krankheit %}
                             <ul class='kh_umstände'>
@@ -163,52 +177,60 @@
                         {% endif %}
                     {% endfor %}
                 {% endif %}
+            {# if active_umstand #}
             {% else %}
+                {# Hinzufügen von Element zu Umstand der Krankheit #}
                 <form action="hinzufügen_{{active_umstand}}" method='POST'>
                     <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
                     <input type="hidden" name="active_umstand" value="{{active_umstand}}">
-                    {% if not mode %}
+                    {% if not mode %} {# kein uok_Addkhmode #}
                         <input type="text" name="kh_new{{active_umstand}}" placeholder="Neue {{ active_umstand }}" autocomplete="off" autofocus id="tf_add">
                         <input type="submit" name="kh_add{{active_umstand}}" id="btn_add" value="hinzufügen">
                     {% else %}
-                        <h4> {{active_krankheit}} </h4> 
+                        {# Aktive Krankheit wird gezeigt, damit man sieht welche Aktiv ist #}
+                        <h4> {{active_krankheit}} </h4> {# uok_Addkhmode aktiv => Navbar keine (aktive) Krankheitsbuttons => Krankheitscheckboxen #}
                     {% endif %}
                     {% if active_umstand == 'Ursachen' or active_umstand == 'Komplikationen' %}
                         <button type="submit" name="mode" value="uok_Addkhmode" id="btn_uok_joinkh">
+                        {# uok_addmode Krankheiten hinzufügen oder Abbruch #}
                             {% if mode == 'uok_Addkhmode' %}Abbruch{% else %}Krankheit zu {{active_umstand}} hinzufügen{% endif %}
                         </button>
                     {% endif %}
                 </form>
             {% endif %}
         {% else %}
+            {# Umstand wird vor Krankheit ausgewählt#}
             <p><--Erst Krankheit auswählen</p>
         {% endif %}
+        {# Elemente des aktiven Umstands der aktiven Krankheit werden gezeigt #}
         {% if active_umstand %}
             <div class = 'umstandcontent'>
                 <ul>
                     {% for element in umstandcontent %}
                         <li>
+                            {# Namenänderung von Umstandselementen #}
                             {% if element2change==element %}
                                 <form action='/ändern_{{ active_umstand }}' method='POST'>
                                     <input type='text' name='elemupdate' value='{{ element }}' autocomplete="off">
                                     <input type='submit' name='abbruch' value=Abbruch>
-                                    <input type='submit' name='ch_alle' value='Alle'>
-                                    <input type='submit' name='ch_nurdieses' value='Nur dieses Element'>
+                                    <input type='submit' name='ch_alle' value='Alle'> {# Dieses Element wird für alle Krankheiten geändert #}
+                                    <input type='submit' name='ch_nurdieses' value='Nur dieses Element'> {# Neues Element wird für diese Krankheit angelegt altes wird für diese entfernt #}
                                     <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
                                     <input type="hidden" name="active_umstand" value="{{active_umstand}}">
-                                    <input type="hidden" name="content" value="{{ element2change }}">
+                                    <input type="hidden" name="content" value="{{ element2change }}"> {# Element das geändert wird #}
                                 </form>
                             {% elif element2delete==element %}
                                 <form action='/löschen_{{ active_umstand }}' method='POST'>
                                     {{ element }}
                                     <input type='submit' name='abbruch' value=Abbruch>
-                                    <input type='submit' name='del_alle' value='Alle'>
-                                    <input type='submit' name='del_nurdieses' value='Nur dieses Element'>
+                                    <input type='submit' name='del_alle' value='Alle'> {# Element wird komplett aus Datenbank entfernt #}
+                                    <input type='submit' name='del_nurdieses' value='Nur dieses Element'> {# Element wird nur aus Krankheit entfernt #}
                                     <input type="hidden" name="active_krankheit" value="{{active_krankheit}}">
                                     <input type="hidden" name="active_umstand" value="{{active_umstand}}">
-                                    <input type="hidden" name="content" value="{{ element2delete }}">
+                                    <input type="hidden" name="content" value="{{ element2delete }}">{# Element das gelöscht wird #}
                                 </form>
                             {% else %}
+                            {# Elemente (der aktiven Krankheit und des aktiven Umstands) und ihre änder- und löschbuttons #}
                                 <span>
                                     <form method='POST'>
                                         {{ element }}

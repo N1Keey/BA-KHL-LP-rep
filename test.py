@@ -1,3 +1,5 @@
 import database as db
+from pprint import pprint
 
-print(db.Frage.count_possibles())
+krankheiten=db.Krankheit.getall2dict()
+pprint(krankheiten)

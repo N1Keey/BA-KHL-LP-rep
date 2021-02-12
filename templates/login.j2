@@ -19,9 +19,10 @@
             <p><input type="password" id="Passwort" name="Passwort" placeholder="Passwort"></p>
             <p>
                 <input type="submit" id="Login" name="Login" value="Login"> 
-                <a href="/pw-vergessen">Passwort vergessen?</a>
+                {# <a href="/pw-vergessen">Passwort vergessen?</a> #}
             </p>
         </form>
+        {# Email oder Passwort falsch! #}
         {% for message in get_flashed_messages() %}
             <div class="alert">{{ message }}</div>
         {% endfor %}

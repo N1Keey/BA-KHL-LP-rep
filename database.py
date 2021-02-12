@@ -622,7 +622,7 @@ class Frage():
                 counterdicts.append(counterdict)
             return counterdicts
         
-        def calc_possibles_pUmstand(nUmstand, nUmstand_p_krankheit):
+        def calc_possibles_pUmstand_f1_2(nUmstand, nUmstand_p_krankheit):
             nPossibles=math.comb(nUmstand, Frage.nAntworten)-math.comb(nUmstand-nUmstand_p_krankheit,Frage.nAntworten)
             return nPossibles
         
@@ -637,7 +637,7 @@ class Frage():
             for umstand in krankheit.get('Umstände'):
                 nUmstand=dict_nUmstände.get(umstand)
                 elementcount=krankheit.get('Umstände').get(umstand)
-                nPossibles_pUmstand=calc_possibles_pUmstand(nUmstand, elementcount)
+                nPossibles_pUmstand=calc_possibles_pUmstand_f1_2(nUmstand, elementcount)
                 nPossibles_f1+=nPossibles_pUmstand
                 krankheit.get('Umstände')[umstand]=nPossibles_pUmstand
 
