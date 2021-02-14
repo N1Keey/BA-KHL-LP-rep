@@ -47,7 +47,7 @@ class User(Base):
 
     def getall2Dict():
         """Returns Userdata of all Users with roles in a list of Dictionarys
-        ID, Email, Password, Roles are the Keys
+        {'ID':user.id,'Email':user.email,'Password':user.password,'Roles':userrolelist}
         """
         userdicts=[]
         users=session.query(User).join(User.roles).all()
@@ -127,7 +127,8 @@ class Krankheit(Base):
         session_add_and_commit(new_Krankheit)
 
     def getall():
-        """Get all Krankheiten"""
+        """Get all Krankheiten
+        returns sqlelements"""
         krankheiten=[]
         sqlelement=session.query(Krankheit).order_by(Krankheit.id.asc()).all()
         for row in sqlelement:
@@ -135,50 +136,46 @@ class Krankheit(Base):
         return krankheiten
 
     def getall2dict():
+        """Alle Krankheiten mit Umständen als Liste von Dicts
+        Dict: 
+        [{
+            'Krankheit':krankheit.name, 'Umstände':{
+            "Ursachen":ursachen, "Symptome":symptome, "Komplikationen":komplikationen, "Diagnostiken":diagnostiken, "Therapien":therapien
+        }}]"""
         krankheiten=session.query(Krankheit).all()
         krankheitendicts=[]
         for krankheit in krankheiten:
             krankheitendict={'Krankheit':krankheit.name, 'Umstände':{}}
-            ursachen=[]
-            for ursache in krankheit.ursachen:
-                if ursache is not None:
-                    if ursache.name is None:
-                        ursache=session.query(Krankheit).filter(Krankheit.id==ursache.krankheit_id).first()
-                    ursachen.append(ursache.name)
+            ursachen=Umstand.getAll_fromKrankheit(Ursache, krankheit.name, True)
             krankheitendict.get('Umstände')['Ursachen']=ursachen
-            symptome=[]
-            for symptom in krankheit.symptome:
-                symptome.append(symptom.name)
+            symptome=Umstand.getAll_fromKrankheit(Symptom, krankheit.name, True)
             krankheitendict.get('Umstände')['Symptome']=symptome
-            komplikationen=[]
-            for komplikation in krankheit.komplikationen:
-                if komplikation is not None:
-                    if komplikation.name is None:
-                            komplikation=session.query(Krankheit).filter(Krankheit.id==komplikation.krankheit_id).first()
-                    komplikationen.append(komplikation.name)
+            komplikationen=Umstand.getAll_fromKrankheit(Komplikation, krankheit.name, True)
             krankheitendict.get('Umstände')['Komplikationen']=komplikationen
-            diagnostiken=[]
-            for diagnostik in krankheit.diagnostiken:
-                diagnostiken.append(diagnostik.name)
+            diagnostiken=Umstand.getAll_fromKrankheit(Diagnostik, krankheit.name, True)
             krankheitendict.get('Umstände')['Diagnostiken']=diagnostiken
-            therapien=[]
-            for therapie in krankheit.therapien:
-                therapien.append(therapie.name)
+            therapien=Umstand.getAll_fromKrankheit(Therapie, krankheit.name, True)
             krankheitendict.get('Umstände')['Therapien']=therapien
             krankheitendicts.append(krankheitendict)
         return krankheitendicts  
 
     def change(krankheit_name, new_name):
+        """
+        krankheit_name = alter Name der Krankheit
+        new_name = neuer Name für Krankheit
+        """
         element2change=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
         element2change.name=new_name
         session_add_and_commit(element2change)       
     
     def delete(krankheit_name):
+        """löscht Krankheit mit dem Namen: krankheit_name"""
         element2delete=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first()
         session.delete(element2delete)
         session.commit()
 
     def countelements():
+        """zählt Krankheiten"""
         nKrankheiten = session.query(Krankheit.id).count()
         return nKrankheiten
 
@@ -188,6 +185,7 @@ class Umstand(Base):
     name = Column(String(40), unique=True)
 
     def add(_class, krankheit_name, element_name):
+        """fügt Element mit element_name in Krankheit mit krankheit_name in den Umstand _class ein """
         if issubclass(_class, Umstand):
             element=session.query(_class).filter(_class.name==element_name).first() #query1 umstandelement
             if element is None:
@@ -195,13 +193,14 @@ class Umstand(Base):
                 session_add_and_commit(element)
             krankheit_elemente=_class.getAll_fromKrankheit(_class, krankheit_name, False) #3 get all umstandelements von kh
             krankheit=session.query(Krankheit).filter(Krankheit.name==krankheit_name).first() #4 query krankheit
-            krankheit_elemente.append(element)
+            krankheit_elemente.append(element) #5 füge neues Element zu alten hinzu 
             setkh_Umstand_elemente(_class.__name__, krankheit, krankheit_elemente)
             session.commit()
         else:
             pass # Fehlermeldung
 
     def getAll(_class):
+        """returns Alle Elemente des Umstands _class"""
         if issubclass(_class, Umstand):
             elemente=[]
             elementesql=session.query(_class).all()
@@ -215,8 +214,8 @@ class Umstand(Base):
 
     def getAll_fromKrankheit(_class, krankheit_name, toString=False):
         ''' _class => Umstand 
-            toString = True => return Namestrings
-            toString = False => return sqlelements 
+            toString = True => returns Namestrings
+            toString = False => returns sqlelements 
         '''
         if issubclass(_class, Umstand):
             krankheit_elemente=[]
@@ -229,7 +228,7 @@ class Umstand(Base):
                 if toString==True:
                     elementstrings=[]
                     for element in krankheit_elemente:
-                        if element.name is None:
+                        if element.name is None: #element = Krankheit
                             element=session.query(Krankheit).filter(Krankheit.id==element.krankheit_id).first()
                         if element is not None:  
                             elementstrings.append(element.name)
@@ -239,6 +238,7 @@ class Umstand(Base):
             pass # Fehlermeldung
 
     def changeall(_class, element_name, newElement_name):
+        """Ändert den Namen eines Elements"""
         if issubclass(_class, Umstand):
             element2change=session.query(_class).filter(_class.name==element_name).first()
             if element2change is not None: #None=> element2change = Krankheit
@@ -252,6 +252,9 @@ class Umstand(Base):
             pass # Fehlermeldung
 
     def changeone(_class, krankheit_name, element_name, newElement_name):
+        """Ändert das Element element_name der Krankheit krankheit_name
+            in newElement_name
+        """
         if issubclass(_class, Umstand):
             _classquery=session.query(_class)
             kh_query=session.query(Krankheit)
@@ -260,13 +263,13 @@ class Umstand(Base):
             krankheit_old=kh_query.filter(Krankheit.name==element_name).first()
             if element is None: #None => element=Krankheit
                 element=_classquery.filter(_class.krankheit_id==krankheit_old.id).first()
-            krankheit_elemente.remove(element)
+            krankheit_elemente.remove(element) #entfernt das Element von Krankheit
             krankheit=kh_query.filter(Krankheit.name==krankheit_name).first()
             new_kh_element=kh_query.filter(Krankheit.name==newElement_name).first()
-            if new_kh_element is None:
+            if new_kh_element is None: # new_element != Krankheit
                 new_element=_classquery.filter(_class.name==newElement_name).first()
-                if new_element is None: # new_element not existing
-                    new_element=_class(name=newElement_name)  
+                if new_element is None: # new_element gibts noch nicht in DB
+                    new_element=_class(name=newElement_name)  # -> wird neu angelegt
             else:
                 new_element=new_kh_element       
             krankheit_elemente.append(new_element)
@@ -276,6 +279,7 @@ class Umstand(Base):
             pass # Fehlermeldung
 
     def deleteall(_class, element_name):
+        """lösche Element aus DB"""
         if issubclass(_class, Umstand):
             element2delete=session.query(_class).filter(_class.name==element_name).first()
             if element2delete is None: #=> element2delete=Krankheit
@@ -286,6 +290,7 @@ class Umstand(Base):
             pass # Fehlermeldung
 
     def deleteone(_class, krankheit_name, element2del_name):
+        """Entferne Element aus Krankheit"""
         if issubclass(_class, Umstand):
             _classquery=session.query(_class)
             kh_query=session.query(Krankheit)
@@ -304,6 +309,9 @@ class Umstand(Base):
             pass # Fehlermeldung
 
     def elementsearch(element2look4):
+        """returns Dict
+        Dict={'Foundelement':'', 'Hideouts':[{'Krankheit':krankheit.get('Krankheit'),'Umstand':umstand}]}
+        """
         krankheitendict=Krankheit.getall2dict()
         foundkrankheitendict={'Foundelement':'', 'Hideouts':[]}
         for krankheit in krankheitendict:
@@ -312,7 +320,6 @@ class Umstand(Base):
                     if element.lower()==element2look4.lower():
                         foundelement=element
                         foundkrankheitendict['Foundelement']=foundelement
-                        krankheitendict=Krankheit.getall2dict()
                         hideout={'Krankheit':krankheit.get('Krankheit'),'Umstand':umstand}
                         foundkrankheitendict.get('Hideouts').append(hideout)         
         if foundkrankheitendict.get('Foundelement')=='':
@@ -320,6 +327,7 @@ class Umstand(Base):
         return foundkrankheitendict
 
     def countelements(_class):
+        """zählt Elemente des Umstands _class"""
         nUmstand = session.query(_class.id).count()
         return nUmstand
 
@@ -339,7 +347,7 @@ class VerknüpfenderUmstand(Umstand):
                 kh_query=session.query(Krankheit)
                 krankheit=kh_query.filter(Krankheit.name==krankheit2add).first()
                 element_kh=session.query(_class).filter(_class.krankheit_id==krankheit.id).first()
-                if element_kh is None:
+                if element_kh is None: #Krankheit gibts noch nicht
                     element_kh=_class(krankheit_id=krankheit.id)
                     session_add_and_commit(element_kh)
                 krankheit_elemente=VerknüpfenderUmstand.getAll_fromKrankheit(_class,krankheit_name, False)
@@ -395,7 +403,12 @@ Base.metadata.create_all(engine)
 class Frage():
     nAntworten=6
     def kh2umstand_prepare_Dicts(krankheiten4use):
+        """krankheiten4use => jeder Umstand (=5 Umstände)
+            Fragentyp 1 und 2
+        => pro Krankheit 10 Dicts
+        """
         def prepare_kh2umstand(fragentyp):
+            """baut die Dictionarys auf"""
             krankheitenfragendict={'Krankheit':krankheit, 'Umstände':{'Ursachen':[],'Symptome':[],
             'Komplikationen':[], 'Diagnostiken':[], 'Therapien':[]},'Fragentyp':fragentyp}
             return krankheitenfragendict
@@ -405,7 +418,14 @@ class Frage():
             krankheitenfragendicts.append(prepare_kh2umstand(2))
         return krankheitenfragendicts
     def kh2umstand_filldicts_withdata(krankheitendicts4fragen, update=False):
+        """füllt die vorbereiteten Dicts mit Daten
+        update=False => Alle Daten werden neu generiert
+        update=True => Nur Fehlende Daten werden neu generiert
+        """
         def fill(krankheit,umstand):
+            """Füllt umstand d. krankheit mit richtigen und falschen Elementen
+            {'Frage':'','Antworten':{'Right':[],'Wrong':[]}}
+            """
             krankheit.get('Umstände')[umstand]={'Frage':'','Antworten':{'Right':[],'Wrong':[]}}
             (umstandAll, umstandRights)=decide_umstand(krankheit,umstand)
             for element in umstandRights:
@@ -415,6 +435,7 @@ class Frage():
             for element in umstandAll:
                 krankheit.get('Umstände')[umstand]['Antworten']['Wrong'].append(element)           
         def decide_umstand(krankheit,umstand):
+            """gibt je nach Krankheit und Umstand die richtigen und falschen Antworten zurück"""
             if umstand=='Ursachen':
                 umstandRights=Ursache.getAll_fromKrankheit(Ursache,krankheit.get('Krankheit'), True)
                 umstandAll=Ursache.getAll(Ursache)
@@ -432,13 +453,21 @@ class Frage():
                 umstandAll=Therapie.getAll(Therapie)
             return umstandAll,umstandRights
         def fill_kh2umstand(krankheitendicts4fragen):
+            """geht durch Dict und füllt fehlende Daten auf
+            """
             for krankheit in krankheitendicts4fragen:
                 for umstand in krankheit.get('Umstände'):
-                    if krankheit.get('Umstände').get(umstand)==[]: # Wenn neu generiert und nicht aktuallisiert
+                    if krankheit.get('Umstände').get(umstand)==[]:
                         fill(krankheit,umstand)
         fill_kh2umstand(krankheitendicts4fragen)
-    def kh2umstand_builddicts_fromDatadicts(data4fragenDicts):
+    def kh2umstand_buildfragendicts_fromDatadicts(data4fragenDicts):
+        """Baut aus den gegebenen Daten die Fragendicts auf
+        Die Daten sind mit den Keys "Right" und "Wrong" gekennzeichnet
+        """
         def buildFragetext4dict(krankheit, umstand, fragentyp):
+            """Gibt Fragentext zurück
+            für fragentyp 2 auch negativ gestellt
+            """
             if fragentyp==2:
                 nicht=' <u>nicht</u>'
             else:
@@ -456,35 +485,42 @@ class Frage():
             frage=frage%(umstand,krankheit,nicht)
             return frage
         def build(krankheit, umstand):
-            antwortenDict={}
-            antworten=krankheit.get('Umstände').get(umstand).get('Antworten')
-            fragentyp = krankheit.get('Fragentyp')
-            if 'Right' in antworten:
-                rightAnsAll=antworten.get('Right')
+            """baut aus den Datendicts Dicts für die Fragen"""
+            def set_rightans4fragen(antwortenDict, rightAnsAll, rnd):
+                """füllt antwortenDict mit richtigen Antworten
+                {antwort:right}
+                """
                 rightAns=[]
-                rnd=random.randint(1,Frage.nAntworten-1)
-                if Frage.nAntworten > len(rightAnsAll):
-                    rnd=random.randint(1,len(rightAnsAll))
-                while len(rightAns) < rnd:
+                while len(rightAns) < rnd: #füllt rightAns mit rnd richtigen antworten
                     rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
                     if rightAn not in rightAns:
                         rightAns.append(rightAn)
-                        if fragentyp==2:
-                            antwortenDict[rightAn]='wrong'
-                        else:
-                            antwortenDict[rightAn]='right'
-            if 'Wrong' in antworten:
-                wrongAnsAll=antworten.get('Wrong')
+                        antwortenDict[rightAn]='right'
+            def set_wrongans4fragen(antwortenDict, wrongAnsAll, rnd):
+                """füllt antwortenDict mit falschen Antworten
+                {antwort:wrong}
+                """
                 wrongAns=[]
                 while len(wrongAns) < Frage.nAntworten-rnd:
                     wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
                     if wrongAn not in wrongAns:
                         wrongAns.append(wrongAn)  
-                        if fragentyp==2:
-                            antwortenDict[wrongAn]='right' 
-                        else:
-                            antwortenDict[wrongAn]='wrong' 
-            if 'Right' in antworten or 'Wrong' in antworten:
+                        antwortenDict[wrongAn]='wrong' 
+            antwortenDict={}
+            antworten=krankheit.get('Umstände').get(umstand).get('Antworten')
+            fragentyp = krankheit.get('Fragentyp')
+            if 'Right' in antworten:
+                rightAnsAll=antworten.get('Right')
+                if Frage.nAntworten > len(rightAnsAll): # Falls weniger als 6 Elemente in Umstand sind
+                    rnd=random.randint(1,len(rightAnsAll))
+                else: 
+                    rnd=random.randint(1,Frage.nAntworten-1)
+                set_rightans4fragen(antwortenDict, rightAnsAll, rnd)
+            if 'Wrong' in antworten:
+                wrongAnsAll=antworten.get('Wrong')
+                set_wrongans4fragen(antwortenDict, wrongAnsAll, rnd)
+            if 'Right' in antworten or 'Wrong' in antworten: # Right or Wrong, da beim aktuallisieren nur das Element, dass aktualisiert wird
+                                                                # Erneuert wird
                 keys=list(antwortenDict.items())
                 random.shuffle(keys)
                 antwortenDict=dict(keys)
@@ -495,15 +531,16 @@ class Frage():
             for umstand in krankheit.get('Umstände'):
                 build(krankheit, umstand)
         return data4fragenDicts
+
     def kh2umstand_initiatefragen(krankheiten4use):
         fragenDicts=Frage.kh2umstand_prepare_Dicts(krankheiten4use)
         Frage.kh2umstand_filldicts_withdata(fragenDicts)
-        Frage.kh2umstand_builddicts_fromDatadicts(fragenDicts)
+        Frage.kh2umstand_buildfragendicts_fromDatadicts(fragenDicts)
         save_fragendicts2json(fragenDicts)
         return fragenDicts
     def kh2umstand_updatefrage(fragenDicts):
         Frage.kh2umstand_filldicts_withdata(fragenDicts, True)  
-        Frage.kh2umstand_builddicts_fromDatadicts(fragenDicts)  
+        Frage.kh2umstand_buildfragendicts_fromDatadicts(fragenDicts)  
         save_fragendicts2json(fragenDicts)
     
     def kh2umstand_prepare_fragen4xml(savedfragen):
