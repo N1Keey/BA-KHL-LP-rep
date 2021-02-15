@@ -486,7 +486,7 @@ class Frage():
             return frage
         def build(krankheit, umstand):
             """baut aus den Datendicts Dicts für die Fragen"""
-            def set_rightans4fragen(antwortenDict, rightAnsAll, rnd):
+            def set_rightans4fragen(antwortenDict, rightAnsAll, rnd, fragentyp):
                 """füllt antwortenDict mit richtigen Antworten
                 {antwort:right}
                 """
@@ -495,8 +495,11 @@ class Frage():
                     rightAn=rightAnsAll[random.randint(0,len(rightAnsAll)-1)]
                     if rightAn not in rightAns:
                         rightAns.append(rightAn)
-                        antwortenDict[rightAn]='right'
-            def set_wrongans4fragen(antwortenDict, wrongAnsAll, rnd):
+                        if fragentyp==1:
+                            antwortenDict[rightAn]='right'
+                        elif fragentyp==2:
+                            antwortenDict[rightAn]='wrong'
+            def set_wrongans4fragen(antwortenDict, wrongAnsAll, rnd, fragentyp):
                 """füllt antwortenDict mit falschen Antworten
                 {antwort:wrong}
                 """
@@ -504,21 +507,30 @@ class Frage():
                 while len(wrongAns) < Frage.nAntworten-rnd:
                     wrongAn=wrongAnsAll[random.randint(0,len(wrongAnsAll)-1)]
                     if wrongAn not in wrongAns:
-                        wrongAns.append(wrongAn)  
-                        antwortenDict[wrongAn]='wrong' 
+                        wrongAns.append(wrongAn) 
+                        if fragentyp==1:
+                            antwortenDict[wrongAn]='wrong' 
+                        elif fragentyp==2:
+                            antwortenDict[wrongAn]='right' 
             antwortenDict={}
             antworten=krankheit.get('Umstände').get(umstand).get('Antworten')
             fragentyp = krankheit.get('Fragentyp')
             if 'Right' in antworten:
                 rightAnsAll=antworten.get('Right')
-                if Frage.nAntworten > len(rightAnsAll): # Falls weniger als 6 Elemente in Umstand sind
-                    rnd=random.randint(1,len(rightAnsAll))
-                else: 
-                    rnd=random.randint(1,Frage.nAntworten-1)
-                set_rightans4fragen(antwortenDict, rightAnsAll, rnd)
+                if fragentyp==1:
+                    if Frage.nAntworten > len(rightAnsAll): # Falls weniger als 6 Elemente in Umstand sind
+                        rnd=random.randint(1,len(rightAnsAll))
+                    else: 
+                        rnd=random.randint(1,Frage.nAntworten)
+                elif fragentyp==2:
+                    if Frage.nAntworten > len(rightAnsAll): # Falls weniger als 6 Elemente in Umstand sind
+                        rnd=random.randint(0,len(rightAnsAll))
+                    else: 
+                        rnd=random.randint(0,Frage.nAntworten)
+                set_rightans4fragen(antwortenDict, rightAnsAll, rnd, fragentyp)
             if 'Wrong' in antworten:
                 wrongAnsAll=antworten.get('Wrong')
-                set_wrongans4fragen(antwortenDict, wrongAnsAll, rnd)
+                set_wrongans4fragen(antwortenDict, wrongAnsAll, rnd, fragentyp)
             if 'Right' in antworten or 'Wrong' in antworten: # Right or Wrong, da beim aktuallisieren nur das Element, dass aktualisiert wird
                                                                 # Erneuert wird
                 keys=list(antwortenDict.items())
