@@ -20,12 +20,10 @@
         <p>
             <b>Krankheit/en:</b>
             {% if foundkrankheitendict.get('Hideouts') != [] %}
-                {# Dict=> 'Hideouts' : {'Krankheit':krankheit, 'Umstand':umstand} #}
                 {% for krankheit in foundkrankheitendict.get('Hideouts') %}
                     <u>{{ krankheit.get('Krankheit') }} ({{ krankheit.get('Umstand') }})</u>
                 {% endfor %}
             {% else %}
-                {# Element ist so nicht oder garnicht in Datenbank enthalten #}
                 <u>Keine Krankheit gefunden</u>
             {% endif %}
         </p>

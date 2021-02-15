@@ -2,7 +2,7 @@
 {% block styles %}
     {{ super() }}
     <style>
-        .checkbox_krankheit{
+        .checkboxes_4_kh_choosing{
             top:67px;
             height:86%;
         }
@@ -65,21 +65,19 @@
     {{ super() }}
 {% endblock %}
 {% block left_navbar %}
-    {# Krankheitsauswahl -> Checkbox #}
     <div class='left_navbar'>
         <form method='POST'>
-            <ul class="checkbox_krankheit">
+            <ul class="checkboxes_4_kh_choosing">
                 {% for krankheit in krankheiten %}
                     <li>
                         <label class='kh_checkbox_label'>
-                            {{ krankheit }}<input type="checkbox" name="checkbox_Krankheit" value="{{ krankheit }}" id="cbx_kh" {% if cbx_checked == True %} checked {% endif %}>
+                            {{ krankheit }}<input type="checkbox" name="checkbox_Krankheit" value="{{ krankheit }}" id="cbx_4_kh" {% if cbx_checked == True %} checked {% endif %}>
                         </label>
                     </li>
                 {% endfor %}
             </ul>
             <input type="submit" name="submit" value="Bestätigen" id="btn_kh_cbxsubmit">
         </form>
-        {# Kreuze alle Krankheitencheckboxen an #}
         <form method='POST'>
             <input type="submit" name="cbx_checkall" {% if cbx_checked ==True %} value="Keine Krankheiten" {% else %} value="Alle Krankheiten" {% endif %} id="cbx_checkall">
             <input type="hidden" name="cbx_allchecked" value="{{cbx_checked}}"> {# Für alternierendes Check / Uncheck Aller Krankheitencheckboxen #}
@@ -87,7 +85,6 @@
     </div>
 {% endblock %}
 {% block content %}
-    {# Fragen Ansicht => neugenerieren o. löschen #}
     <div class='content'>
         <div class='Fragen'>
             {% for krankheit in fragenDicts %}
@@ -96,21 +93,17 @@
                         <p>
                             <h4 class="Frage">{{ krankheit.get('Umstände').get(umstand).get('Frage') }}</h4>
                             <p>
-                                {# Fragenoptinen #}
                                 <div class="Antworten">
                                     {% for antwort in krankheit.get('Umstände').get(umstand).get('Antworten') %}
-                                        {# fragen_checkbox_label_wrong => rote Umrandung, ..._right => grüne Umrandung #}
                                         <label {% if krankheit.get('Umstände').get(umstand).get('Antworten').get(antwort) == "wrong" %} class='fragen_checkbox_label_wrong' {% else %} class='fragen_checkbox_label_right' {% endif %}>
                                             {{ antwort }} <input type="checkbox" name="{{ antwort }}" value="{{ krankheit.get('Umstände').get(umstand).get('Antworten').get(antwort) }}">
                                         </label>
                                     {% endfor %}
                                 </div>
                             </p>
-                            {# neu generieren #}
                             <form style='display:inline;' action='/fragen_update' method='POST'>
                                 <button type='submit' name='fragenupdate' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ umstand }}"}'>🔄</button>
                             </form>
-                            {# löschen #}
                             <form style='display:inline;' action='/fragen_delete' method='POST'>
                                 <button type='submit' name='fragendelete' value='{"krankheit":"{{ krankheit.get("Krankheit") }}","umstand":"{{ umstand }}"}'>🗑️</button>
                             </form>
@@ -118,8 +111,6 @@
                     </div>
                 {% endfor %}
             {% endfor %}
-            {# für den Fall, dass fragenDicts leer ist #}
-            {# soll nix exportiert werden können #}
             {% if fragenDicts != [] %}
                 <form method="POST">
                     <button type="submit" name="exportdata" id="btn_fragen_cbxexport">Export</button>

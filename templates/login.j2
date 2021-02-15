@@ -22,9 +22,8 @@
                 {# <a href="/pw-vergessen">Passwort vergessen?</a> #}
             </p>
         </form>
-        {# Email oder Passwort falsch! #}
         {% for message in get_flashed_messages() %}
-            <div class="alert">{{ message }}</div>
+            <div class="alert">{{ message }}</div> {# Email oder Passwort falsch! #}
         {% endfor %}
     </div>
 {% endblock %}

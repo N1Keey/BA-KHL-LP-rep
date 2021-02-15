@@ -94,7 +94,10 @@ def create_answer_main(question, fragendict):
         pointsright=0
     else:
         pointsright=100/rcounter
-    pointswrong=100/((len(fragendict.get('Antworten'))-rcounter))
+    if (len(fragendict.get('Antworten'))-rcounter) != 0:
+        pointswrong=100/((len(fragendict.get('Antworten'))-rcounter))
+    else: 
+        pointswrong=0
     for antwort in fragendict.get('Antworten'):
         if fragendict.get('Antworten').get(antwort)=='right':
             answer=ET.Element('answer', format='html', fraction='%s'%pointsright)

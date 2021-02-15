@@ -22,6 +22,7 @@ def login():
 
 @app.route('/pw-vergessen', methods=['GET','POST'])
 def pw_vergessen():
+    """nicht implementiert"""
     # if request.method == 'POST':
     #     rform=request.form
         # users=db.User.getall2Dict()
@@ -39,9 +40,9 @@ def logout():
     session['Admin']=False
     return redirect('/')
 
-# pw_validation=Passwortbestätigung
 @app.route('/registrieren',methods=['GET','POST'])
 def registrieren():
+    """pw_validation=Passwortbestätigung"""
     if not session.get('logged_in'):
         return redirect('/')
     if request.method=='POST':
