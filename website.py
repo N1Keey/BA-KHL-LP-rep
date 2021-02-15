@@ -51,8 +51,8 @@ def registrieren():
         password=rform['Passwort']
         pw_validation=rform['pw_validation']
         if password == pw_validation:
-            db.User.regist(email,password) #Registriert User mit Email und Passwort
-            users=db.User.getall2Dict() #Speichert alle Daten der User in einem Dictionary
+            db.User.regist(email,password) 
+            users=db.User.getall2Dict()
             return render_template('usermanagement.j2', users=users)     
         else:
             flash('Passwörter stimmen nicht überein!')
@@ -113,7 +113,7 @@ def fragen_update():
         fragenDicts=db.load_json2fragendicts()
         for krankheit in fragenDicts:
             if krankheit.get('Krankheit')==_krankheit:
-                krankheit.get('Umstände')[_umstand]=[]  
+                krankheit.get('Umstände')[_umstand]=[] # leeres wird wird neu generiert
                 db.Frage.kh2umstand_updatefrage(fragenDicts)
     session['fragenChanged']=True
     return redirect('/fragen')
