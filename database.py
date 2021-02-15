@@ -298,10 +298,10 @@ class Umstand(Base):
                 new_element=_classquery.filter(_class.name==newElement_name).first()
                 if new_element is None:
                     new_element=_class(name=newElement_name)
+                krankheit_elemente.append(new_element)
+                setkh_Umstand_elemente(_class.__name__, krankheit, krankheit_elemente)
             else:
-                new_element=new_kh_element       
-            krankheit_elemente.append(new_element)
-            setkh_Umstand_elemente(_class.__name__, krankheit, krankheit_elemente)
+                print('Krankheiten nur über addKrankheit hinzufügen')       
             session.commit()
         else:
             pass # Fehlermeldung
