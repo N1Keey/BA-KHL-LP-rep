@@ -815,13 +815,21 @@ class Frage():
                 counterdicts.append(counterdict)
             return counterdicts
         
-        def calc_possibles_pUmstand_f1_2(nUmstand, nUmstand_p_krankheit):
+        def calc_possibles_pUmstand_f1(nUmstand, nUmstand_p_krankheit):
             """Berechnet Anzahl an möglichen Fragen pro Krankheit und pro Umstand für Typ 1
             Parameter: nUmstand = int => Anzahl Umstandselemente gesamt, nUmstand_p_krankheit = int => Anzahl Umstandselement E Krankheit
             return nPossibles = int => mögliche Anzahl Fragen
             """
-            nPossibles=math.comb(nUmstand, Frage.nAntworten)-math.comb(nUmstand-nUmstand_p_krankheit,Frage.nAntworten)
-            return nPossibles
+            nPossibles_f1=math.comb(nUmstand, Frage.nAntworten)-math.comb(nUmstand-nUmstand_p_krankheit,Frage.nAntworten)
+            return nPossibles_f1
+
+        def calc_possibles_pUmstand_f2(nUmstand, nUmstand_p_krankheit):
+            """Berechnet Anzahl an möglichen Fragen pro Krankheit und pro Umstand für Typ 1
+            Parameter: nUmstand = int => Anzahl Umstandselemente gesamt, nUmstand_p_krankheit = int => Anzahl Umstandselement E Krankheit
+            return nPossibles = int => mögliche Anzahl Fragen
+            """
+            nPossibles_f2=math.comb(nUmstand, Frage.nAntworten)-math.comb(nUmstand_p_krankheit,Frage.nAntworten)
+            return nPossibles_f2
         
         def calc_possibles_f3():
             """Berechnet Anzahl möglicher Fragen für Typ3
@@ -833,15 +841,17 @@ class Frage():
 
         dict_nElements_pKrankheit_pUmstand = count_elements_p_Krankheit_p_Umstand_2dict()
         nPossibles_f1=0
+        nPossibles_f2=0
         for krankheitdict in dict_nElements_pKrankheit_pUmstand:
             for umstand in krankheitdict.get('Umstände'):
                 nUmstand=dict_nUmstände.get(umstand)
                 elementcount=krankheitdict.get('Umstände').get(umstand)
-                nPossibles_pUmstand=calc_possibles_pUmstand_f1_2(nUmstand, elementcount)
-                nPossibles_f1+=nPossibles_pUmstand
-                krankheitdict.get('Umstände')[umstand]=nPossibles_pUmstand
+                nPossibles_pUmstand_f1=calc_possibles_pUmstand_f1(nUmstand, elementcount)
+                nPossibles_pUmstand_f2=calc_possibles_pUmstand_f2(nUmstand, elementcount)
+                nPossibles_f1+=nPossibles_pUmstand_f1
+                nPossibles_f2+=nPossibles_pUmstand_f2
 
-        nPossibles_f1_f2=nPossibles_f1*2
+        nPossibles_f1_f2=nPossibles_f1+nPossibles_f2
         nPossibles_f3=calc_possibles_f3()
         nPossibles=nPossibles_f1_f2+nPossibles_f3
         return nPossibles
